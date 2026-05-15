@@ -1,14 +1,4 @@
 
-const fs = require("fs");
-
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
-
-if (!fs.existsSync("data")) {
-  fs.mkdirSync("data");
-}
-
 require("dotenv").config();
 
 const express = require("express");
@@ -21,6 +11,12 @@ const { run, get, all } = require("./database");
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+
+const dataDirSafe = path.join(__dirname, "data");
+const uploadDirSafe = path.join(__dirname, "uploads");
+if (!fs.existsSync(dataDirSafe)) fs.mkdirSync(dataDirSafe, { recursive: true });
+if (!fs.existsSync(uploadDirSafe)) fs.mkdirSync(uploadDirSafe, { recursive: true });
+
 
 const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
