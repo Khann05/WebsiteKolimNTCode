@@ -359,7 +359,6 @@ function renderMaterials(materials){
       '<div class="section-actions">' +
         '<button class="btn ' + smartClass + '" onclick="setParentPPTSortMode(&quot;smart&quot;)">Default</button>' +
         '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
-        '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button>' +
       '</div>' +
     '</div>';
 
@@ -386,6 +385,14 @@ function renderMaterials(materials){
     }).join("");
     html += "</div>";
   });
+
+  if(sorted.length > 4){
+    html += '<div class="see-all-bottom">' +
+      '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' +
+      (expanded ? "Show Less" : "See All (" + hidden + ")") +
+      '</button></div>';
+  }
+
   getEl("materialList").innerHTML = html;
 }
 
@@ -398,7 +405,6 @@ function renderCertificates(certificates){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Sertifikat Digital</div><div class="subtitle">Sertifikat tampil/download kalau sudah di-unlock.</div></div>' +
-      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
     '</div>';
 
   if(!sorted.length){
@@ -421,6 +427,11 @@ function renderCertificates(certificates){
     `;
   }).join("");
   html += '</div>';
+
+  if(sorted.length > 4){
+    html += '<div class="see-all-bottom"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All (" + hidden + ")") + '</button></div>';
+  }
+
   getEl("certificateList").innerHTML = html;
 }
 
@@ -433,7 +444,6 @@ function renderAttendances(attendances){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Riwayat Pertemuan</div><div class="subtitle">Daftar semua sesi les anak.</div></div>' +
-      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
     '</div>';
 
   if(!sorted.length){
@@ -451,6 +461,11 @@ function renderAttendances(attendances){
     `;
   }).join("");
   html += '</div>';
+
+  if(sorted.length > 4){
+    html += '<div class="see-all-bottom"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All (" + hidden + ")") + '</button></div>';
+  }
+
   getEl("attendanceList").innerHTML = html;
 }
 

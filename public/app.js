@@ -390,7 +390,7 @@ function sendWA(){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (selectedStudent.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://kolimntcode.up.railway.app/parent.html\n\n" +
+    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
     "Terima kasih";
 
   window.open("https://wa.me/" + digits(selectedStudent.phone) + "?text=" + encodeURIComponent(message), "_blank");
@@ -440,7 +440,7 @@ function buildAttendanceWAMessage(student, attendance){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (student.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://kolimntcode.up.railway.app/parent.html\n\n" +
+    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
     "Terima kasih"
   );
 }
@@ -806,7 +806,6 @@ function renderAccess(){
       <div class="section-actions">
         <button class="btn ${pptSortMode === "smart" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('smart')">Default</button>
         <button class="btn ${pptSortMode === "all" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('all')">Sort All</button>
-        ${adminSeeAllButton("access", list.length, visible.length)}
       </div>
     </div>`;
   Object.keys(groups).forEach(function(cat){
@@ -826,6 +825,11 @@ function renderAccess(){
     }).join("");
     html += "</div>";
   });
+
+  if(list.length > 4){
+    html += '<div class="see-all-bottom">' + adminSeeAllButton("access", list.length, visible.length) + '</div>';
+  }
+
   $("tabContent").innerHTML = html;
 }
 
@@ -842,7 +846,6 @@ function renderLibrary(){
       <div><div class="title">Library PPT Global</div><div class="subtitle">Master PPT untuk semua siswa. Awalnya tampil 4 data agar tidak terlalu panjang.</div></div>
       <div class="section-actions">
         <button class="btn btn-green" onclick="openLibraryModal()">Upload PPT Global</button>
-        ${adminSeeAllButton("library", list.length, visible.length)}
       </div>
     </div>`;
   Object.keys(groups).forEach(function(cat){
@@ -861,6 +864,11 @@ function renderLibrary(){
     }).join("");
     html += "</div>";
   });
+
+  if(list.length > 4){
+    html += '<div class="see-all-bottom">' + adminSeeAllButton("library", list.length, visible.length) + '</div>';
+  }
+
   $("tabContent").innerHTML = html;
 }
 
@@ -873,7 +881,6 @@ function renderCertificates(){
       <div><div class="title">Sertifikat Digital ${safe(s.name)}</div><div class="subtitle">Sertifikat khusus siswa ini. Awalnya tampil 4 data agar lebih rapi.</div></div>
       <div class="section-actions">
         <button class="btn btn-purple" onclick="openCertificateModal()">Upload Sertifikat</button>
-        ${adminSeeAllButton("certificates", list.length, visible.length)}
       </div>
     </div>`;
   if(!list.length){
@@ -896,6 +903,11 @@ function renderCertificates(){
     }).join("");
     html += '</div>';
   }
+
+  if(list.length > 4){
+    html += '<div class="see-all-bottom">' + adminSeeAllButton("certificates", list.length, visible.length) + '</div>';
+  }
+
   $("tabContent").innerHTML = html;
 }
 

@@ -6,20 +6,20 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const dataDirSafe = path.join(__dirname, "data");
+const uploadDirSafe = path.join(__dirname, "uploads");
+if (!fs.existsSync(dataDirSafe)) fs.mkdirSync(dataDirSafe, { recursive: true });
+if (!fs.existsSync(uploadDirSafe)) fs.mkdirSync(uploadDirSafe, { recursive: true });
 const { run, get, all } = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
-const dataDirSafe = path.join(__dirname, "data");
-const uploadDirSafe = path.join(__dirname, "uploads");
-if (!fs.existsSync(dataDirSafe)) fs.mkdirSync(dataDirSafe, { recursive: true });
-if (!fs.existsSync(uploadDirSafe)) fs.mkdirSync(uploadDirSafe, { recursive: true });
 
 
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+const uploadDir = uploadDirSafe;
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),

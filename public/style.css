@@ -997,3 +997,12 @@ body{
   margin-top:18px;
 }
 
+
+.see-all-bottom{
+  display:flex;
+  justify-content:center;
+  margin:18px 0 6px;
+}
+.see-all-bottom .btn{
+  min-width:170px;
+}
