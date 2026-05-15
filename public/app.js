@@ -1,6 +1,6 @@
 const API = "";
 const START_YEAR = 2026;
-const START_MONTH = 4;
+const START_MONTH = 3;
 const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const colors = ["#4f46e5","#10b981","#f97316","#ec4899","#0ea5e9","#8b5cf6","#14b8a6","#64748b"];
 
