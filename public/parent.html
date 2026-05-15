@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parent Portal Les Koding</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<div class="app">
+  <section id="loginView" class="panel login-card">
+    <div class="eyebrow">Parent Portal</div>
+    <h1><span class="gradient">Halo.</span></h1>
+    <p class="subtitle">Masukkan kode untuk melihat progress anak. Semua PPT terlihat, tapi yang locked belum bisa didownload.</p>
+    <div style="margin-top:18px">
+      <label>Kode Akses</label>
+      <input id="parentCode" class="field" placeholder="Contoh: ANDI123"/>
+    </div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="loginParent()">Masuk</button></div>
+  
+<div class="parent-right-logo-wrap">
+  <img src="/logo.png" class="parent-right-logo">
+</div>
+</section>
+
+
+  <section id="parentApp" class="hidden">
+    <div class="parent-top">
+      <div class="brand"><div class="logo"><img class="site-logo-img" src="/logo.png" alt="Kolim NT Code"></div><div>Parent Portal</div></div>
+      <button class="btn btn-light" onclick="logoutParent()">Logout</button>
+    </div>
+
+    <section id="parentHero" class="hero"></section>
+
+    <section class="stats">
+      <div class="stat"><div class="stat-icon" id="pIconMeet"></div><div><div class="stat-label">Pertemuan</div><div class="stat-num" id="pMeetings">0</div></div></div>
+      <div class="stat"><div class="stat-icon" id="pIconMat"></div><div><div class="stat-label">PPT Terbuka</div><div class="stat-num" id="pMaterials">0</div></div></div>
+      <div class="stat"><div class="stat-icon" id="pIconLocked"></div><div><div class="stat-label">PPT Locked</div><div class="stat-num" id="pLocked">0</div></div></div>
+      <div class="stat"><div class="stat-icon" id="pIconCert"></div><div><div class="stat-label">Sertifikat</div><div class="stat-num" id="pCertificates">0</div></div></div>
+    </section>
+
+    <div id="parentProgressWrap"></div>
+
+    <section class="panel" style="margin-bottom:22px">
+      <div class="panel-head"><div><div class="title">Notifikasi</div><div class="subtitle">Info terbaru dari progress les.</div></div></div>
+      <div id="notifList" class="notif-list"></div>
+    </section>
+
+    <section class="panel" style="margin-bottom:22px">
+      <div class="panel-head"><div><div class="title">Kalender Riwayat Les</div><div class="subtitle">Hari yang ada les akan muncul.</div></div></div>
+      <div id="parentCalendar"></div>
+    </section>
+
+    <section class="panel" style="margin-bottom:22px">
+      <div id="materialList"></div>
+    </section>
+
+    <section class="panel" style="margin-bottom:22px">
+      <div id="certificateList"></div>
+    </section>
+
+    <section class="panel">
+      <div id="attendanceList"></div>
+    </section>
+  </section>
+</div>
+
+<script>
+const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const START_YEAR = 2026;
+const START_MONTH = 4;
+const nowDate = new Date();
+let currentMonth = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_MONTH : nowDate.getMonth();
+let currentYear = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_YEAR : nowDate.getFullYear();
+let currentStudent = null;
+let parentPPTSortMode = "smart";
+let parentSectionExpanded = { materials:false, certificates:false, attendances:false };
+
+function getEl(id){ return document.getElementById(id); }
+function safe(v){ return String(v || "").replace(/[&<>"]/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
+function formatDate(iso){ if(!iso) return "-"; return new Date(iso + "T00:00:00").toLocaleDateString("id-ID",{day:"2-digit",month:"long",year:"numeric"}); }
+
+function svg(name){
+  const icons = {
+    student:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>',
+    calendar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+    folder:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    cert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="5"/><path d="M8 13l-2 8 6-3 6 3-2-8"/></svg>',
+    lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>'
+  };
+  return icons[name] || icons.folder;
+}
+
+function initParentIcons(){
+  const map = { pIconMeet:"calendar", pIconMat:"folder", pIconLocked:"lock", pIconCert:"cert" };
+  Object.keys(map).forEach(function(id){ if(getEl(id)) getEl(id).innerHTML = svg(map[id]); });
+}
+
+function showToast(msg,type){
+  const old = document.querySelector(".toast");
+  if(old) old.remove();
+  const el = document.createElement("div");
+  el.className = "toast " + (type || "success");
+  el.innerHTML = '<span class="toast-dot"></span><span>' + safe(msg) + '</span>';
+  document.body.appendChild(el);
+  setTimeout(function(){ el.remove(); },2500);
+}
+
+
+
+
+function progressFillByNodes(progress, nodes){
+  if(progress <= nodes[0]) return 0;
+  const last = nodes.length - 1;
+  if(progress >= nodes[last]) return 100;
+
+  for(let i = 0; i < last; i++){
+    const start = nodes[i];
+    const end = nodes[i + 1];
+
+    if(progress >= start && progress <= end){
+      const startPercent = (i / last) * 100;
+      const endPercent = ((i + 1) / last) * 100;
+      const local = (progress - start) / (end - start);
+      return startPercent + ((endPercent - startPercent) * local);
+    }
+  }
+
+  return 0;
+}
+
+function progressBoxParent(){
+  const progress = Number(currentStudent.progress_session || 0);
+  const level = Number(currentStudent.progress_session || 0) >= 15 ? "intermediate" : "beginner";
+
+  if(level !== "intermediate"){
+    const target = 14;
+    const fill = progressFillByNodes(progress, [0, 4, 8, 14]);
+    const note = progress >= 14
+      ? "Beginner sudah tercapai. Intermediate akan tampil mulai session 15."
+      : "Beginner berjalan. Target Beginner sampai session 14. Intermediate terbuka mulai session 15.";
+
+    return `
+      <section class="panel" style="margin-bottom:22px">
+        <div class="panel-head">
+          <div>
+            <div class="title">Progress Perjalanan Les</div>
+            <div class="subtitle">Session sekarang: <b>${progress}</b> • Level: <b>Beginner</b></div>
+          </div>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${fill}%"></div>
+          <div class="progress-node done">0</div>
+          <div class="progress-node ${progress >= 4 ? "done" : ""}">4</div>
+          <div class="progress-node ${progress >= 8 ? "done" : ""}">8</div>
+          <div class="progress-node ${progress >= 14 ? "done" : ""}">14<div class="flag">Beginner</div></div>
+        </div>
+        <div class="progress-note">${safe(note)}</div>
+      </section>
+    `;
+  }
+
+  const start = 15;
+  const target = 31;
+  const fill = progressFillByNodes(progress, [15, 20, 26, 31]);
+  const note = progress >= 31
+    ? "Intermediate sudah tercapai. Sertifikat akan muncul setelah admin menambahkannya."
+    : "Intermediate berjalan. Target Intermediate sampai session 31.";
+
+  return `
+    <section class="panel" style="margin-bottom:22px">
+      <div class="panel-head">
+        <div>
+          <div class="title">Progress Perjalanan Les</div>
+          <div class="subtitle">Session sekarang: <b>${progress}</b> • Level: <b>Intermediate</b></div>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width:${fill}%"></div>
+        <div class="progress-node done">15</div>
+        <div class="progress-node ${progress >= 20 ? "done" : ""}">20</div>
+        <div class="progress-node ${progress >= 26 ? "done" : ""}">26</div>
+        <div class="progress-node ${progress >= 31 ? "done" : ""}">31<div class="flag">Intermediate</div></div>
+      </div>
+      <div class="progress-note">${safe(note)}</div>
+    </section>
+  `;
+}
+
+
+function getUploadOrder(item){
+  return Number(item.id || item.library_id || item.material_id || 0);
+}
+
+function sortParentMaterials(items){
+  const arr = Array.isArray(items) ? items.slice() : [];
+
+  if(parentPPTSortMode === "all"){
+    return arr.sort(function(a,b){
+      return getUploadOrder(a) - getUploadOrder(b);
+    });
+  }
+
+  return arr.sort(function(a,b){
+    const aLocked = a.is_unlocked ? 0 : 1;
+    const bLocked = b.is_unlocked ? 0 : 1;
+    if(aLocked !== bLocked) return aLocked - bLocked;
+    return getUploadOrder(a) - getUploadOrder(b);
+  });
+}
+
+function coverHTML(item, locked){
+  let content = "";
+  if(item.cover_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(item.cover_path)}">`;
+  else if(item.file_type && item.file_type.indexOf("image/") === 0 && item.file_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(item.file_path)}">`;
+  else content = `<div class="cover-placeholder ${locked ? "locked-cover" : ""}">${svg(locked ? "lock" : "folder")}</div>`;
+  if(!locked) return content;
+  return `<div class="cover-wrap">${content}<div class="lock-layer">LOCKED</div></div>`;
+}
+
+async function loginParent(){
+  const code = getEl("parentCode").value.trim().toUpperCase();
+  if(!code){ showToast("Kode wajib diisi","error"); return; }
+  localStorage.setItem("parentCode", code);
+  await loadParent(code);
+}
+
+function logoutParent(){
+  localStorage.removeItem("parentCode");
+  currentStudent = null;
+  getEl("loginView").classList.remove("hidden");
+  getEl("parentApp").classList.add("hidden");
+  getEl("parentCode").value = "";
+}
+
+async function loadParent(code){
+  try{
+    const res = await fetch("/api/parent/" + encodeURIComponent(code));
+    const data = await res.json();
+    if(!res.ok){
+      localStorage.removeItem("parentCode");
+      showToast(data.error || "Kode tidak ditemukan","error");
+      return;
+    }
+    currentStudent = data;
+    getEl("loginView").classList.add("hidden");
+    getEl("parentApp").classList.remove("hidden");
+    renderParent();
+  }catch(e){ showToast("Gagal mengambil data","error"); }
+}
+
+function groupByCategory(items){
+  const groups = {};
+  items.forEach(function(item){
+    const cat = item.category || "Beginner";
+    if(!groups[cat]) groups[cat] = [];
+    groups[cat].push(item);
+  });
+  return groups;
+}
+
+
+function setParentPPTSortMode(mode){
+  parentPPTSortMode = mode === "all" ? "all" : "smart";
+  if(currentStudent){
+    renderParent(currentStudent);
+  }
+}
+
+
+function toggleParentSection(section){
+  parentSectionExpanded[section] = !parentSectionExpanded[section];
+  renderParent();
+}
+
+function renderParent(){
+  const s = currentStudent;
+  const attendances = s.attendances || [];
+  const materials = s.library || [];
+  const certificates = s.certificates || [];
+  const unlockedMaterials = materials.filter(x => x.is_unlocked);
+  const lockedMaterials = materials.filter(x => !x.is_unlocked);
+  const unlockedCerts = certificates.filter(x => !x.is_locked);
+
+  getEl("parentHero").innerHTML = `
+    <div>
+      <div class="eyebrow">Halo, Orang Tua ${safe(s.name)}</div>
+      <h1><span class="gradient">Progress anak</span> sudah siap.</h1>
+      <p>Level: <b>${safe(s.level || "Belum diisi")}</b><br>${safe(s.description || "Belum ada deskripsi.")}</p>
+    </div>
+  `;
+
+  getEl("pMeetings").textContent = attendances.length;
+  getEl("pMaterials").textContent = unlockedMaterials.length;
+  getEl("pLocked").textContent = lockedMaterials.length;
+  getEl("pCertificates").textContent = unlockedCerts.length;
+  getEl("parentProgressWrap").innerHTML = progressBoxParent();
+
+  const notif = [];
+  const progressNow = Number(s.progress_session || 0);
+
+  if(attendances.length) {
+    notif.push({
+      icon:"calendar",
+      title:"Pertemuan terbaru",
+      text:formatDate(attendances[0].date)+" • "+attendances[0].time+" • Session "+attendances[0].session
+    });
+  }
+
+  if(progressNow >= 31) {
+    notif.push({
+      icon:"cert",
+      title:"Intermediate+ sudah terbuka",
+      text:"Progress sudah melewati session 31. Level Intermediate+ sudah bisa dipersiapkan. Fitur detailnya nanti bisa diupdate lagi."
+    });
+  } else if(progressNow >= 15) {
+    notif.push({
+      icon:"calendar",
+      title:"Intermediate sudah terbuka",
+      text:"Progress sudah masuk session " + progressNow + ". Anak sudah mulai masuk level Intermediate."
+    });
+  } else if(progressNow >= 14) {
+    notif.push({
+      icon:"calendar",
+      title:"Beginner sudah selesai",
+      text:"Progress sudah sampai session 14. Intermediate akan terbuka mulai session 15."
+    });
+  }
+
+  if(unlockedMaterials.length) notif.push({icon:"folder",title:"PPT terbuka",text:unlockedMaterials.length+" PPT sudah bisa didownload."});
+  if(lockedMaterials.length) notif.push({icon:"lock",title:"PPT locked",text:lockedMaterials.length+" PPT masih menunggu dibuka admin."});
+  if(unlockedCerts.length) notif.push({icon:"cert",title:"Sertifikat tersedia",text:unlockedCerts.length+" sertifikat sudah terbuka."});
+
+  getEl("notifList").innerHTML = notif.length ? notif.map(n => `
+    <div class="notif">
+      <div class="notif-icon">${svg(n.icon)}</div>
+      <div><strong>${safe(n.title)}</strong><div class="subtitle">${safe(n.text)}</div></div>
+    </div>
+  `).join("") : '<div class="empty">Belum ada notifikasi.</div>';
+
+  renderParentCalendar();
+  renderMaterials(materials);
+  renderCertificates(certificates);
+  renderAttendances(attendances);
+  initParentIcons();
+}
+
+function renderMaterials(materials){
+  const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
+  const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
+  const sorted = sortParentMaterials(materials || []);
+  const expanded = !!parentSectionExpanded.materials;
+  const visible = expanded ? sorted : sorted.slice(0,4);
+  const hidden = Math.max(0, sorted.length - visible.length);
+
+  let html =
+    '<div class="section-toolbar">' +
+      '<div><div class="title">Semua PPT / Materi</div><div class="subtitle">Default: terbuka di atas, locked di bawah. Sort All: urut upload asli.</div></div>' +
+      '<div class="section-actions">' +
+        '<button class="btn ' + smartClass + '" onclick="setParentPPTSortMode(&quot;smart&quot;)">Default</button>' +
+        '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
+        '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button>' +
+      '</div>' +
+    '</div>';
+
+  if(!sorted.length){
+    getEl("materialList").innerHTML = html + '<div class="empty">Belum ada PPT di library.</div>';
+    return;
+  }
+
+  const groups = groupByCategory(visible);
+  Object.keys(groups).forEach(function(cat){
+    html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
+    html += groups[cat].map(function(item){
+      const locked = !item.is_unlocked;
+      return `
+        <div class="file-card">
+          ${coverHTML(item, locked)}
+          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
+          <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
+          <div class="row-actions">
+            ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+          </div>
+        </div>
+      `;
+    }).join("");
+    html += "</div>";
+  });
+  getEl("materialList").innerHTML = html;
+}
+
+function renderCertificates(certificates){
+  const sorted = (certificates || []).slice().sort(function(a,b){ return Number(b.id || 0) - Number(a.id || 0); });
+  const expanded = !!parentSectionExpanded.certificates;
+  const visible = expanded ? sorted : sorted.slice(0,4);
+  const hidden = Math.max(0, sorted.length - visible.length);
+
+  let html =
+    '<div class="section-toolbar">' +
+      '<div><div class="title">Sertifikat Digital</div><div class="subtitle">Sertifikat tampil/download kalau sudah di-unlock.</div></div>' +
+      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
+    '</div>';
+
+  if(!sorted.length){
+    getEl("certificateList").innerHTML = html + '<div class="empty">Belum ada sertifikat.</div>';
+    return;
+  }
+
+  html += '<div class="file-grid compact-grid">';
+  html += visible.map(function(item){
+    const locked = !!item.is_locked;
+    return `
+      <div class="file-card">
+        ${coverHTML(item, locked)}
+        <strong>${safe(item.title || item.file_name || "Sertifikat")}</strong>
+        <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
+        <div class="row-actions">
+          ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+        </div>
+      </div>
+    `;
+  }).join("");
+  html += '</div>';
+  getEl("certificateList").innerHTML = html;
+}
+
+function renderAttendances(attendances){
+  const sorted = attendances || [];
+  const expanded = !!parentSectionExpanded.attendances;
+  const visible = expanded ? sorted : sorted.slice(0,4);
+  const hidden = Math.max(0, sorted.length - visible.length);
+
+  let html =
+    '<div class="section-toolbar">' +
+      '<div><div class="title">Riwayat Pertemuan</div><div class="subtitle">Daftar semua sesi les anak.</div></div>' +
+      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
+    '</div>';
+
+  if(!sorted.length){
+    getEl("attendanceList").innerHTML = html + '<div class="empty">Belum ada riwayat pertemuan.</div>';
+    return;
+  }
+
+  html += '<div class="file-grid compact-grid">';
+  html += visible.map(function(item){
+    return `
+      <div class="file-card">
+        <strong>${safe(formatDate(item.date))} • ${safe(item.time)} • Session ${safe(item.session)}</strong>
+        <small>${safe(item.note || "Tanpa catatan")}</small>
+      </div>
+    `;
+  }).join("");
+  html += '</div>';
+  getEl("attendanceList").innerHTML = html;
+}
+
+function renderParentCalendar(){
+  const s = currentStudent;
+  const first = new Date(currentYear,currentMonth,1).getDay();
+  const total = new Date(currentYear,currentMonth+1,0).getDate();
+  const today = new Date().toISOString().slice(0,10);
+
+  let html = `
+    <div class="calendar-title">
+      <button class="circle" onclick="changeParentMonth(-1)">‹</button>
+      <div><strong>${months[currentMonth]} ${currentYear}</strong><div class="subtitle">Riwayat les anak.</div></div>
+      <button class="circle" onclick="changeParentMonth(1)">›</button>
+    </div>
+    <div class="calendar-grid">
+  `;
+
+  ["Min","Sen","Sel","Rab","Kam","Jum","Sab"].forEach(d => html += `<div class="day-name">${d}</div>`);
+  for(let i=0;i<first;i++) html += "<div></div>";
+
+  for(let day=1; day<=total; day++){
+    const date = currentYear + "-" + String(currentMonth+1).padStart(2,"0") + "-" + String(day).padStart(2,"0");
+    const sessions = (s.attendances || []).filter(x => x.date === date);
+    html += `<div class="day ${today === date ? "today" : ""}"><div class="day-number">${day}</div>`;
+    sessions.slice(0,3).forEach(sess => html += `<div class="chip" style="background:#4f46e5">Session ${safe(sess.session)}<span>${safe(sess.time)}</span></div>`);
+    html += "</div>";
+  }
+
+  html += "</div>";
+  getEl("parentCalendar").innerHTML = html;
+}
+
+const saved = localStorage.getItem("parentCode");
+if(saved) loadParent(saved);
+initParentIcons();
+</script>
+</body>
+</html>

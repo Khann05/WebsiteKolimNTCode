@@ -1,0 +1,10 @@
+JANGAN HAPUS FOLDER:
+- uploads/
+- data/
+
+Karena:
+uploads/ = semua file PPT
+data/ = semua database siswa
+
+Saat update project:
+ganti hanya file public/ atau script tertentu.

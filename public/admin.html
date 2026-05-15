@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Les Koding</title>
+  <link rel="stylesheet" href="/style.css"/>
+</head>
+<body>
+<div id="loginBox" class="app">
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Admin Login</div>
+      <h1><span class="gradient">Masuk Admin</span> Les Koding.</h1>
+      <p>Masukkan password admin dari file .env.</p>
+    </div>
+  </section>
+  <section class="panel login-card">
+    <label>Password Admin</label>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input id="adminPassword" class="field" type="password" placeholder="admin123" style="flex:1"/>
+      <button type="button" class="btn btn-light" onclick="toggleAdminPassword()" id="showPasswordBtn">Lihat</button>
+    </div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="loginAdmin()">Login</button></div>
+  </section>
+</div>
+
+<div id="mainApp" class="app hidden">
+  <div class="topbar">
+    <div class="brand"><div class="logo"><img class="site-logo-img" src="/logo.png" alt="Kolim NT Code"></div><div>Admin Les Koding</div></div>
+    <div class="top-actions"><a class="btn btn-blue" href="/parent.html" target="_blank">Buka Parent Website</a></div>
+  </div>
+
+  <section class="hero hero-menu">
+    <div class="hero-logo-card">
+      <img class="hero-logo-img" src="/logo.png" alt="Kolim NT Code">
+    </div>
+
+    <div class="hero-copy">
+      <div class="eyebrow">Global PPT Library</div>
+      <h1><span class="gradient"><span class="gold">Upload semua PPT</span></span><br><span class="hero-black">sekali saja.</span></h1>
+      <p>Masukkan semua PPT ke Library. Parent semua siswa bisa melihat list-nya,<br>tapi download hanya bisa kalau kamu unlock per siswa.</p>
+    </div>
+
+    <div class="top-actions hero-buttons">
+      <button class="btn btn-primary" onclick="openStudentModal()">Tambah Siswa</button>
+      <button class="btn btn-green" onclick="openLibraryModal()">Upload PPT Global</button>
+    </div>
+  </section>
+
+  <section class="stats">
+    <div class="stat"><div class="stat-icon" id="iconStudent"></div><div><div class="stat-label">Total Siswa</div><div class="stat-num" id="totalStudents">0</div></div></div>
+    <div class="stat"><div class="stat-icon" id="iconCalendar"></div><div><div class="stat-label">Total Absen</div><div class="stat-num" id="totalSessions">0</div></div></div>
+    <div class="stat"><div class="stat-icon" id="iconFolder"></div><div><div class="stat-label">PPT Library</div><div class="stat-num" id="totalFiles">0</div></div></div>
+    <div class="stat"><div class="stat-icon" id="iconCertificate"></div><div><div class="stat-label">Sertifikat</div><div class="stat-num" id="totalCertificates">0</div></div></div>
+  </section>
+
+  <main class="layout">
+    <section class="panel">
+      <div class="panel-head">
+        <div><div class="title">Daftar Siswa</div><div class="subtitle">Klik siswa untuk buka kalender dan unlock PPT.</div></div>
+      </div>
+      <div class="tools">
+        <input id="searchInput" class="field" placeholder="Cari siswa..." oninput="renderAll()"/>
+        <button class="btn btn-light" onclick="clearSearch()">Clear</button>
+      </div>
+      <div id="studentList" class="student-list"></div>
+    </section>
+
+    <section class="panel" id="detailPanel"><div class="empty">Pilih siswa dulu.</div></section>
+  </main>
+</div>
+
+<div id="studentOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title" id="studentTitle">Tambah Siswa</div><div class="modal-sub">Kode orang tua dipakai untuk login parent.</div></div>
+      <button class="x" onclick="closeOverlay('studentOverlay')">X</button>
+    </div>
+    <div class="form">
+      <div><label>Nama siswa</label><input id="studentName" class="field"/></div>
+      <div><label>Nomor WhatsApp</label><input id="studentPhone" class="field"/></div>
+      <div><label>Level siswa</label><input id="studentLevel" class="field" placeholder="Beginner / Intermediate / Advanced"/></div>
+      <div><label>Kode orang tua</label><input id="studentCode" class="field" placeholder="Kosongkan untuk otomatis"/></div>
+      <div><label>Deskripsi</label><textarea id="studentDesc" class="field"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-light" onclick="closeOverlay('studentOverlay')">Batal</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<div id="attendanceOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title">Tambah Absen</div><div class="modal-sub" id="attendanceDateText">Tanggal</div></div>
+      <button class="x" onclick="closeOverlay('attendanceOverlay')">X</button>
+    </div>
+    <div class="form">
+      <div class="two">
+        <div><label>Jam</label><input id="attendanceHour" class="field" maxlength="2" placeholder="3"/></div>
+        <div><label>Menit</label><input id="attendanceMinute" class="field" maxlength="2" placeholder="30"/></div>
+      </div>
+      <div><label>Session</label><input id="attendanceSession" class="field"/></div>
+      <div><label>Catatan</label><textarea id="attendanceNote" class="field"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-light" onclick="closeOverlay('attendanceOverlay')">Batal</button>
+      <button class="btn btn-primary" onclick="saveAttendance()">Simpan Absen</button>
+    </div>
+  </div>
+</div>
+
+<div id="libraryOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title">Upload PPT Global</div><div class="modal-sub">File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.</div></div>
+      <button class="x" onclick="closeOverlay('libraryOverlay')">X</button>
+    </div>
+    <div class="form">
+      <div><label>Judul PPT</label><input id="libraryTitle" class="field" placeholder="Contoh: HTML Basic"/></div>
+      <div><label>Kategori</label><input id="libraryCategory" class="field" list="categoryList" placeholder="Beginner"/></div>
+      <div><label>Catatan</label><textarea id="libraryNote" class="field"></textarea></div>
+      <div><label>Upload PPT / file</label><input id="libraryFile" class="field" type="file"/></div>
+      <div><label>Upload cover</label><input id="libraryCover" class="field" type="file" accept=".png,.jpg,.jpeg,.webp"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-light" onclick="closeOverlay('libraryOverlay')">Batal</button>
+      <button class="btn btn-primary" onclick="saveLibraryMaterial()">Simpan PPT</button>
+    </div>
+  </div>
+</div>
+
+<div id="certificateOverlay" class="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div><div class="modal-title">Upload Sertifikat</div><div class="modal-sub">Sertifikat khusus siswa terpilih.</div></div>
+      <button class="x" onclick="closeOverlay('certificateOverlay')">X</button>
+    </div>
+    <div class="form">
+      <div><label>Nama sertifikat</label><input id="certificateTitle" class="field"/></div>
+      <div><label>Status Parent</label><select id="certificateLocked" class="field"><option value="1">Locked</option><option value="0">Unlocked</option></select></div>
+      <div><label>Upload file</label><input id="certificateFile" class="field" type="file"/></div>
+      <div><label>Upload gambar preview</label><input id="certificateCover" class="field" type="file" accept=".png,.jpg,.jpeg,.webp"/></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-light" onclick="closeOverlay('certificateOverlay')">Batal</button>
+      <button class="btn btn-primary" onclick="saveCertificate()">Simpan</button>
+    </div>
+  </div>
+</div>
+
+<datalist id="categoryList">
+  <option value="Beginner"><option value="Intermediate"><option value="Advanced"><option value="HTML"><option value="CSS"><option value="JavaScript"><option value="Python">
+</datalist>
+
+<script>
+function toggleAdminPassword(){
+  var input = document.getElementById("adminPassword");
+  var btn = document.getElementById("showPasswordBtn");
+  if(input.type === "password"){ input.type = "text"; btn.textContent = "Sembunyi"; }
+  else{ input.type = "password"; btn.textContent = "Lihat"; }
+}
+</script>
+<script src="/app.js"></script>
+</body>
+</html>
