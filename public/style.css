@@ -998,6 +998,8 @@ body{
 }
 
 
+.help-text{display:block;margin-top:6px;color:var(--muted);font-size:13px;font-weight:700}
+
 .see-all-bottom{
   display:flex;
   justify-content:center;

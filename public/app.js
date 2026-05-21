@@ -12,6 +12,7 @@ let editingId = null;
 let selectedDate = "2026-05-01";
 let activeTab = "calendar";
 let library = [];
+let editingLibraryId = null;
 let adminSectionExpanded = { access:false, library:false, certificates:false, sessions:false };
 let pptSortMode = "smart";
 
@@ -390,7 +391,7 @@ function sendWA(){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (selectedStudent.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
+    "https://kolimntcode.up.railway.app/parent.html\n\n" +
     "Terima kasih";
 
   window.open("https://wa.me/" + digits(selectedStudent.phone) + "?text=" + encodeURIComponent(message), "_blank");
@@ -413,7 +414,7 @@ function changeMonth(step){
   if(isBeforeStart(currentYear,currentMonth)){
     currentMonth = START_MONTH;
     currentYear = START_YEAR;
-    toast("Kalender mulai dari Mei 2026","error");
+    toast("Kalender mulai dari April 2026","error");
   }
   renderDetail();
 }
@@ -440,7 +441,7 @@ function buildAttendanceWAMessage(student, attendance){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (student.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
+    "https://kolimntcode.up.railway.app/parent.html\n\n" +
     "Terima kasih"
   );
 }
@@ -478,11 +479,30 @@ async function saveAttendance(){
   }catch(e){ toast(e.message,"error"); }
 }
 
-function openLibraryModal(){
+function openLibraryModal(item){
+  editingLibraryId = item && item.id ? item.id : null;
   ["libraryTitle","libraryNote"].forEach(function(id){ $(id).value = ""; });
   $("libraryCategory").value = "Beginner";
   $("libraryFile").value = "";
   $("libraryCover").value = "";
+
+  if(editingLibraryId){
+    $("libraryModalTitle").textContent = "Edit PPT Global";
+    $("libraryModalSub").textContent = "Ubah nama, kategori, deskripsi, cover, atau file PPT. Kalau file/cover dikosongkan, file lama tetap dipakai.";
+    $("librarySaveBtn").textContent = "Simpan Perubahan";
+    $("libraryTitle").value = item.title || "";
+    $("libraryCategory").value = item.category || "Beginner";
+    $("libraryNote").value = item.note || "";
+    $("libraryCurrentFile").textContent = item.file_name ? "File saat ini: " + item.file_name : "Belum ada file.";
+    $("libraryCurrentCover").textContent = item.cover_name ? "Cover saat ini: " + item.cover_name : "Belum ada cover.";
+  }else{
+    $("libraryModalTitle").textContent = "Upload PPT Global";
+    $("libraryModalSub").textContent = "File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.";
+    $("librarySaveBtn").textContent = "Simpan PPT";
+    $("libraryCurrentFile").textContent = "";
+    $("libraryCurrentCover").textContent = "";
+  }
+
   openOverlay("libraryOverlay");
 }
 
@@ -495,18 +515,22 @@ async function saveLibraryMaterial(){
     if($("libraryFile").files[0]) form.append("file", $("libraryFile").files[0]);
     if($("libraryCover").files[0]) form.append("cover", $("libraryCover").files[0]);
 
-    if(!form.get("title") && !$("libraryFile").files[0] && !$("libraryCover").files[0]){
+    if(!editingLibraryId && !form.get("title") && !$("libraryFile").files[0] && !$("libraryCover").files[0]){
       toast("Isi judul, PPT, atau cover","error");
       return;
     }
 
-    const result = await api("/api/admin/library", { method:"POST", body:form });
+    const url = editingLibraryId ? "/api/admin/library/" + editingLibraryId : "/api/admin/library";
+    const method = editingLibraryId ? "PUT" : "POST";
+
+    const result = await api(url, { method, body:form });
     library = result.library || [];
+    editingLibraryId = null;
     closeOverlay("libraryOverlay");
     await loadStudents();
-    activeTab = "access";
+    activeTab = "library";
     renderAll();
-    toast("PPT global berhasil disimpan");
+    toast(method === "PUT" ? "PPT berhasil diperbarui" : "PPT global berhasil disimpan");
   }catch(e){ toast(e.message,"error"); }
 }
 
@@ -728,7 +752,7 @@ function renderSessionsList(s){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Riwayat Absen</div><div class="subtitle">Awalnya tampil 4 data agar dashboard tetap rapi.</div></div>' +
-      '<div class="section-actions">' + adminSeeAllButton("sessions", allSessions.length, visible.length) + '</div>' +
+      '<div class="section-actions">' + "" + '</div>' +
     '</div>';
 
   if(!allSessions.length) return html + '<div class="empty">Belum ada absen.</div>';
@@ -744,6 +768,9 @@ function renderSessionsList(s){
     `;
   }).join("");
   html += '</div>';
+  if(allSessions.length > 4){
+    html += '<div class="see-all-bottom">' + adminSeeAllButton("sessions", allSessions.length, visible.length) + '</div>';
+  }
   return html;
 }
 
@@ -816,7 +843,7 @@ function renderAccess(){
         <div class="file-card">
           ${coverHTML(item, locked)}
           <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Kategori: ${safe(item.category || "Beginner")}<br>Status siswa ini: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
+          <small>Kategori: ${safe(item.category || "Beginner")}<br>Status siswa ini: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}<br>${item.note ? "Deskripsi: " + safe(item.note) : ""}</small>
           <div class="row-actions">
             <button class="btn ${locked ? "btn-green" : "btn-orange"}" onclick="toggleMaterialAccess(${item.id},${item.is_unlocked})">${locked ? "Unlock untuk siswa ini" : "Lock lagi"}</button>
             ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download Admin</a>` : ""}
@@ -855,8 +882,9 @@ function renderLibrary(){
         <div class="file-card">
           ${coverHTML(item, false)}
           <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Kategori: ${safe(item.category || "Beginner")}<br>File: ${safe(item.file_name || "-")}</small>
+          <small>Kategori: ${safe(item.category || "Beginner")}<br>File: ${safe(item.file_name || "-")}<br>${item.note ? "Deskripsi: " + safe(item.note) : ""}</small>
           <div class="row-actions">
+            <button class="btn btn-primary" onclick='openLibraryModal(${JSON.stringify(item)})'>Edit</button>
             ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : ""}
             <button class="btn btn-red" onclick="deleteLibraryMaterial(${item.id})">Hapus dari Library</button>
           </div>

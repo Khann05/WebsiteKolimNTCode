@@ -115,19 +115,19 @@
 <div id="libraryOverlay" class="overlay">
   <div class="modal">
     <div class="modal-head">
-      <div><div class="modal-title">Upload PPT Global</div><div class="modal-sub">File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.</div></div>
+      <div><div class="modal-title" id="libraryModalTitle">Upload PPT Global</div><div class="modal-sub" id="libraryModalSub">File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.</div></div>
       <button class="x" onclick="closeOverlay('libraryOverlay')">X</button>
     </div>
     <div class="form">
       <div><label>Judul PPT</label><input id="libraryTitle" class="field" placeholder="Contoh: HTML Basic"/></div>
       <div><label>Kategori</label><input id="libraryCategory" class="field" list="categoryList" placeholder="Beginner"/></div>
-      <div><label>Catatan</label><textarea id="libraryNote" class="field"></textarea></div>
-      <div><label>Upload PPT / file</label><input id="libraryFile" class="field" type="file"/></div>
-      <div><label>Upload cover</label><input id="libraryCover" class="field" type="file" accept=".png,.jpg,.jpeg,.webp"/></div>
+      <div><label>Deskripsi / Catatan</label><textarea id="libraryNote" class="field" placeholder="Tulis deskripsi singkat materi"></textarea></div>
+      <div><label>Upload PPT / file</label><input id="libraryFile" class="field" type="file"/><small class="help-text" id="libraryCurrentFile"></small></div>
+      <div><label>Upload cover</label><input id="libraryCover" class="field" type="file" accept=".png,.jpg,.jpeg,.webp"/><small class="help-text" id="libraryCurrentCover"></small></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-light" onclick="closeOverlay('libraryOverlay')">Batal</button>
-      <button class="btn btn-primary" onclick="saveLibraryMaterial()">Simpan PPT</button>
+      <button class="btn btn-primary" id="librarySaveBtn" onclick="saveLibraryMaterial()">Simpan PPT</button>
     </div>
   </div>
 </div>

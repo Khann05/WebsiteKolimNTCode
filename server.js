@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 
 const express = require("express");
@@ -6,20 +5,14 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const dataDirSafe = path.join(__dirname, "data");
-const uploadDirSafe = path.join(__dirname, "uploads");
-if (!fs.existsSync(dataDirSafe)) fs.mkdirSync(dataDirSafe, { recursive: true });
-if (!fs.existsSync(uploadDirSafe)) fs.mkdirSync(uploadDirSafe, { recursive: true });
 const { run, get, all } = require("./database");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
-
-
-const uploadDir = uploadDirSafe;
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+const uploadDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
@@ -234,6 +227,52 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
     );
 
     res.json({ ok: true, id: result.id, library: await all("SELECT * FROM library_materials ORDER BY id ASC") });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+app.put("/api/admin/library/:id", requireAdmin, multiUpload, async (req, res) => {
+  try {
+    const old = await get("SELECT * FROM library_materials WHERE id = ?", [req.params.id]);
+    if (!old) return res.status(404).json({ error: "PPT tidak ditemukan" });
+
+    const { title = "", category = "Beginner", note = "" } = req.body;
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
+
+    const nextTitle = String(title || old.title || main.name || "Materi").trim();
+    const nextCategory = String(category || old.category || "Beginner").trim();
+    const nextNote = String(note || "").trim();
+
+    await run(
+      `UPDATE library_materials SET
+        title = ?,
+        category = ?,
+        note = ?,
+        file_name = ?,
+        file_path = ?,
+        file_type = ?,
+        cover_name = ?,
+        cover_path = ?,
+        cover_type = ?
+       WHERE id = ?`,
+      [
+        nextTitle,
+        nextCategory || "Beginner",
+        nextNote,
+        main.name || old.file_name || "",
+        main.path || old.file_path || "",
+        main.type || old.file_type || "",
+        cover.name || old.cover_name || "",
+        cover.path || old.cover_path || "",
+        cover.type || old.cover_type || "",
+        req.params.id
+      ]
+    );
+
+    res.json({ ok: true, library: await all("SELECT * FROM library_materials ORDER BY id ASC") });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
