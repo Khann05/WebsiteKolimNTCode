@@ -391,7 +391,7 @@ function sendWA(){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (selectedStudent.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://kolimntcode.up.railway.app/parent.html\n\n" +
+    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
     "Terima kasih";
 
   window.open("https://wa.me/" + digits(selectedStudent.phone) + "?text=" + encodeURIComponent(message), "_blank");
