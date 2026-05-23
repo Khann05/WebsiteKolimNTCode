@@ -862,6 +862,8 @@ function normalizeQuizText(text){
 function parseQuizText(raw){
   const text = normalizeQuizText(raw);
   const questions = [];
+
+  // Ambil blok soal berdasarkan nomor: 1. ... 2. ... dst
   const matches = Array.from(text.matchAll(/(?:^|\n)\s*(\d{1,2})[\.\)]\s+([\s\S]*?)(?=\n\s*\d{1,2}[\.\)]\s+|$)/g));
 
   matches.forEach(function(match){
@@ -870,15 +872,32 @@ function parseQuizText(raw){
     let block = (match[2] || "").trim();
     if(!block) return;
 
-    const ansMatch = block.match(/Jawaban\s*:\s*([A-D])/i);
+    const ansMatch = block.match(/(?:^|\n)\s*(?:\*\*)?\s*Jawaban\s*:\s*([A-D])\s*(?:\*\*)?\s*$/im);
     const correct = ansMatch ? ansMatch[1].toUpperCase() : "A";
-    block = block.replace(/Jawaban\s*:\s*[A-D].*$/i, "").trim();
+
+    // Hapus baris jawaban dulu SEBELUM ambil opsi A-D
+    block = block
+      .replace(/(?:^|\n)\s*(?:\*\*)?\s*Jawaban\s*:\s*[A-D]\s*(?:\*\*)?\s*$/gim, "")
+      .replace(/\n-{3,}\s*$/g, "")
+      .trim();
 
     const options = { A:"", B:"", C:"", D:"" };
-    const optMatches = Array.from(block.matchAll(/(?:^|\n)\s*([A-D])[\.\)]\s*([\s\S]*?)(?=\n\s*[A-D][\.\)]\s+|$)/gi));
+
+    // Ambil option dari huruf A-D. Stop sebelum option berikutnya atau akhir blok.
+    const optRegex = /(?:^|\n)\s*([A-D])[\.\)]\s*([\s\S]*?)(?=\n\s*[A-D][\.\)]\s+|$)/gi;
+    const optMatches = Array.from(block.matchAll(optRegex));
 
     optMatches.forEach(function(opt){
-      options[opt[1].toUpperCase()] = (opt[2] || "").trim();
+      const letter = opt[1].toUpperCase();
+      let value = (opt[2] || "").trim();
+
+      // Pengaman tambahan: kalau ada sisa "Jawaban: X" tetap dipotong
+      value = value
+        .replace(/\s*(?:\*\*)?\s*Jawaban\s*:\s*[A-D]\s*(?:\*\*)?\s*$/i, "")
+        .replace(/\n-{3,}\s*$/g, "")
+        .trim();
+
+      options[letter] = value;
     });
 
     let question = block.split(/\n\s*A[\.\)]\s+/i)[0].trim().replace(/\n+/g, " ");
@@ -897,6 +916,7 @@ function parseQuizText(raw){
 
   return questions.slice(0,10);
 }
+
 
 function renderQuizPreview(){
   const wrap = $("quizPreview");
