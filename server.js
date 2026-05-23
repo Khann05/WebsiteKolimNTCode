@@ -1,3 +1,11 @@
+if (!fs.existsSync("uploads")) {
+  fs.mkdirSync("uploads");
+}
+
+if (!fs.existsSync("data")) {
+  fs.mkdirSync("data");
+}
+
 require("dotenv").config();
 
 const express = require("express");
@@ -11,8 +19,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
 
-const uploadDir = path.join(__dirname, "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+const dataDirSafe = path.join(__dirname, "data");
+const uploadDirSafe = path.join(__dirname, "uploads");
+if (!fs.existsSync(dataDirSafe)) fs.mkdirSync(dataDirSafe, { recursive: true });
+if (!fs.existsSync(uploadDirSafe)) fs.mkdirSync(uploadDirSafe, { recursive: true });
+
+
+const uploadDir = uploadDirSafe;
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, uploadDir),
@@ -67,9 +81,13 @@ async function getFullStudent(id) {
   const library = await all(`
     SELECT 
       lm.*,
-      COALESCE(ma.is_unlocked, 0) AS is_unlocked
+      COALESCE(ma.is_unlocked, 0) AS is_unlocked,
+      q.id AS quiz_id,
+      q.title AS quiz_title,
+      (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
     FROM library_materials lm
     LEFT JOIN material_access ma ON ma.material_id = lm.id AND ma.student_id = ?
+    LEFT JOIN quizzes q ON q.material_id = lm.id
     ORDER BY lm.id ASC
   `, [id]);
 
@@ -104,7 +122,8 @@ app.get("/api/admin/students", requireAdmin, async (req, res) => {
       SELECT
         s.*,
         COUNT(DISTINCT a.id) AS attendance_count,
-        COUNT(DISTINCT c.id) AS certificate_count
+        COUNT(DISTINCT c.id) AS certificate_count,
+        (SELECT COUNT(*) FROM quizzes) AS quiz_count
       FROM students s
       LEFT JOIN attendances a ON a.student_id = s.id
       LEFT JOIN certificates c ON c.student_id = s.id
@@ -202,7 +221,16 @@ app.delete("/api/admin/attendance/:id", requireAdmin, async (req, res) => {
 
 app.get("/api/admin/library", requireAdmin, async (req, res) => {
   try {
-    const rows = await all("SELECT * FROM library_materials ORDER BY id ASC");
+    const rows = await all(`
+      SELECT
+        lm.*,
+        q.id AS quiz_id,
+        q.title AS quiz_title,
+        (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
+      FROM library_materials lm
+      LEFT JOIN quizzes q ON q.material_id = lm.id
+      ORDER BY lm.id ASC
+    `);
     res.json(rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -226,53 +254,16 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
       [title || main.name || "Materi", category || "Beginner", note, main.name, main.path, main.type, cover.name, cover.path, cover.type]
     );
 
-    res.json({ ok: true, id: result.id, library: await all("SELECT * FROM library_materials ORDER BY id ASC") });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-
-app.put("/api/admin/library/:id", requireAdmin, multiUpload, async (req, res) => {
-  try {
-    const old = await get("SELECT * FROM library_materials WHERE id = ?", [req.params.id]);
-    if (!old) return res.status(404).json({ error: "PPT tidak ditemukan" });
-
-    const { title = "", category = "Beginner", note = "" } = req.body;
-    const main = fileInfo(req, "file");
-    const cover = fileInfo(req, "cover");
-
-    const nextTitle = String(title || old.title || main.name || "Materi").trim();
-    const nextCategory = String(category || old.category || "Beginner").trim();
-    const nextNote = String(note || "").trim();
-
-    await run(
-      `UPDATE library_materials SET
-        title = ?,
-        category = ?,
-        note = ?,
-        file_name = ?,
-        file_path = ?,
-        file_type = ?,
-        cover_name = ?,
-        cover_path = ?,
-        cover_type = ?
-       WHERE id = ?`,
-      [
-        nextTitle,
-        nextCategory || "Beginner",
-        nextNote,
-        main.name || old.file_name || "",
-        main.path || old.file_path || "",
-        main.type || old.file_type || "",
-        cover.name || old.cover_name || "",
-        cover.path || old.cover_path || "",
-        cover.type || old.cover_type || "",
-        req.params.id
-      ]
-    );
-
-    res.json({ ok: true, library: await all("SELECT * FROM library_materials ORDER BY id ASC") });
+    res.json({ ok: true, id: result.id, library: await all(`
+        SELECT
+          lm.*,
+          q.id AS quiz_id,
+          q.title AS quiz_title,
+          (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
+        FROM library_materials lm
+        LEFT JOIN quizzes q ON q.material_id = lm.id
+        ORDER BY lm.id ASC
+      `) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -281,7 +272,16 @@ app.put("/api/admin/library/:id", requireAdmin, multiUpload, async (req, res) =>
 app.delete("/api/admin/library/:id", requireAdmin, async (req, res) => {
   try {
     await run("DELETE FROM library_materials WHERE id = ?", [req.params.id]);
-    res.json({ ok: true, library: await all("SELECT * FROM library_materials ORDER BY id ASC") });
+    res.json({ ok: true, library: await all(`
+        SELECT
+          lm.*,
+          q.id AS quiz_id,
+          q.title AS quiz_title,
+          (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
+        FROM library_materials lm
+        LEFT JOIN quizzes q ON q.material_id = lm.id
+        ORDER BY lm.id ASC
+      `) });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -378,6 +378,91 @@ app.get("/api/parent/:code", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+
+async function getMaterialQuiz(materialId) {
+  const quiz = await get("SELECT * FROM quizzes WHERE material_id = ? LIMIT 1", [materialId]);
+  if (!quiz) return null;
+
+  const questions = await all(`
+    SELECT id, question_order, question, option_a, option_b, option_c, option_d, correct_answer
+    FROM quiz_questions
+    WHERE quiz_id = ?
+    ORDER BY question_order ASC, id ASC
+  `, [quiz.id]);
+
+  return { ...quiz, questions };
+}
+
+app.get("/api/admin/materials/:id/quiz", requireAdmin, async (req, res) => {
+  try {
+    const quiz = await getMaterialQuiz(req.params.id);
+    res.json(quiz || { material_id: Number(req.params.id), title: "Quiz", questions: [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put("/api/admin/materials/:id/quiz", requireAdmin, async (req, res) => {
+  try {
+    const materialId = req.params.id;
+    const title = String(req.body.title || "Quiz").trim() || "Quiz";
+    const questions = Array.isArray(req.body.questions) ? req.body.questions.slice(0, 10) : [];
+
+    await run("DELETE FROM quizzes WHERE material_id = ?", [materialId]);
+
+    if (!questions.length) {
+      return res.json({ material_id: Number(materialId), title, questions: [] });
+    }
+
+    const quizResult = await run(
+      "INSERT INTO quizzes (material_id, title, updated_at) VALUES (?, ?, CURRENT_TIMESTAMP)",
+      [materialId, title]
+    );
+
+    for (let i = 0; i < questions.length; i++) {
+      const q = questions[i] || {};
+      const correct = String(q.correct_answer || "A").trim().toUpperCase();
+      await run(`
+        INSERT INTO quiz_questions
+        (quiz_id, question_order, question, option_a, option_b, option_c, option_d, correct_answer)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `, [
+        quizResult.id,
+        i + 1,
+        String(q.question || "").trim(),
+        String(q.option_a || "").trim(),
+        String(q.option_b || "").trim(),
+        String(q.option_c || "").trim(),
+        String(q.option_d || "").trim(),
+        ["A","B","C","D"].includes(correct) ? correct : "A"
+      ]);
+    }
+
+    res.json(await getMaterialQuiz(materialId));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete("/api/admin/materials/:id/quiz", requireAdmin, async (req, res) => {
+  try {
+    await run("DELETE FROM quizzes WHERE material_id = ?", [req.params.id]);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get("/api/parent/materials/:id/quiz", async (req, res) => {
+  try {
+    const quiz = await getMaterialQuiz(req.params.id);
+    res.json(quiz || { material_id: Number(req.params.id), title: "Quiz", questions: [] });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);

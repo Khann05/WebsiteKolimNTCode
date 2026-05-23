@@ -1,6 +1,6 @@
 const API = "";
 const START_YEAR = 2026;
-const START_MONTH = 3;
+const START_MONTH = 4;
 const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const colors = ["#4f46e5","#10b981","#f97316","#ec4899","#0ea5e9","#8b5cf6","#14b8a6","#64748b"];
 
@@ -12,9 +12,11 @@ let editingId = null;
 let selectedDate = "2026-05-01";
 let activeTab = "calendar";
 let library = [];
-let editingLibraryId = null;
 let adminSectionExpanded = { access:false, library:false, certificates:false, sessions:false };
 let pptSortMode = "smart";
+let currentQuizMaterialId = null;
+let currentQuizQuestions = [];
+
 
 const currentDate = new Date();
 let currentMonth = currentDate.getFullYear() < START_YEAR || (currentDate.getFullYear() === START_YEAR && currentDate.getMonth() < START_MONTH) ? START_MONTH : currentDate.getMonth();
@@ -42,7 +44,7 @@ function svg(name){
 }
 
 function initIcons(){
-  const map = { iconStudent:"student", iconCalendar:"calendar", iconFolder:"folder", iconCertificate:"cert" };
+  const map = { iconStudent:"student", iconCalendar:"calendar", iconFolder:"folder", iconCertificate:"cert", iconQuiz:"help-circle" };
   Object.keys(map).forEach(function(id){ if($(id)) $(id).innerHTML = svg(map[id]); });
 }
 
@@ -391,7 +393,7 @@ function sendWA(){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (selectedStudent.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
+    "https://kolimntcode.up.railway.app/parent.html\n\n" +
     "Terima kasih";
 
   window.open("https://wa.me/" + digits(selectedStudent.phone) + "?text=" + encodeURIComponent(message), "_blank");
@@ -414,7 +416,7 @@ function changeMonth(step){
   if(isBeforeStart(currentYear,currentMonth)){
     currentMonth = START_MONTH;
     currentYear = START_YEAR;
-    toast("Kalender mulai dari April 2026","error");
+    toast("Kalender mulai dari Mei 2026","error");
   }
   renderDetail();
 }
@@ -441,7 +443,7 @@ function buildAttendanceWAMessage(student, attendance){
     "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
     "Password / Kode Parent: " + (student.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
-    "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
+    "https://kolimntcode.up.railway.app/parent.html\n\n" +
     "Terima kasih"
   );
 }
@@ -479,30 +481,11 @@ async function saveAttendance(){
   }catch(e){ toast(e.message,"error"); }
 }
 
-function openLibraryModal(item){
-  editingLibraryId = item && item.id ? item.id : null;
+function openLibraryModal(){
   ["libraryTitle","libraryNote"].forEach(function(id){ $(id).value = ""; });
   $("libraryCategory").value = "Beginner";
   $("libraryFile").value = "";
   $("libraryCover").value = "";
-
-  if(editingLibraryId){
-    $("libraryModalTitle").textContent = "Edit PPT Global";
-    $("libraryModalSub").textContent = "Ubah nama, kategori, deskripsi, cover, atau file PPT. Kalau file/cover dikosongkan, file lama tetap dipakai.";
-    $("librarySaveBtn").textContent = "Simpan Perubahan";
-    $("libraryTitle").value = item.title || "";
-    $("libraryCategory").value = item.category || "Beginner";
-    $("libraryNote").value = item.note || "";
-    $("libraryCurrentFile").textContent = item.file_name ? "File saat ini: " + item.file_name : "Belum ada file.";
-    $("libraryCurrentCover").textContent = item.cover_name ? "Cover saat ini: " + item.cover_name : "Belum ada cover.";
-  }else{
-    $("libraryModalTitle").textContent = "Upload PPT Global";
-    $("libraryModalSub").textContent = "File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.";
-    $("librarySaveBtn").textContent = "Simpan PPT";
-    $("libraryCurrentFile").textContent = "";
-    $("libraryCurrentCover").textContent = "";
-  }
-
   openOverlay("libraryOverlay");
 }
 
@@ -515,22 +498,18 @@ async function saveLibraryMaterial(){
     if($("libraryFile").files[0]) form.append("file", $("libraryFile").files[0]);
     if($("libraryCover").files[0]) form.append("cover", $("libraryCover").files[0]);
 
-    if(!editingLibraryId && !form.get("title") && !$("libraryFile").files[0] && !$("libraryCover").files[0]){
+    if(!form.get("title") && !$("libraryFile").files[0] && !$("libraryCover").files[0]){
       toast("Isi judul, PPT, atau cover","error");
       return;
     }
 
-    const url = editingLibraryId ? "/api/admin/library/" + editingLibraryId : "/api/admin/library";
-    const method = editingLibraryId ? "PUT" : "POST";
-
-    const result = await api(url, { method, body:form });
+    const result = await api("/api/admin/library", { method:"POST", body:form });
     library = result.library || [];
-    editingLibraryId = null;
     closeOverlay("libraryOverlay");
     await loadStudents();
-    activeTab = "library";
+    activeTab = "access";
     renderAll();
-    toast(method === "PUT" ? "PPT berhasil diperbarui" : "PPT global berhasil disimpan");
+    toast("PPT global berhasil disimpan");
   }catch(e){ toast(e.message,"error"); }
 }
 
@@ -638,10 +617,13 @@ function renderStats(){
     cert += Number(s.certificate_count || 0);
   });
 
+  const quizTotal = (library || []).filter(x => Number(x.quiz_question_count || 0) > 0).length;
+
   $("totalStudents").textContent = students.length;
   $("totalSessions").textContent = sessions;
   $("totalFiles").textContent = library.length;
   $("totalCertificates").textContent = cert;
+  if($("totalQuizzes")) $("totalQuizzes").textContent = quizTotal;
 }
 
 function renderStudents(){
@@ -752,7 +734,7 @@ function renderSessionsList(s){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Riwayat Absen</div><div class="subtitle">Awalnya tampil 4 data agar dashboard tetap rapi.</div></div>' +
-      '<div class="section-actions">' + "" + '</div>' +
+      '<div class="section-actions">' + adminSeeAllButton("sessions", allSessions.length, visible.length) + '</div>' +
     '</div>';
 
   if(!allSessions.length) return html + '<div class="empty">Belum ada absen.</div>';
@@ -768,9 +750,6 @@ function renderSessionsList(s){
     `;
   }).join("");
   html += '</div>';
-  if(allSessions.length > 4){
-    html += '<div class="see-all-bottom">' + adminSeeAllButton("sessions", allSessions.length, visible.length) + '</div>';
-  }
   return html;
 }
 
@@ -819,6 +798,227 @@ function setPPTSortMode(mode){
 }
 
 
+
+function getMaterialTitleById(materialId){
+  const id = Number(materialId);
+  const fromLibrary = (library || []).find(x => Number(x.id) === id);
+  if(fromLibrary) return fromLibrary.title || fromLibrary.file_name || "Materi";
+
+  if(selectedStudent && selectedStudent.library){
+    const fromStudent = selectedStudent.library.find(x => Number(x.id) === id);
+    if(fromStudent) return fromStudent.title || fromStudent.file_name || "Materi";
+  }
+
+  return "Materi";
+}
+
+function normalizeQuizText(text){
+  return String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\*\*/g, "")
+    .replace(/`/g, "")
+    .trim();
+}
+
+function parseQuizText(raw){
+  const text = normalizeQuizText(raw);
+  const questions = [];
+  const matches = Array.from(text.matchAll(/(?:^|\n)\s*(\d{1,2})[\.\)]\s+([\s\S]*?)(?=\n\s*\d{1,2}[\.\)]\s+|$)/g));
+
+  matches.forEach(function(match){
+    if(questions.length >= 10) return;
+
+    let block = (match[2] || "").trim();
+    if(!block) return;
+
+    const ansMatch = block.match(/Jawaban\s*:\s*([A-D])/i);
+    const correct = ansMatch ? ansMatch[1].toUpperCase() : "A";
+    block = block.replace(/Jawaban\s*:\s*[A-D].*$/i, "").trim();
+
+    const options = { A:"", B:"", C:"", D:"" };
+    const optMatches = Array.from(block.matchAll(/(?:^|\n)\s*([A-D])[\.\)]\s*([\s\S]*?)(?=\n\s*[A-D][\.\)]\s+|$)/gi));
+
+    optMatches.forEach(function(opt){
+      options[opt[1].toUpperCase()] = (opt[2] || "").trim();
+    });
+
+    let question = block.split(/\n\s*A[\.\)]\s+/i)[0].trim().replace(/\n+/g, " ");
+
+    if(question && options.A && options.B && options.C && options.D){
+      questions.push({
+        question,
+        option_a: options.A,
+        option_b: options.B,
+        option_c: options.C,
+        option_d: options.D,
+        correct_answer: ["A","B","C","D"].includes(correct) ? correct : "A"
+      });
+    }
+  });
+
+  return questions.slice(0,10);
+}
+
+function renderQuizPreview(){
+  const wrap = $("quizPreview");
+  if(!wrap) return;
+
+  if(!currentQuizQuestions.length){
+    wrap.innerHTML = '<div class="empty quiz-empty">Belum ada soal. Paste format soal lalu klik Parse / Generate Quiz.</div>';
+    return;
+  }
+
+  wrap.innerHTML =
+    '<div class="quiz-count-badge">Total soal: ' + currentQuizQuestions.length + ' / 10</div>' +
+    currentQuizQuestions.map(function(q, i){
+      return `
+        <div class="quiz-editor-card">
+          <div class="quiz-editor-head">
+            <strong>Soal ${i + 1}</strong>
+            <button class="btn btn-red" onclick="removeQuizQuestion(${i})">Hapus</button>
+          </div>
+
+          <label>Pertanyaan</label>
+          <textarea onchange="updateQuizQuestion(${i}, 'question', this.value)">${safe(q.question)}</textarea>
+
+          <div class="quiz-options-grid">
+            <label>A <input value="${safe(q.option_a)}" onchange="updateQuizQuestion(${i}, 'option_a', this.value)"></label>
+            <label>B <input value="${safe(q.option_b)}" onchange="updateQuizQuestion(${i}, 'option_b', this.value)"></label>
+            <label>C <input value="${safe(q.option_c)}" onchange="updateQuizQuestion(${i}, 'option_c', this.value)"></label>
+            <label>D <input value="${safe(q.option_d)}" onchange="updateQuizQuestion(${i}, 'option_d', this.value)"></label>
+          </div>
+
+          <label>Jawaban Benar</label>
+          <select onchange="updateQuizQuestion(${i}, 'correct_answer', this.value)">
+            <option value="A" ${q.correct_answer === "A" ? "selected" : ""}>A</option>
+            <option value="B" ${q.correct_answer === "B" ? "selected" : ""}>B</option>
+            <option value="C" ${q.correct_answer === "C" ? "selected" : ""}>C</option>
+            <option value="D" ${q.correct_answer === "D" ? "selected" : ""}>D</option>
+          </select>
+        </div>
+      `;
+    }).join("");
+}
+
+function updateQuizQuestion(index, key, value){
+  if(!currentQuizQuestions[index]) return;
+  currentQuizQuestions[index][key] = value;
+}
+
+function removeQuizQuestion(index){
+  currentQuizQuestions.splice(index, 1);
+  renderQuizPreview();
+}
+
+function parseQuizFromInput(){
+  const parsed = parseQuizText($("quizRawInput").value);
+  if(!parsed.length){
+    toast("Format belum terbaca. Pakai: 1. Pertanyaan, A-D, Jawaban: B", "error");
+    return;
+  }
+  currentQuizQuestions = parsed;
+  renderQuizPreview();
+  toast("Quiz berhasil diparse: " + parsed.length + " soal");
+}
+
+function clearQuizBuilder(){
+  $("quizRawInput").value = "";
+  currentQuizQuestions = [];
+  renderQuizPreview();
+}
+
+async function openQuizModal(materialId){
+  currentQuizMaterialId = materialId;
+  currentQuizQuestions = [];
+  $("quizRawInput").value = "";
+  const defaultTitle = "Quizz " + getMaterialTitleById(materialId);
+  $("quizTitle").value = defaultTitle;
+
+  try{
+    const quiz = await api("/api/admin/materials/" + materialId + "/quiz");
+    if(quiz && quiz.questions && quiz.questions.length){
+      $("quizTitle").value = quiz.title || defaultTitle;
+      currentQuizQuestions = quiz.questions.map(function(q){
+        return {
+          question:q.question || "",
+          option_a:q.option_a || "",
+          option_b:q.option_b || "",
+          option_c:q.option_c || "",
+          option_d:q.option_d || "",
+          correct_answer:q.correct_answer || "A"
+        };
+      });
+    }
+  }catch(e){}
+
+  renderQuizPreview();
+  openOverlay("quizOverlay");
+}
+
+async function saveQuiz(){
+  if(!currentQuizMaterialId) return;
+
+  const clean = currentQuizQuestions.slice(0,10).filter(function(q){
+    return q.question && q.option_a && q.option_b && q.option_c && q.option_d;
+  }).map(function(q){
+    return {
+      question:q.question,
+      option_a:q.option_a,
+      option_b:q.option_b,
+      option_c:q.option_c,
+      option_d:q.option_d,
+      correct_answer:String(q.correct_answer || "A").toUpperCase()
+    };
+  });
+
+  if(!clean.length){
+    toast("Quiz kosong atau format belum lengkap","error");
+    return;
+  }
+
+  await api("/api/admin/materials/" + currentQuizMaterialId + "/quiz", {
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({
+      title:$("quizTitle").value || ("Quizz " + getMaterialTitleById(currentQuizMaterialId)),
+      questions:clean
+    })
+  });
+
+  await loadLibrary();
+  if(selectedStudent){ selectedStudent = await api("/api/admin/students/" + selectedStudent.id); }
+  closeOverlay("quizOverlay");
+  renderAll();
+  toast("Quiz berhasil disimpan: " + clean.length + " soal");
+}
+
+async function deleteQuiz(){
+  if(!currentQuizMaterialId) return;
+  if(!confirm("Hapus quiz untuk materi ini?")) return;
+  await api("/api/admin/materials/" + currentQuizMaterialId + "/quiz", { method:"DELETE" });
+  await loadLibrary();
+  if(selectedStudent){ selectedStudent = await api("/api/admin/students/" + selectedStudent.id); }
+  currentQuizQuestions = [];
+  closeOverlay("quizOverlay");
+  renderAll();
+  toast("Quiz berhasil dihapus");
+}
+
+function quizBadgeHTML(item){
+  const count = Number(item.quiz_question_count || 0);
+  if(!item.quiz_id || count <= 0) return "";
+  return `
+    <div class="quiz-mini-row">
+      <div>
+        <strong>${safe(item.quiz_title || ("Quizz " + (item.title || item.file_name || "Materi")))}</strong>
+        <small>${count} soal pilihan ganda</small>
+      </div>
+      <button class="btn btn-purple" onclick="openQuizModal(${item.id})">Edit Quiz</button>
+    </div>
+  `;
+}
+
+
 function renderAccess(){
   const list = sortPPTItems(selectedStudent.library || []);
   const visible = sliceAdminItems("access", list);
@@ -833,6 +1033,7 @@ function renderAccess(){
       <div class="section-actions">
         <button class="btn ${pptSortMode === "smart" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('smart')">Default</button>
         <button class="btn ${pptSortMode === "all" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('all')">Sort All</button>
+        ${adminSeeAllButton("access", list.length, visible.length)}
       </div>
     </div>`;
   Object.keys(groups).forEach(function(cat){
@@ -843,20 +1044,17 @@ function renderAccess(){
         <div class="file-card">
           ${coverHTML(item, locked)}
           <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Kategori: ${safe(item.category || "Beginner")}<br>Status siswa ini: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}<br>${item.note ? "Deskripsi: " + safe(item.note) : ""}</small>
+          <small>Kategori: ${safe(item.category || "Beginner")}<br>Status siswa ini: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
+          ${quizBadgeHTML(item)}
           <div class="row-actions">
             <button class="btn ${locked ? "btn-green" : "btn-orange"}" onclick="toggleMaterialAccess(${item.id},${item.is_unlocked})">${locked ? "Unlock untuk siswa ini" : "Lock lagi"}</button>
+            <button class="btn btn-purple" onclick="openQuizModal(${item.id})">${item.quiz_id ? "Edit Quiz" : "Add Quiz"}</button>
             ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download Admin</a>` : ""}
           </div>
         </div>`;
     }).join("");
     html += "</div>";
   });
-
-  if(list.length > 4){
-    html += '<div class="see-all-bottom">' + adminSeeAllButton("access", list.length, visible.length) + '</div>';
-  }
-
   $("tabContent").innerHTML = html;
 }
 
@@ -873,6 +1071,7 @@ function renderLibrary(){
       <div><div class="title">Library PPT Global</div><div class="subtitle">Master PPT untuk semua siswa. Awalnya tampil 4 data agar tidak terlalu panjang.</div></div>
       <div class="section-actions">
         <button class="btn btn-green" onclick="openLibraryModal()">Upload PPT Global</button>
+        ${adminSeeAllButton("library", list.length, visible.length)}
       </div>
     </div>`;
   Object.keys(groups).forEach(function(cat){
@@ -882,9 +1081,10 @@ function renderLibrary(){
         <div class="file-card">
           ${coverHTML(item, false)}
           <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Kategori: ${safe(item.category || "Beginner")}<br>File: ${safe(item.file_name || "-")}<br>${item.note ? "Deskripsi: " + safe(item.note) : ""}</small>
+          <small>Kategori: ${safe(item.category || "Beginner")}<br>File: ${safe(item.file_name || "-")}</small>
+          ${quizBadgeHTML(item)}
           <div class="row-actions">
-            <button class="btn btn-primary" onclick='openLibraryModal(${JSON.stringify(item)})'>Edit</button>
+            <button class="btn btn-purple" onclick="openQuizModal(${item.id})">${item.quiz_id ? "Edit Quiz" : "Add Quiz"}</button>
             ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : ""}
             <button class="btn btn-red" onclick="deleteLibraryMaterial(${item.id})">Hapus dari Library</button>
           </div>
@@ -892,11 +1092,6 @@ function renderLibrary(){
     }).join("");
     html += "</div>";
   });
-
-  if(list.length > 4){
-    html += '<div class="see-all-bottom">' + adminSeeAllButton("library", list.length, visible.length) + '</div>';
-  }
-
   $("tabContent").innerHTML = html;
 }
 
@@ -909,6 +1104,7 @@ function renderCertificates(){
       <div><div class="title">Sertifikat Digital ${safe(s.name)}</div><div class="subtitle">Sertifikat khusus siswa ini. Awalnya tampil 4 data agar lebih rapi.</div></div>
       <div class="section-actions">
         <button class="btn btn-purple" onclick="openCertificateModal()">Upload Sertifikat</button>
+        ${adminSeeAllButton("certificates", list.length, visible.length)}
       </div>
     </div>`;
   if(!list.length){
@@ -931,11 +1127,6 @@ function renderCertificates(){
     }).join("");
     html += '</div>';
   }
-
-  if(list.length > 4){
-    html += '<div class="see-all-bottom">' + adminSeeAllButton("certificates", list.length, visible.length) + '</div>';
-  }
-
   $("tabContent").innerHTML = html;
 }
 

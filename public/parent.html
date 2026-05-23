@@ -36,6 +36,8 @@
       <div class="stat"><div class="stat-icon" id="pIconMeet"></div><div><div class="stat-label">Pertemuan</div><div class="stat-num" id="pMeetings">0</div></div></div>
       <div class="stat"><div class="stat-icon" id="pIconMat"></div><div><div class="stat-label">PPT Terbuka</div><div class="stat-num" id="pMaterials">0</div></div></div>
       <div class="stat"><div class="stat-icon" id="pIconLocked"></div><div><div class="stat-label">PPT Locked</div><div class="stat-num" id="pLocked">0</div></div></div>
+      <div class="stat"><div class="stat-icon" id="pIconQuizOpen"></div><div><div class="stat-label">Quiz Terbuka</div><div class="stat-num" id="pQuizOpen">0</div></div></div>
+      <div class="stat"><div class="stat-icon" id="pIconQuizLocked"></div><div><div class="stat-label">Quiz Locked</div><div class="stat-num" id="pQuizLocked">0</div></div></div>
       <div class="stat"><div class="stat-icon" id="pIconCert"></div><div><div class="stat-label">Sertifikat</div><div class="stat-num" id="pCertificates">0</div></div></div>
     </section>
 
@@ -92,7 +94,7 @@ function svg(name){
 }
 
 function initParentIcons(){
-  const map = { pIconMeet:"calendar", pIconMat:"folder", pIconLocked:"lock", pIconCert:"cert" };
+  const map = { pIconMeet:"calendar", pIconMat:"folder", pIconLocked:"lock", pIconQuizOpen:"help-circle", pIconQuizLocked:"lock", pIconCert:"cert" };
   Object.keys(map).forEach(function(id){ if(getEl(id)) getEl(id).innerHTML = svg(map[id]); });
 }
 
@@ -279,6 +281,9 @@ function renderParent(){
   const materials = s.library || [];
   const certificates = s.certificates || [];
   const unlockedMaterials = materials.filter(x => x.is_unlocked);
+  const quizItems = materials.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0);
+  const quizOpenCount = quizItems.filter(x => x.is_unlocked).length;
+  const quizLockedCount = quizItems.filter(x => !x.is_unlocked).length;
   const lockedMaterials = materials.filter(x => !x.is_unlocked);
   const unlockedCerts = certificates.filter(x => !x.is_locked);
 
@@ -293,6 +298,8 @@ function renderParent(){
   getEl("pMeetings").textContent = attendances.length;
   getEl("pMaterials").textContent = unlockedMaterials.length;
   getEl("pLocked").textContent = lockedMaterials.length;
+  if(getEl("pQuizOpen")) getEl("pQuizOpen").textContent = quizOpenCount;
+  if(getEl("pQuizLocked")) getEl("pQuizLocked").textContent = quizLockedCount;
   getEl("pCertificates").textContent = unlockedCerts.length;
   getEl("parentProgressWrap").innerHTML = progressBoxParent();
 
@@ -345,6 +352,144 @@ function renderParent(){
   initParentIcons();
 }
 
+
+let parentQuizAnswers = {};
+
+function parentQuizRowHTML(item, locked){
+  const count = Number(item.quiz_question_count || 0);
+  if(!item.quiz_id || count <= 0) return "";
+
+  const title = item.quiz_title || ("Quizz " + (item.title || item.file_name || "Materi"));
+
+  if(locked){
+    return `
+      <div class="quiz-mini-row locked">
+        <div>
+          <strong>${safe(title)}</strong>
+          <small>Quiz ikut locked karena PPT belum dibuka.</small>
+        </div>
+        <button class="btn btn-light" disabled>Quiz Locked</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="quiz-mini-row">
+      <div>
+        <strong>${safe(title)}</strong>
+        <small>${count} soal pilihan ganda</small>
+      </div>
+      <button class="btn btn-purple" onclick="openMaterialQuiz(${item.id})">Kerjakan Quiz</button>
+    </div>
+  `;
+}
+
+function openParentQuizOverlay(){
+  const el = getEl("parentQuizOverlay");
+  if(el) el.style.display = "flex";
+}
+
+function closeParentQuiz(){
+  const el = getEl("parentQuizOverlay");
+  if(el) el.style.display = "none";
+}
+
+async function openMaterialQuiz(materialId){
+  parentQuizAnswers = {};
+  try{
+    const quiz = await fetch("/api/parent/materials/" + materialId + "/quiz").then(r => r.json());
+    const questions = quiz.questions || [];
+
+    getEl("parentQuizTitle").textContent = quiz.title || "Quiz";
+
+    if(!questions.length){
+      getEl("parentQuizBody").innerHTML = '<div class="empty">Quiz belum tersedia untuk materi ini.</div>';
+      openParentQuizOverlay();
+      return;
+    }
+
+    getEl("parentQuizBody").innerHTML =
+      questions.map(function(q, i){
+        return `
+          <div class="quiz-question-card">
+            <strong>${i + 1}. ${safe(q.question)}</strong>
+            ${["A","B","C","D"].map(function(letter){
+              const text = q["option_" + letter.toLowerCase()] || "";
+              return `<label class="quiz-choice"><input type="radio" name="q${i}" value="${letter}" onchange="parentQuizAnswers[${i}]='${letter}'"> ${letter}. ${safe(text)}</label>`;
+            }).join("")}
+            <div class="quiz-answer" id="quizAnswer${i}" data-correct="${safe(q.correct_answer)}"></div>
+          </div>
+        `;
+      }).join("") +
+      '<div class="row-actions" style="margin-top:14px"><button class="btn btn-green" onclick="checkParentQuiz()">Cek Jawaban</button></div>';
+
+    openParentQuizOverlay();
+  }catch(e){
+    alert("Gagal membuka quiz");
+  }
+}
+
+
+function launchQuizConfetti(){
+  const old = document.querySelector(".quiz-confetti-layer");
+  if(old) old.remove();
+
+  const layer = document.createElement("div");
+  layer.className = "quiz-confetti-layer";
+
+  const colors = ["#f59e0b","#22c55e","#3b82f6","#ec4899","#8b5cf6","#ef4444","#14b8a6"];
+  for(let i = 0; i < 90; i++){
+    const piece = document.createElement("span");
+    piece.className = "quiz-confetti-piece";
+    piece.style.left = Math.random() * 100 + "%";
+    piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+    piece.style.animationDelay = (Math.random() * 0.45) + "s";
+    piece.style.animationDuration = (1.8 + Math.random() * 1.4) + "s";
+    piece.style.transform = "rotate(" + (Math.random() * 360) + "deg)";
+    layer.appendChild(piece);
+  }
+
+  document.body.appendChild(layer);
+  setTimeout(function(){
+    if(layer) layer.remove();
+  }, 3800);
+}
+
+
+function checkParentQuiz(){
+  const cards = document.querySelectorAll(".quiz-answer");
+  let score = 0;
+
+  cards.forEach(function(el, i){
+    const correct = el.getAttribute("data-correct");
+    const answer = parentQuizAnswers[i] || "-";
+    if(answer === correct){
+      score++;
+      el.innerHTML = '<span class="quiz-correct">Benar</span>';
+    }else{
+      el.innerHTML = '<span class="quiz-wrong">Salah. Jawaban benar: ' + correct + '</span>';
+    }
+  });
+
+  const old = document.querySelector(".quiz-score");
+  if(old) old.remove();
+  const oldClose = document.querySelector(".quiz-close-bottom");
+  if(oldClose) oldClose.remove();
+
+  const result = document.createElement("div");
+  result.className = "quiz-score";
+  result.innerHTML = "Skor: " + score + " / " + cards.length;
+  getEl("parentQuizBody").appendChild(result);
+
+  const closeWrap = document.createElement("div");
+  closeWrap.className = "quiz-close-bottom";
+  closeWrap.innerHTML = '<button class="btn btn-light" onclick="closeParentQuiz()">Tutup</button>';
+  getEl("parentQuizBody").appendChild(closeWrap);
+
+  launchQuizConfetti();
+}
+
+
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
   const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
@@ -359,6 +504,7 @@ function renderMaterials(materials){
       '<div class="section-actions">' +
         '<button class="btn ' + smartClass + '" onclick="setParentPPTSortMode(&quot;smart&quot;)">Default</button>' +
         '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
+        '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button>' +
       '</div>' +
     '</div>';
 
@@ -380,22 +526,14 @@ function renderMaterials(materials){
           <div class="row-actions">
             ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
           </div>
+          ${parentQuizRowHTML(item, locked)}
         </div>
       `;
     }).join("");
     html += "</div>";
   });
-
-  if(sorted.length > 4){
-    html += '<div class="see-all-bottom">' +
-      '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' +
-      (expanded ? "Show Less" : "See All (" + hidden + ")") +
-      '</button></div>';
-  }
-
   getEl("materialList").innerHTML = html;
 }
-
 function renderCertificates(certificates){
   const sorted = (certificates || []).slice().sort(function(a,b){ return Number(b.id || 0) - Number(a.id || 0); });
   const expanded = !!parentSectionExpanded.certificates;
@@ -405,6 +543,7 @@ function renderCertificates(certificates){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Sertifikat Digital</div><div class="subtitle">Sertifikat tampil/download kalau sudah di-unlock.</div></div>' +
+      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
     '</div>';
 
   if(!sorted.length){
@@ -427,11 +566,6 @@ function renderCertificates(certificates){
     `;
   }).join("");
   html += '</div>';
-
-  if(sorted.length > 4){
-    html += '<div class="see-all-bottom"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All (" + hidden + ")") + '</button></div>';
-  }
-
   getEl("certificateList").innerHTML = html;
 }
 
@@ -444,6 +578,7 @@ function renderAttendances(attendances){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Riwayat Pertemuan</div><div class="subtitle">Daftar semua sesi les anak.</div></div>' +
+      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
     '</div>';
 
   if(!sorted.length){
@@ -461,11 +596,6 @@ function renderAttendances(attendances){
     `;
   }).join("");
   html += '</div>';
-
-  if(sorted.length > 4){
-    html += '<div class="see-all-bottom"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All (" + hidden + ")") + '</button></div>';
-  }
-
   getEl("attendanceList").innerHTML = html;
 }
 
@@ -503,5 +633,15 @@ const saved = localStorage.getItem("parentCode");
 if(saved) loadParent(saved);
 initParentIcons();
 </script>
+
+<div class="overlay" id="parentQuizOverlay">
+  <div class="modal quiz-modal">
+    <button class="modal-close quiz-x" onclick="closeParentQuiz()" title="Tutup">×</button>
+    <div class="title" id="parentQuizTitle">Quiz</div>
+    <div class="subtitle">Pilih jawaban yang menurut kamu benar.</div>
+    <div id="parentQuizBody" class="quiz-preview"></div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -94,6 +94,34 @@ db.serialize(() => {
     )
   `);
 
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quizzes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      material_id INTEGER NOT NULL UNIQUE,
+      title TEXT DEFAULT 'Quiz',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(material_id) REFERENCES library_materials(id) ON DELETE CASCADE
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS quiz_questions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      quiz_id INTEGER NOT NULL,
+      question_order INTEGER DEFAULT 1,
+      question TEXT NOT NULL,
+      option_a TEXT DEFAULT '',
+      option_b TEXT DEFAULT '',
+      option_c TEXT DEFAULT '',
+      option_d TEXT DEFAULT '',
+      correct_answer TEXT DEFAULT 'A',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY(quiz_id) REFERENCES quizzes(id) ON DELETE CASCADE
+    )
+  `);
+
   addColumnIfMissing("students", "progress_session", "INTEGER DEFAULT 0");
   addColumnIfMissing("library_materials", "category", "TEXT DEFAULT 'Beginner'");
   addColumnIfMissing("library_materials", "cover_name", "TEXT DEFAULT ''");
