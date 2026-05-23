@@ -48,6 +48,45 @@ function initIcons(){
   Object.keys(map).forEach(function(id){ if($(id)) $(id).innerHTML = svg(map[id]); });
 }
 
+
+function showSavedNotice(message){
+  const old = document.querySelector(".saved-notice");
+  if(old) old.remove();
+
+  const el = document.createElement("div");
+  el.className = "saved-notice";
+  el.innerHTML = `
+    <div class="saved-check">✓</div>
+    <div>
+      <strong>${safe(message || "Berhasil disimpan")}</strong>
+      <small>Perubahan sudah tersimpan.</small>
+    </div>
+  `;
+
+  document.body.appendChild(el);
+  setTimeout(function(){
+    el.classList.add("hide");
+    setTimeout(function(){ if(el) el.remove(); }, 300);
+  }, 1800);
+}
+
+
+function forceCloseOverlay(id){
+  const el = $(id);
+  if(!el) return;
+  el.style.display = "none";
+  el.classList.remove("show");
+  el.classList.add("hidden");
+}
+
+function forceOpenOverlay(id){
+  const el = $(id);
+  if(!el) return;
+  el.style.display = "flex";
+  el.classList.remove("hidden");
+  el.classList.add("show");
+}
+
 function toast(msg,type){
   const old = document.querySelector(".toast");
   if(old) old.remove();
@@ -58,8 +97,8 @@ function toast(msg,type){
   setTimeout(function(){ el.remove(); },2500);
 }
 
-function openOverlay(id){ $(id).style.display = "flex"; }
-function closeOverlay(id){ $(id).style.display = "none"; }
+function openOverlay(id){ forceOpenOverlay(id); }
+function closeOverlay(id){ forceCloseOverlay(id); }
 
 function coverHTML(item, locked){
   let content = "";
@@ -976,20 +1015,31 @@ async function saveQuiz(){
     return;
   }
 
-  await api("/api/admin/materials/" + currentQuizMaterialId + "/quiz", {
-    method:"PUT",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({
-      title:$("quizTitle").value || ("Quizz " + getMaterialTitleById(currentQuizMaterialId)),
-      questions:clean
-    })
-  });
+  try{
+    await api("/api/admin/materials/" + currentQuizMaterialId + "/quiz", {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        title:$("quizTitle").value || ("Quizz " + getMaterialTitleById(currentQuizMaterialId)),
+        questions:clean
+      })
+    });
 
-  await loadLibrary();
-  if(selectedStudent){ selectedStudent = await api("/api/admin/students/" + selectedStudent.id); }
-  closeOverlay("quizOverlay");
-  renderAll();
-  toast("Quiz berhasil disimpan: " + clean.length + " soal");
+    // Tutup modal langsung setelah data berhasil tersimpan
+    forceCloseOverlay("quizOverlay");
+    showSavedNotice("Quiz berhasil disimpan");
+
+    // Refresh data di belakang layar
+    await loadLibrary();
+    if(selectedStudent){
+      selectedStudent = await api("/api/admin/students/" + selectedStudent.id);
+    }
+    renderAll();
+
+    toast("Quiz berhasil disimpan: " + clean.length + " soal");
+  }catch(e){
+    toast(e.message || "Gagal menyimpan quiz", "error");
+  }
 }
 
 async function deleteQuiz(){
@@ -1006,18 +1056,35 @@ async function deleteQuiz(){
 
 function quizBadgeHTML(item){
   const count = Number(item.quiz_question_count || 0);
-  if(!item.quiz_id || count <= 0) return "";
+
+  if(!item.quiz_id || count <= 0){
+    return `
+      <div class="quiz-mini-row quiz-empty-row">
+        <div>
+          <strong>Quiz belum ditambahkan</strong>
+          <small>Buat quiz untuk materi ini.</small>
+        </div>
+        <button type="button" class="btn btn-purple btn-quiz-action" onclick="event.stopPropagation(); openQuizModal(${item.id})">Add Quiz</button>
+      </div>
+    `;
+  }
+
   return `
     <div class="quiz-mini-row">
       <div>
         <strong>${safe(item.quiz_title || ("Quizz " + (item.title || item.file_name || "Materi")))}</strong>
         <small>${count} soal pilihan ganda</small>
       </div>
-      <button class="btn btn-purple" onclick="openQuizModal(${item.id})">Edit Quiz</button>
+      <button type="button" class="btn btn-purple btn-quiz-action" onclick="event.stopPropagation(); openQuizModal(${item.id})">Edit Quiz</button>
     </div>
   `;
 }
 
+
+
+function openEditMaterialModal(id){
+  openLibraryModal(id);
+}
 
 function renderAccess(){
   const list = sortPPTItems(selectedStudent.library || []);
@@ -1048,7 +1115,6 @@ function renderAccess(){
           ${quizBadgeHTML(item)}
           <div class="row-actions">
             <button class="btn ${locked ? "btn-green" : "btn-orange"}" onclick="toggleMaterialAccess(${item.id},${item.is_unlocked})">${locked ? "Unlock untuk siswa ini" : "Lock lagi"}</button>
-            <button class="btn btn-purple" onclick="openQuizModal(${item.id})">${item.quiz_id ? "Edit Quiz" : "Add Quiz"}</button>
             ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download Admin</a>` : ""}
           </div>
         </div>`;
@@ -1084,7 +1150,7 @@ function renderLibrary(){
           <small>Kategori: ${safe(item.category || "Beginner")}<br>File: ${safe(item.file_name || "-")}</small>
           ${quizBadgeHTML(item)}
           <div class="row-actions">
-            <button class="btn btn-purple" onclick="openQuizModal(${item.id})">${item.quiz_id ? "Edit Quiz" : "Add Quiz"}</button>
+            <button type="button" class="btn btn-gold" onclick="event.stopPropagation(); openEditMaterialModal(${item.id})">Edit PPT</button>
             ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : ""}
             <button class="btn btn-red" onclick="deleteLibraryMaterial(${item.id})">Hapus dari Library</button>
           </div>

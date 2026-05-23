@@ -1,11 +1,3 @@
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
-
-if (!fs.existsSync("data")) {
-  fs.mkdirSync("data");
-}
-
 require("dotenv").config();
 
 const express = require("express");
@@ -23,6 +15,8 @@ const dataDirSafe = path.join(__dirname, "data");
 const uploadDirSafe = path.join(__dirname, "uploads");
 if (!fs.existsSync(dataDirSafe)) fs.mkdirSync(dataDirSafe, { recursive: true });
 if (!fs.existsSync(uploadDirSafe)) fs.mkdirSync(uploadDirSafe, { recursive: true });
+
+
 
 
 const uploadDir = uploadDirSafe;
