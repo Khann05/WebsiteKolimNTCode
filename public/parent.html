@@ -774,6 +774,7 @@ function renderAttendances(attendances){
 }
 
 
+
 function normalizeDateOnly(value){
   if(!value) return "";
   return String(value).slice(0,10);
@@ -790,24 +791,44 @@ function openCalendarInfo(dateText){
   const title = getEl("calendarInfoTitle");
   const body = getEl("calendarInfoBody");
 
-  if(title) title.textContent = "Info " + formatDate(target);
+  if(title) title.textContent = "Info Pertemuan";
 
   if(!sessions.length){
     body.innerHTML = `
       <div class="calendar-empty-info">
+        <div class="calendar-info-date">${safe(formatDate(target))}</div>
         <strong>Belum ada absensi di tanggal ini.</strong>
         <small>Tanggal ini belum memiliki catatan pertemuan les.</small>
       </div>
     `;
   }else{
-    body.innerHTML = sessions.map(function(item){
-      return `
-        <div class="calendar-session-info">
-          <strong>Session ${safe(item.session || "-")}</strong>
-          <small>${safe(item.time || "-")} • ${safe(item.note || "Tanpa catatan")}</small>
-        </div>
-      `;
-    }).join("");
+    body.innerHTML = `
+      <div class="calendar-info-date">${safe(formatDate(target))}</div>
+      ${sessions.map(function(item){
+        return `
+          <div class="calendar-session-info">
+            <div class="calendar-info-grid">
+              <div>
+                <span>Tanggal</span>
+                <strong>${safe(formatDate(item.date))}</strong>
+              </div>
+              <div>
+                <span>Jam</span>
+                <strong>${safe(item.time || "-")}</strong>
+              </div>
+              <div>
+                <span>Session</span>
+                <strong>${safe(item.session || "-")}</strong>
+              </div>
+            </div>
+            <div class="calendar-info-desc">
+              <span>Deskripsi / Catatan</span>
+              <p>${safe(item.note || item.description || "Tidak ada deskripsi.")}</p>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    `;
   }
 
   const overlay = getEl("calendarInfoOverlay");
@@ -817,6 +838,30 @@ function openCalendarInfo(dateText){
 function closeCalendarInfo(){
   const overlay = getEl("calendarInfoOverlay");
   if(overlay) overlay.style.display = "none";
+}
+
+function bindCalendarPopupClicks(){
+  document.addEventListener("click", function(e){
+    const day = e.target.closest(".calendar-day, .day");
+    if(!day) return;
+
+    const date = day.getAttribute("data-date");
+    if(date){
+      openCalendarInfo(date);
+      return;
+    }
+
+    const eventText = day.querySelector(".calendar-event, .event-pill, .session-pill");
+    if(eventText){
+      const dateFromEvent = eventText.getAttribute("data-date");
+      if(dateFromEvent) openCalendarInfo(dateFromEvent);
+    }
+  });
+}
+
+if(!window.__calendarPopupBound){
+  window.__calendarPopupBound = true;
+  bindCalendarPopupClicks();
 }
 
 
@@ -907,17 +952,6 @@ function initParentAdvancedAnimations(){
 window.addEventListener("load", function(){
   setTimeout(initParentAdvancedAnimations, 150);
 });
-
-
-function calendarClickFallback(){
-  document.addEventListener("click", function(e){
-    const day = e.target.closest(".calendar-day, .day");
-    if(!day) return;
-    const date = day.getAttribute("data-date");
-    if(date) openCalendarInfo(date);
-  });
-}
-calendarClickFallback();
 
 
 </script>
