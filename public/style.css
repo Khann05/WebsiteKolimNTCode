@@ -2191,3 +2191,318 @@ body{
     width:calc(100% - 18px) !important;
   }
 }
+
+
+/* Mobile parent polish: compact header, readable calendar, full-screen notifications */
+@media(max-width:720px){
+  body{
+    overflow-x:hidden;
+  }
+
+  #parentApp{
+    padding-left:12px !important;
+    padding-right:12px !important;
+    padding-bottom:108px !important;
+  }
+
+  .parent-top,
+  .parent-top.is-scrolled{
+    top:8px !important;
+    padding:10px 12px !important;
+    border-radius:22px !important;
+    min-height:64px !important;
+    display:flex !important;
+    align-items:center !important;
+    gap:10px !important;
+    box-shadow:0 12px 32px rgba(15,23,42,.10) !important;
+  }
+
+  .parent-top img,
+  .brand img,
+  .topbar img{
+    width:42px !important;
+    height:42px !important;
+    object-fit:contain !important;
+  }
+
+  .parent-top .brand,
+  .parent-brand,
+  .brand{
+    gap:8px !important;
+    min-width:0 !important;
+  }
+
+  .parent-top .brand strong,
+  .parent-brand strong,
+  .brand strong{
+    font-size:17px !important;
+    white-space:nowrap !important;
+  }
+
+  .parent-top-actions{
+    margin-left:auto !important;
+    gap:7px !important;
+  }
+
+  .notif-btn,
+  .admin-icon-btn{
+    width:46px !important;
+    height:46px !important;
+    border-radius:16px !important;
+    flex:0 0 auto !important;
+  }
+
+  .notif-btn svg{
+    width:21px !important;
+    height:21px !important;
+  }
+
+  .notif-dot{
+    top:9px !important;
+    right:9px !important;
+    width:9px !important;
+    height:9px !important;
+  }
+
+  .parent-top .btn,
+  .parent-top-actions .btn{
+    min-height:46px !important;
+    padding:0 16px !important;
+    border-radius:16px !important;
+    font-size:14px !important;
+  }
+
+  .hero,
+  #parentHero{
+    margin-top:14px !important;
+    padding:34px 22px !important;
+    border-radius:28px !important;
+    min-height:auto !important;
+  }
+
+  #parentHero h1,
+  .hero h1{
+    font-size:clamp(38px, 10vw, 54px) !important;
+    line-height:.98 !important;
+    letter-spacing:-1.8px !important;
+  }
+
+  .ready-text{
+    margin-top:16px !important;
+    max-width:100% !important;
+  }
+
+  .stats{
+    grid-template-columns:1fr !important;
+    gap:14px !important;
+  }
+
+  .stat{
+    min-height:128px !important;
+    padding:22px !important;
+    border-radius:26px !important;
+  }
+
+  .stat-num{
+    font-size:34px !important;
+  }
+
+  .panel{
+    border-radius:28px !important;
+    padding:18px !important;
+  }
+
+  .section-toolbar{
+    flex-direction:column !important;
+    align-items:flex-start !important;
+    gap:14px !important;
+  }
+
+  .section-actions{
+    width:100% !important;
+    display:flex !important;
+    gap:8px !important;
+    overflow:auto !important;
+    padding-bottom:2px !important;
+  }
+
+  .section-actions .btn{
+    white-space:nowrap !important;
+  }
+
+  .file-grid,
+  .compact-grid{
+    grid-template-columns:1fr !important;
+    gap:16px !important;
+  }
+
+  .file-card{
+    border-radius:24px !important;
+  }
+
+  .cover,
+  .cover-placeholder{
+    height:180px !important;
+    border-radius:20px !important;
+  }
+
+  /* Calendar readability on mobile */
+  .calendar-grid,
+  .calendar{
+    gap:7px !important;
+  }
+
+  .calendar-day,
+  .day{
+    min-height:104px !important;
+    border-radius:18px !important;
+    padding:9px 5px !important;
+    overflow:hidden !important;
+  }
+
+  .calendar-day strong,
+  .day strong,
+  .day-number{
+    font-size:16px !important;
+    line-height:1 !important;
+  }
+
+  .calendar-event,
+  .event-pill,
+  .session-pill,
+  .calendar-day small,
+  .day small{
+    font-size:10px !important;
+    line-height:1.15 !important;
+    white-space:normal !important;
+    word-break:break-word !important;
+    padding:5px 4px !important;
+    border-radius:10px !important;
+    max-width:100% !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+  }
+
+  .calendar-head,
+  .calendar-header{
+    gap:8px !important;
+    flex-wrap:wrap !important;
+  }
+
+  .calendar-head .btn,
+  .calendar-header .btn{
+    padding:8px 12px !important;
+    font-size:13px !important;
+  }
+
+  /* Full-screen mobile notification */
+  .notif-dropdown{
+    position:fixed !important;
+    inset:0 !important;
+    top:0 !important;
+    right:0 !important;
+    width:100vw !important;
+    max-width:none !important;
+    height:100vh !important;
+    max-height:none !important;
+    border-radius:0 !important;
+    padding:22px 18px 110px !important;
+    overflow:auto !important;
+    z-index:8000 !important;
+    background:
+      radial-gradient(circle at 75% 18%, rgba(79,70,229,.12), transparent 28%),
+      linear-gradient(135deg,#fffaf0,#ffffff 42%,#f8fafc) !important;
+    transform:translateY(18px) !important;
+  }
+
+  .notif-dropdown.show{
+    transform:translateY(0) !important;
+  }
+
+  .notif-dropdown-head{
+    display:flex !important;
+    align-items:flex-start !important;
+    justify-content:space-between !important;
+    gap:14px !important;
+    padding:14px 4px 18px !important;
+    margin-bottom:14px !important;
+    position:sticky !important;
+    top:0 !important;
+    background:rgba(255,255,255,.86) !important;
+    backdrop-filter:blur(14px) !important;
+    z-index:2 !important;
+    border-radius:20px !important;
+  }
+
+  .notif-dropdown-head strong{
+    font-size:26px !important;
+  }
+
+  .notif-dropdown-head small{
+    font-size:14px !important;
+  }
+
+  .notif-close-mobile{
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    width:46px !important;
+    height:46px !important;
+    border-radius:16px !important;
+    border:1px solid rgba(226,211,178,.9) !important;
+    background:#fff !important;
+    color:#111827 !important;
+    font-size:28px !important;
+    font-weight:900 !important;
+    box-shadow:0 12px 28px rgba(15,23,42,.10) !important;
+  }
+
+  .notif-dropdown-list{
+    gap:12px !important;
+  }
+
+  .notif-dropdown-item{
+    grid-template-columns:52px 1fr !important;
+    padding:16px !important;
+    border-radius:22px !important;
+    background:#fff !important;
+    box-shadow:0 14px 36px rgba(15,23,42,.08) !important;
+  }
+
+  .notif-mini-icon{
+    width:52px !important;
+    height:52px !important;
+    border-radius:18px !important;
+  }
+
+  .notif-dropdown-item strong{
+    font-size:18px !important;
+  }
+
+  .notif-dropdown-item small{
+    font-size:14px !important;
+    line-height:1.35 !important;
+  }
+
+  body.notif-open{
+    overflow:hidden !important;
+  }
+
+  .parent-bottom-nav{
+    bottom:8px !important;
+    min-height:76px !important;
+    padding:8px !important;
+    border-radius:24px !important;
+  }
+
+  .parent-nav-item{
+    font-size:10.5px !important;
+    gap:4px !important;
+  }
+}
+
+@media(min-width:721px){
+  .notif-close-mobile{
+    display:none;
+  }
+}

@@ -48,8 +48,11 @@
       </div>
       <div class="notif-dropdown" id="parentNotifDropdown">
         <div class="notif-dropdown-head">
-          <strong>Pemberitahuan</strong>
-          <small>Informasi terbaru parent portal</small>
+          <div>
+            <strong>Pemberitahuan</strong>
+            <small>Informasi terbaru parent portal</small>
+          </div>
+          <button type="button" class="notif-close-mobile" onclick="toggleParentNotif()" aria-label="Tutup pemberitahuan">×</button>
         </div>
         <div id="parentNotifItems" class="notif-dropdown-list"></div>
       </div>
@@ -637,6 +640,7 @@ function toggleParentNotif(){
   if(!box) return;
   renderParentNotifications();
   box.classList.toggle("show");
+  document.body.classList.toggle("notif-open", box.classList.contains("show"));
 }
 
 document.addEventListener("click", function(e){
@@ -645,6 +649,7 @@ document.addEventListener("click", function(e){
   if(!btn || !box) return;
   if(!btn.contains(e.target) && !box.contains(e.target)){
     box.classList.remove("show");
+    document.body.classList.remove("notif-open");
   }
 });
 
