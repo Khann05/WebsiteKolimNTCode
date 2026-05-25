@@ -3011,3 +3011,37 @@ body.parent-logged-out #parentApp{
 body.parent-logged-in .parent-bottom-nav{
   display:grid;
 }
+
+
+/* Hide parent header/navigation while popup/modal is open */
+body.parent-popup-open .parent-top,
+body.parent-popup-open .topbar,
+body.parent-popup-open .parent-bottom-nav{
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+  transform:translateY(-12px) !important;
+  transition:.18s ease !important;
+}
+
+body.parent-popup-open .parent-bottom-nav{
+  transform:translate(-50%, 18px) !important;
+}
+
+/* Make popup content take priority */
+body.parent-popup-open .overlay,
+body.parent-popup-open #parentQuizOverlay,
+body.parent-popup-open #calendarInfoOverlay{
+  z-index:9000 !important;
+}
+
+body.parent-popup-open .modal,
+body.parent-popup-open .quiz-modal,
+body.parent-popup-open .calendar-info-modal{
+  z-index:9001 !important;
+}
+
+/* Quiz modal gets more room after header is hidden */
+body.parent-popup-open .quiz-modal{
+  max-height:94vh !important;
+}

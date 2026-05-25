@@ -530,7 +530,13 @@ function parentQuizRowHTML(item, locked){
   `;
 }
 
+
+function setParentPopupUI(isOpen){
+  document.body.classList.toggle("parent-popup-open", !!isOpen);
+}
+
 function openParentQuizOverlay(){
+  setParentPopupUI(true);
   const el = getEl("parentQuizOverlay");
   if(el) el.style.display = "flex";
 }
@@ -538,6 +544,7 @@ function openParentQuizOverlay(){
 function closeParentQuiz(){
   const el = getEl("parentQuizOverlay");
   if(el) el.style.display = "none";
+  setParentPopupUI(false);
 }
 
 async function openMaterialQuiz(materialId){
@@ -951,12 +958,14 @@ function openCalendarInfo(dateText){
   }
 
   const overlay = getEl("calendarInfoOverlay");
+  setParentPopupUI(true);
   if(overlay) overlay.style.display = "flex";
 }
 
 function closeCalendarInfo(){
   const overlay = getEl("calendarInfoOverlay");
   if(overlay) overlay.style.display = "none";
+  setParentPopupUI(false);
 }
 
 function bindCalendarPopupClicks(){
