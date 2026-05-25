@@ -2608,3 +2608,220 @@ body{
   font-size:13px;
   border:1px solid #c7d2fe;
 }
+
+
+/* Fix mobile clipped level/tag text and readable calendar */
+#parentHero,
+.hero,
+.detail-hero,
+.progress-card,
+.profile-card{
+  overflow:visible !important;
+}
+
+#parentHero *,
+.hero *,
+.detail-hero *,
+.progress-card *,
+.profile-card *{
+  overflow:visible;
+}
+
+.level-badge,
+.level-pill,
+.badge,
+.tag,
+.ready-text{
+  white-space:nowrap !important;
+  max-width:none !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+
+@media(max-width:720px){
+  /* Prevent the level pill from being cut by the hero card on mobile */
+  #parentHero,
+  .hero{
+    overflow:visible !important;
+  }
+
+  .level-badge,
+  .level-pill,
+  .badge,
+  .tag{
+    display:inline-flex !important;
+    width:max-content !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    position:relative !important;
+    z-index:4 !important;
+  }
+
+  /* Calendar becomes horizontally scrollable so text is not squeezed vertically */
+  #parentCalendar,
+  .calendar-wrap,
+  .calendar-container{
+    overflow-x:auto !important;
+    overflow-y:visible !important;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:8px;
+  }
+
+  #parentCalendar::-webkit-scrollbar,
+  .calendar-wrap::-webkit-scrollbar,
+  .calendar-container::-webkit-scrollbar{
+    height:7px;
+  }
+
+  #parentCalendar::-webkit-scrollbar-thumb,
+  .calendar-wrap::-webkit-scrollbar-thumb,
+  .calendar-container::-webkit-scrollbar-thumb{
+    background:#c7d2fe;
+    border-radius:999px;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid,
+  .calendar{
+    min-width:720px !important;
+  }
+
+  .calendar-weekdays{
+    display:grid !important;
+    grid-template-columns:repeat(7,1fr) !important;
+    gap:10px !important;
+    margin:12px 0 10px !important;
+    text-align:center !important;
+  }
+
+  .calendar-grid,
+  .calendar{
+    display:grid !important;
+    grid-template-columns:repeat(7,1fr) !important;
+    gap:10px !important;
+  }
+
+  .calendar-day,
+  .day{
+    min-width:92px !important;
+    min-height:118px !important;
+    border-radius:20px !important;
+    padding:10px 8px !important;
+    overflow:hidden !important;
+  }
+
+  .calendar-day strong,
+  .day strong,
+  .day-number{
+    font-size:17px !important;
+    line-height:1 !important;
+    margin-bottom:8px !important;
+  }
+
+  .session-pill,
+  .calendar-event,
+  .event-pill{
+    display:block !important;
+    width:100% !important;
+    max-width:100% !important;
+    min-height:auto !important;
+    padding:8px 7px !important;
+    border-radius:14px !important;
+    font-size:12px !important;
+    line-height:1.18 !important;
+    font-weight:1000 !important;
+    text-align:left !important;
+    white-space:normal !important;
+    word-break:normal !important;
+    overflow:hidden !important;
+    text-overflow:clip !important;
+  }
+
+  .calendar-month-label,
+  .calendar-title,
+  .calendar-head,
+  .calendar-header{
+    position:sticky;
+    left:0;
+    z-index:2;
+  }
+
+  .section-toolbar .title{
+    white-space:normal !important;
+  }
+}
+
+
+/* Calendar month navigation and mobile readability */
+.calendar-toolbar{
+  align-items:flex-start;
+}
+
+.calendar-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.calendar-controls .btn:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.calendar-scroll{
+  width:100%;
+}
+
+.calendar-month-label{
+  padding:10px 16px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#4f46e5;
+  font-weight:1000;
+  white-space:nowrap;
+}
+
+@media(max-width:720px){
+  .calendar-toolbar{
+    gap:14px !important;
+  }
+
+  .calendar-controls{
+    width:100%;
+    display:grid !important;
+    grid-template-columns:1fr;
+    gap:8px !important;
+    justify-content:stretch !important;
+  }
+
+  .calendar-controls .btn,
+  .calendar-month-label{
+    width:100%;
+    justify-content:center;
+    text-align:center;
+  }
+
+  .calendar-scroll{
+    overflow-x:auto !important;
+    overflow-y:visible !important;
+    -webkit-overflow-scrolling:touch;
+    padding-bottom:8px;
+  }
+
+  .calendar-scroll::-webkit-scrollbar{
+    height:7px;
+  }
+
+  .calendar-scroll::-webkit-scrollbar-thumb{
+    background:#c7d2fe;
+    border-radius:999px;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid{
+    min-width:720px !important;
+  }
+}

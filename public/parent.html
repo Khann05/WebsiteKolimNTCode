@@ -971,30 +971,65 @@ if(!window.__calendarPopupBound){
 }
 
 
+
+const CALENDAR_START_YEAR = 2026;
+const CALENDAR_START_MONTH = 3; // April, karena JS bulan mulai dari 0
+let parentCalendarDate = new Date();
+parentCalendarDate.setDate(1);
+
+function getCalendarMinDate(){
+  return new Date(CALENDAR_START_YEAR, CALENDAR_START_MONTH, 1);
+}
+
+function isBeforeCalendarMin(date){
+  const min = getCalendarMinDate();
+  return date.getFullYear() < min.getFullYear() ||
+    (date.getFullYear() === min.getFullYear() && date.getMonth() < min.getMonth());
+}
+
+function changeParentCalendarMonth(delta){
+  const next = new Date(parentCalendarDate.getFullYear(), parentCalendarDate.getMonth() + delta, 1);
+
+  if(isBeforeCalendarMin(next)){
+    if(typeof showToast === "function") showToast("Kalender mulai dari April 2026", "error");
+    return;
+  }
+
+  parentCalendarDate = next;
+  renderParentCalendar((currentStudent && currentStudent.attendances) ? currentStudent.attendances : []);
+}
+
 function renderParentCalendar(attendances){
   const list = attendances || [];
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+  const year = parentCalendarDate.getFullYear();
+  const month = parentCalendarDate.getMonth();
 
   const monthName = new Date(year, month, 1).toLocaleDateString("id-ID", {
     month:"long",
     year:"numeric"
   });
 
+  const minDate = getCalendarMinDate();
+  const isAtMin = year === minDate.getFullYear() && month === minDate.getMonth();
+
   const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const totalDays = lastDay.getDate();
 
   let html =
-    '<div class="section-toolbar">' +
+    '<div class="section-toolbar calendar-toolbar">' +
       '<div><div class="title">Kalender Riwayat Les</div><div class="subtitle">Klik tanggal untuk melihat detail absensi.</div></div>' +
-      '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
+      '<div class="calendar-controls">' +
+        '<button class="btn btn-light" onclick="changeParentCalendarMonth(-1)" ' + (isAtMin ? "disabled" : "") + '>‹ Bulan Sebelumnya</button>' +
+        '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
+        '<button class="btn btn-light" onclick="changeParentCalendarMonth(1)">Bulan Berikutnya ›</button>' +
+      '</div>' +
     '</div>' +
-    '<div class="calendar-weekdays">' +
-      '<span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>' +
-    '</div>' +
-    '<div class="calendar-grid">';
+    '<div class="calendar-scroll">' +
+      '<div class="calendar-weekdays">' +
+        '<span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>' +
+      '</div>' +
+      '<div class="calendar-grid">';
 
   for(let i = 0; i < firstDay.getDay(); i++){
     html += '<div class="calendar-day empty"></div>';
@@ -1013,7 +1048,7 @@ function renderParentCalendar(attendances){
         ${daySessions.map(function(item){
           return `
             <div class="session-pill" data-date="${dateKey}">
-              Session ${safe(item.session || "-")}<br>${safe(item.time || "-")}
+              S ${safe(item.session || "-")}<br>${safe(item.time || "-")}
             </div>
           `;
         }).join("")}
@@ -1021,7 +1056,7 @@ function renderParentCalendar(attendances){
     `;
   }
 
-  html += '</div>';
+  html += '</div></div>';
 
   const target = getEl("parentCalendar");
   if(target){
