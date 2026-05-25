@@ -3045,3 +3045,16 @@ body.parent-popup-open .calendar-info-modal{
 body.parent-popup-open .quiz-modal{
   max-height:94vh !important;
 }
+
+
+/* Confetti must appear above every popup/modal */
+.quiz-confetti-layer{
+  z-index:99999 !important;
+  position:fixed !important;
+  inset:0 !important;
+  pointer-events:none !important;
+}
+
+.quiz-confetti-piece{
+  z-index:100000 !important;
+}
