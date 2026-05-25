@@ -2997,3 +2997,17 @@ body{
     -webkit-overflow-scrolling:touch;
   }
 }
+
+
+/* Hide parent bottom nav on login/logout screen */
+body.parent-logged-out .parent-bottom-nav{
+  display:none !important;
+}
+
+body.parent-logged-out #parentApp{
+  padding-bottom:0 !important;
+}
+
+body.parent-logged-in .parent-bottom-nav{
+  display:grid;
+}

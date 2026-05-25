@@ -6,7 +6,7 @@
   <title>Parent Portal Les Koding</title>
   <link rel="stylesheet" href="/style.css"/>
 </head>
-<body>
+<body class="parent-logged-out">
 
 <div id="pageLoader" class="page-loader">
   <div class="loader-card">
@@ -345,6 +345,7 @@ async function loginParent(silent){
 }
 
 function logoutParent(){
+  setParentLoggedInUI(false);
   clearParentDevice();
   try{ localStorage.removeItem("parentCode"); }catch(e){}
   location.reload();
@@ -395,7 +396,19 @@ function toggleParentSection(section){
 }
 
 
+
+function setParentLoggedInUI(isLoggedIn){
+  document.body.classList.toggle("parent-logged-in", !!isLoggedIn);
+  document.body.classList.toggle("parent-logged-out", !isLoggedIn);
+
+  const nav = document.getElementById("parentBottomNav");
+  if(nav){
+    nav.style.display = isLoggedIn ? "" : "none";
+  }
+}
+
 function showParentAppAfterLogin(){
+  setParentLoggedInUI(true);
   const loginBox = document.getElementById("loginBox") || document.getElementById("parentLogin") || document.querySelector(".login-card");
   const app = document.getElementById("parentApp");
   if(app){
@@ -1149,6 +1162,11 @@ window.addEventListener("load", function(){
 
 document.addEventListener("DOMContentLoaded", function(){
   setTimeout(markLongLevelBadges, 500);
+});
+
+
+document.addEventListener("DOMContentLoaded", function(){
+  setParentLoggedInUI(false);
 });
 
 </script>
