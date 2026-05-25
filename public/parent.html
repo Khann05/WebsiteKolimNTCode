@@ -7,6 +7,18 @@
   <link rel="stylesheet" href="/style.css"/>
 </head>
 <body>
+
+<div id="pageLoader" class="page-loader">
+  <div class="loader-card">
+    <div class="loader-logo">
+      <span></span><span></span><span></span>
+    </div>
+    <div class="loader-title">KolimNT Code</div>
+    <div class="loader-subtitle">Preparing Parent Portal</div>
+    <div class="loader-bar"><i></i></div>
+  </div>
+</div>
+
 <div class="app">
   <section id="loginView" class="panel login-card">
     <div class="eyebrow">Parent Portal</div>
@@ -27,12 +39,26 @@
   <section id="parentApp" class="hidden">
     <div class="parent-top">
       <div class="brand"><div class="logo"><img class="site-logo-img" src="/logo.png" alt="Kolim NT Code"></div><div>Parent Portal</div></div>
-      <button class="btn btn-light" onclick="logoutParent()">Logout</button>
+      <div class="parent-top-actions">
+        <button type="button" class="notif-btn" id="parentNotifBtn" onclick="toggleParentNotif()" aria-label="Lihat pemberitahuan">
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span id="notifDot" class="notif-dot"></span>
+        </button>
+        <button class="btn btn-light" onclick="logoutParent()">Logout</button>
+      </div>
+      <div class="notif-dropdown" id="parentNotifDropdown">
+        <div class="notif-dropdown-head">
+          <strong>Pemberitahuan</strong>
+          <small>Informasi terbaru parent portal</small>
+        </div>
+        <div id="parentNotifItems" class="notif-dropdown-list"></div>
+      </div>
     </div>
 
-    <section id="parentHero" class="hero"></section>
+    <section id="parentHero" class="hero parent-animate animate-delay-1"></section>
+    <div class="ready-text standalone-ready"><span>Progress anak sudah siap.</span></div>
 
-    <section class="stats">
+    <section class="stats parent-animate animate-delay-2">
       <div class="stat"><div class="stat-icon" id="pIconMeet"></div><div><div class="stat-label">Pertemuan</div><div class="stat-num" id="pMeetings">0</div></div></div>
       <div class="stat"><div class="stat-icon" id="pIconMat"></div><div><div class="stat-label">PPT Terbuka</div><div class="stat-num" id="pMaterials">0</div></div></div>
       <div class="stat"><div class="stat-icon" id="pIconLocked"></div><div><div class="stat-label">PPT Locked</div><div class="stat-num" id="pLocked">0</div></div></div>
@@ -50,19 +76,19 @@
 
     <section class="panel" style="margin-bottom:22px">
       <div class="panel-head"><div><div class="title">Kalender Riwayat Les</div><div class="subtitle">Hari yang ada les akan muncul.</div></div></div>
-      <div id="parentCalendar"></div>
+      <div id="parentCalendarSection" class="parent-section-anchor"></div><div id="parentCalendar"></div>
     </section>
 
-    <section class="panel" style="margin-bottom:22px">
+    <section class="panel parent-section-anchor parent-animate animate-delay-3" id="parentMaterialsSection" style="margin-bottom:22px">
       <div id="materialList"></div>
     </section>
 
-    <section class="panel" style="margin-bottom:22px">
-      <div id="certificateList"></div>
+    <section class="panel parent-section-anchor" id="parentAttendanceSection">
+      <div id="attendanceList"></div>
     </section>
 
-    <section class="panel">
-      <div id="attendanceList"></div>
+<section class="panel parent-section-anchor" id="parentCertificateSection" style="margin-bottom:22px">
+      <div id="certificateList"></div>
     </section>
   </section>
 </div>
@@ -490,6 +516,137 @@ function checkParentQuiz(){
 }
 
 
+
+function goParentSection(id, btn){
+  const el = getEl(id);
+  if(el){
+    el.scrollIntoView({ behavior:"smooth", block:"start" });
+  }
+
+  document.querySelectorAll(".parent-nav-item").forEach(function(item){
+    item.classList.remove("active");
+  });
+  if(btn) btn.classList.add("active");
+}
+
+function updateParentBottomNavActive(){
+  const sections = [
+    ["parentMaterialsSection", 0],
+    ["parentCalendarSection", 1],
+    ["parentCertificateSection", 2]
+  ];
+
+  let activeIndex = 0;
+  let best = Infinity;
+
+  sections.forEach(function(pair){
+    const el = getEl(pair[0]);
+    if(!el) return;
+    const top = Math.abs(el.getBoundingClientRect().top - 110);
+    if(top < best){
+      best = top;
+      activeIndex = pair[1];
+    }
+  });
+
+  const items = document.querySelectorAll(".parent-nav-item");
+  items.forEach(function(item, i){
+    item.classList.toggle("active", i === activeIndex);
+  });
+}
+
+window.addEventListener("scroll", function(){
+  if(getEl("parentApp") && !getEl("parentApp").classList.contains("hidden")){
+    updateParentBottomNavActive();
+  }
+}, { passive:true });
+
+
+
+function buildParentNotifications(){
+  if(!currentStudent) return [];
+
+  const materials = currentStudent.library || [];
+  const openedPPT = materials.filter(x => x.is_unlocked).length;
+  const lockedPPT = materials.filter(x => !x.is_unlocked).length;
+  const quizItems = materials.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0);
+  const openedQuiz = quizItems.filter(x => x.is_unlocked).length;
+  const certs = currentStudent.certificates || [];
+  const openedCerts = certs.filter(x => !x.is_locked).length;
+  const attendances = currentStudent.attendances || [];
+
+  const items = [
+    {
+      title:"PPT & materi tersedia",
+      text: openedPPT + " PPT terbuka, " + lockedPPT + " masih locked.",
+      type:"info"
+    },
+    {
+      title:"Quiz pembelajaran",
+      text: openedQuiz + " quiz bisa dikerjakan dari parent portal.",
+      type:"quiz"
+    },
+    {
+      title:"Riwayat les",
+      text: attendances.length + " pertemuan sudah tercatat.",
+      type:"calendar"
+    },
+    {
+      title:"Sertifikat",
+      text: openedCerts + " sertifikat sudah bisa dilihat/download.",
+      type:"cert"
+    }
+  ];
+
+  return items;
+}
+
+function renderParentNotifications(){
+  const box = getEl("parentNotifItems");
+  if(!box) return;
+
+  const items = buildParentNotifications();
+  box.innerHTML = items.map(function(item){
+    return `
+      <div class="notif-dropdown-item ${safe(item.type)}">
+        <div class="notif-mini-icon"></div>
+        <div>
+          <strong>${safe(item.title)}</strong>
+          <small>${safe(item.text)}</small>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const dot = getEl("notifDot");
+  if(dot) dot.style.display = items.length ? "block" : "none";
+}
+
+
+function ensureNotifDropdownOnBody(){
+  const box = document.getElementById("parentNotifDropdown");
+  if(box && box.parentElement !== document.body){
+    document.body.appendChild(box);
+  }
+}
+
+function toggleParentNotif(){
+  ensureNotifDropdownOnBody();
+  const box = getEl("parentNotifDropdown");
+  if(!box) return;
+  renderParentNotifications();
+  box.classList.toggle("show");
+}
+
+document.addEventListener("click", function(e){
+  const btn = document.getElementById("parentNotifBtn");
+  const box = document.getElementById("parentNotifDropdown");
+  if(!btn || !box) return;
+  if(!btn.contains(e.target) && !box.contains(e.target)){
+    box.classList.remove("show");
+  }
+});
+
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
   const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
@@ -500,11 +657,10 @@ function renderMaterials(materials){
 
   let html =
     '<div class="section-toolbar">' +
-      '<div><div class="title">Semua PPT / Materi</div><div class="subtitle">Default: terbuka di atas, locked di bawah. Sort All: urut upload asli.</div></div>' +
+      '<div><div class="title">Semua PPT/Materi dan Quiz</div><div class="subtitle">Default: terbuka di atas, locked di bawah. Sort All: urut upload asli.</div></div>' +
       '<div class="section-actions">' +
         '<button class="btn ' + smartClass + '" onclick="setParentPPTSortMode(&quot;smart&quot;)">Default</button>' +
         '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
-        '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button>' +
       '</div>' +
     '</div>';
 
@@ -532,8 +688,17 @@ function renderMaterials(materials){
     }).join("");
     html += "</div>";
   });
+
+  if(sorted.length > 4){
+    html += '<div class="see-all-bottom">' +
+      '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' +
+      (expanded ? "Show Less" : "See All (" + hidden + ")") +
+      '</button></div>';
+  }
+
   getEl("materialList").innerHTML = html;
 }
+
 function renderCertificates(certificates){
   const sorted = (certificates || []).slice().sort(function(a,b){ return Number(b.id || 0) - Number(a.id || 0); });
   const expanded = !!parentSectionExpanded.certificates;
@@ -543,7 +708,6 @@ function renderCertificates(certificates){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Sertifikat Digital</div><div class="subtitle">Sertifikat tampil/download kalau sudah di-unlock.</div></div>' +
-      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
     '</div>';
 
   if(!sorted.length){
@@ -566,6 +730,11 @@ function renderCertificates(certificates){
     `;
   }).join("");
   html += '</div>';
+
+  if(sorted.length > 4){
+    html += '<div class="see-all-bottom"><button class="btn btn-light" onclick="toggleParentSection(&quot;certificates&quot;)">' + (expanded ? "Show Less" : "See All (" + hidden + ")") + '</button></div>';
+  }
+
   getEl("certificateList").innerHTML = html;
 }
 
@@ -578,7 +747,6 @@ function renderAttendances(attendances){
   let html =
     '<div class="section-toolbar">' +
       '<div><div class="title">Riwayat Pertemuan</div><div class="subtitle">Daftar semua sesi les anak.</div></div>' +
-      '<div class="section-actions"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All" + (hidden ? " (" + hidden + ")" : "")) + '</button></div>' +
     '</div>';
 
   if(!sorted.length){
@@ -596,6 +764,11 @@ function renderAttendances(attendances){
     `;
   }).join("");
   html += '</div>';
+
+  if(sorted.length > 4){
+    html += '<div class="see-all-bottom"><button class="btn btn-light" onclick="toggleParentSection(&quot;attendances&quot;)">' + (expanded ? "Show Less" : "See All (" + hidden + ")") + '</button></div>';
+  }
+
   getEl("attendanceList").innerHTML = html;
 }
 
@@ -632,6 +805,61 @@ function renderParentCalendar(){
 const saved = localStorage.getItem("parentCode");
 if(saved) loadParent(saved);
 initParentIcons();
+
+window.addEventListener("load", function(){
+  setTimeout(function(){
+    const loader = document.getElementById("pageLoader");
+    if(loader){
+      loader.classList.add("hide");
+      setTimeout(function(){ loader.remove(); }, 650);
+    }
+  }, 700);
+});
+
+
+function initParentAdvancedAnimations(){
+  document.documentElement.style.scrollBehavior = "smooth";
+
+  const revealItems = document.querySelectorAll(".panel, .stat, .file-card, .calendar-card, .notif, .hero, .detail-hero, .parent-top");
+  revealItems.forEach(function(el, index){
+    el.classList.add("reveal-on-scroll");
+    el.style.setProperty("--reveal-delay", Math.min(index * 35, 280) + "ms");
+  });
+
+  const observer = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(entry.isIntersecting){
+        entry.target.classList.add("is-visible");
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold:0.12, rootMargin:"0px 0px -40px 0px" });
+
+  revealItems.forEach(function(el){ observer.observe(el); });
+
+  document.querySelectorAll(".file-grid, .stats, .notif-list").forEach(function(group){
+    Array.from(group.children).forEach(function(child, i){
+      child.classList.add("stagger-item");
+      child.style.setProperty("--stagger-delay", (i * 55) + "ms");
+    });
+  });
+
+  window.addEventListener("scroll", function(){
+    const y = window.scrollY || 0;
+    document.body.style.setProperty("--scrollY", y);
+    document.querySelectorAll(".parent-top").forEach(function(nav){
+      nav.classList.toggle("is-scrolled", y > 18);
+    });
+    document.querySelectorAll(".hero, #parentHero").forEach(function(hero){
+      hero.style.transform = "translateY(" + Math.min(y * -0.025, 0) + "px)";
+    });
+  }, { passive:true });
+}
+
+window.addEventListener("load", function(){
+  setTimeout(initParentAdvancedAnimations, 150);
+});
+
 </script>
 
 <div class="overlay" id="parentQuizOverlay">
@@ -642,6 +870,27 @@ initParentIcons();
     <div id="parentQuizBody" class="quiz-preview"></div>
   </div>
 </div>
+    <nav class="parent-bottom-nav" id="parentBottomNav" aria-label="Parent navigation">
+      <button type="button" class="parent-nav-item active" onclick="goParentSection('parentMaterialsSection', this)">
+        <span class="parent-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5z"/><path d="M8 6h8"/></svg>
+        </span>
+        <span>PPT & Quiz</span>
+      </button>
+      <button type="button" class="parent-nav-item" onclick="goParentSection('parentCalendarSection', this)">
+        <span class="parent-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M16 2v4"/><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/></svg>
+        </span>
+        <span>Kalender</span>
+      </button>
+      <button type="button" class="parent-nav-item" onclick="goParentSection('parentCertificateSection', this)">
+        <span class="parent-nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M8.5 12.5 7 22l5-3 5 3-1.5-9.5"/></svg>
+        </span>
+        <span>Sertifikat</span>
+      </button>
+    </nav>
+
 
 </body>
 </html>

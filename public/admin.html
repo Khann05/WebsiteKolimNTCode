@@ -28,7 +28,16 @@
 <div id="mainApp" class="app hidden">
   <div class="topbar">
     <div class="brand"><div class="logo"><img class="site-logo-img" src="/logo.png" alt="Kolim NT Code"></div><div>Admin Les Koding</div></div>
-    <div class="top-actions"><a class="btn btn-blue" href="/parent.html" target="_blank">Buka Parent Website</a></div>
+    <div class="top-actions">
+      <button type="button" class="admin-icon-btn" id="adminQuickInfoBtn" onclick="toggleAdminQuickInfo()" aria-label="Info dashboard">
+        <svg viewBox="0 0 24 24"><path d="M12 17h.01"/><path d="M12 13a3 3 0 1 0-3-3"/><circle cx="12" cy="12" r="10"/></svg>
+      </button>
+      <a class="btn btn-blue" href="/parent.html" target="_blank">Buka Parent Website</a>
+    </div>
+    <div class="admin-quick-info" id="adminQuickInfo">
+      <strong>Dashboard Admin</strong>
+      <small>Kelola siswa, PPT, quiz, kalender, absensi, dan sertifikat dari satu tempat.</small>
+    </div>
   </div>
 
   <section class="hero hero-menu">
