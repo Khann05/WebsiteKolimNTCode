@@ -48,11 +48,8 @@
       </div>
       <div class="notif-dropdown" id="parentNotifDropdown">
         <div class="notif-dropdown-head">
-          <div>
-            <strong>Pemberitahuan</strong>
-            <small>Informasi terbaru parent portal</small>
-          </div>
-          <button type="button" class="notif-close-mobile" onclick="toggleParentNotif()" aria-label="Tutup pemberitahuan">×</button>
+          <strong>Pemberitahuan</strong>
+          <small>Informasi terbaru parent portal</small>
         </div>
         <div id="parentNotifItems" class="notif-dropdown-list"></div>
       </div>
@@ -640,7 +637,6 @@ function toggleParentNotif(){
   if(!box) return;
   renderParentNotifications();
   box.classList.toggle("show");
-  document.body.classList.toggle("notif-open", box.classList.contains("show"));
 }
 
 document.addEventListener("click", function(e){
@@ -649,7 +645,6 @@ document.addEventListener("click", function(e){
   if(!btn || !box) return;
   if(!btn.contains(e.target) && !box.contains(e.target)){
     box.classList.remove("show");
-    document.body.classList.remove("notif-open");
   }
 });
 
@@ -778,6 +773,53 @@ function renderAttendances(attendances){
   getEl("attendanceList").innerHTML = html;
 }
 
+
+function normalizeDateOnly(value){
+  if(!value) return "";
+  return String(value).slice(0,10);
+}
+
+function openCalendarInfo(dateText){
+  if(!currentStudent) return;
+
+  const target = normalizeDateOnly(dateText);
+  const sessions = (currentStudent.attendances || []).filter(function(item){
+    return normalizeDateOnly(item.date) === target;
+  });
+
+  const title = getEl("calendarInfoTitle");
+  const body = getEl("calendarInfoBody");
+
+  if(title) title.textContent = "Info " + formatDate(target);
+
+  if(!sessions.length){
+    body.innerHTML = `
+      <div class="calendar-empty-info">
+        <strong>Belum ada absensi di tanggal ini.</strong>
+        <small>Tanggal ini belum memiliki catatan pertemuan les.</small>
+      </div>
+    `;
+  }else{
+    body.innerHTML = sessions.map(function(item){
+      return `
+        <div class="calendar-session-info">
+          <strong>Session ${safe(item.session || "-")}</strong>
+          <small>${safe(item.time || "-")} • ${safe(item.note || "Tanpa catatan")}</small>
+        </div>
+      `;
+    }).join("");
+  }
+
+  const overlay = getEl("calendarInfoOverlay");
+  if(overlay) overlay.style.display = "flex";
+}
+
+function closeCalendarInfo(){
+  const overlay = getEl("calendarInfoOverlay");
+  if(overlay) overlay.style.display = "none";
+}
+
+
 function renderParentCalendar(){
   const s = currentStudent;
   const first = new Date(currentYear,currentMonth,1).getDay();
@@ -866,6 +908,18 @@ window.addEventListener("load", function(){
   setTimeout(initParentAdvancedAnimations, 150);
 });
 
+
+function calendarClickFallback(){
+  document.addEventListener("click", function(e){
+    const day = e.target.closest(".calendar-day, .day");
+    if(!day) return;
+    const date = day.getAttribute("data-date");
+    if(date) openCalendarInfo(date);
+  });
+}
+calendarClickFallback();
+
+
 </script>
 
 <div class="overlay" id="parentQuizOverlay">
@@ -905,6 +959,15 @@ window.addEventListener("load", function(){
 
 
 
+
+
+<div class="overlay" id="calendarInfoOverlay">
+  <div class="modal calendar-info-modal">
+    <button class="modal-close calendar-info-close" onclick="closeCalendarInfo()" title="Tutup">×</button>
+    <div class="title" id="calendarInfoTitle">Info Tanggal</div>
+    <div id="calendarInfoBody" class="calendar-info-body"></div>
+  </div>
+</div>
 
 </body>
 </html>
