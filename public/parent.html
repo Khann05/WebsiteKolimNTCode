@@ -373,7 +373,7 @@ function renderParent(){
     </div>
   `).join("") : '<div class="empty">Belum ada notifikasi.</div>';
 
-  renderParentCalendar();
+  renderParentCalendar(attendances);
   renderMaterials(materials);
   renderCertificates(certificates);
   renderAttendances(attendances);
@@ -865,50 +865,63 @@ if(!window.__calendarPopupBound){
 }
 
 
-function renderParentCalendar(){
-  const s = currentStudent;
-  const first = new Date(currentYear,currentMonth,1).getDay();
-  const total = new Date(currentYear,currentMonth+1,0).getDate();
-  const today = new Date().toISOString().slice(0,10);
+function renderParentCalendar(attendances){
+  const list = attendances || [];
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
 
-  let html = `
-    <div class="calendar-title">
-      <button class="circle" onclick="changeParentMonth(-1)">‹</button>
-      <div><strong>${months[currentMonth]} ${currentYear}</strong><div class="subtitle">Riwayat les anak.</div></div>
-      <button class="circle" onclick="changeParentMonth(1)">›</button>
-    </div>
-    <div class="calendar-grid">
-  `;
+  const monthName = new Date(year, month, 1).toLocaleDateString("id-ID", {
+    month:"long",
+    year:"numeric"
+  });
 
-  ["Min","Sen","Sel","Rab","Kam","Jum","Sab"].forEach(d => html += `<div class="day-name">${d}</div>`);
-  for(let i=0;i<first;i++) html += "<div></div>";
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const totalDays = lastDay.getDate();
 
-  for(let day=1; day<=total; day++){
-    const date = currentYear + "-" + String(currentMonth+1).padStart(2,"0") + "-" + String(day).padStart(2,"0");
-    const sessions = (s.attendances || []).filter(x => x.date === date);
-    html += `<div class="day ${today === date ? "today" : ""}"><div class="day-number">${day}</div>`;
-    sessions.slice(0,3).forEach(sess => html += `<div class="chip" style="background:#4f46e5">Session ${safe(sess.session)}<span>${safe(sess.time)}</span></div>`);
-    html += "</div>";
+  let html =
+    '<div class="section-toolbar">' +
+      '<div><div class="title">Kalender Riwayat Les</div><div class="subtitle">Klik tanggal untuk melihat detail absensi.</div></div>' +
+      '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
+    '</div>' +
+    '<div class="calendar-weekdays">' +
+      '<span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>' +
+    '</div>' +
+    '<div class="calendar-grid">';
+
+  for(let i = 0; i < firstDay.getDay(); i++){
+    html += '<div class="calendar-day empty"></div>';
   }
 
-  html += "</div>";
-  getEl("parentCalendar").innerHTML = html;
+  for(let day = 1; day <= totalDays; day++){
+    const dateObj = new Date(year, month, day);
+    const dateKey = dateObj.toISOString().slice(0,10);
+    const daySessions = list.filter(function(item){
+      return normalizeDateOnly(item.date) === dateKey;
+    });
+
+    html += `
+      <div class="calendar-day ${daySessions.length ? "has-session" : ""}" data-date="${dateKey}" onclick="openCalendarInfo('${dateKey}')">
+        <strong>${day}</strong>
+        ${daySessions.map(function(item){
+          return `
+            <div class="session-pill" data-date="${dateKey}">
+              Session ${safe(item.session || "-")}<br>${safe(item.time || "-")}
+            </div>
+          `;
+        }).join("")}
+      </div>
+    `;
+  }
+
+  html += '</div>';
+
+  const target = getEl("parentCalendar");
+  if(target){
+    target.innerHTML = html;
+  }
 }
-
-const saved = localStorage.getItem("parentCode");
-if(saved) loadParent(saved);
-initParentIcons();
-
-window.addEventListener("load", function(){
-  setTimeout(function(){
-    const loader = document.getElementById("pageLoader");
-    if(loader){
-      loader.classList.add("hide");
-      setTimeout(function(){ loader.remove(); }, 650);
-    }
-  }, 700);
-});
-
 
 function initParentAdvancedAnimations(){
   document.documentElement.style.scrollBehavior = "smooth";
