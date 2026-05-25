@@ -2159,3 +2159,35 @@ body{
     max-height:calc(100vh - 110px);
   }
 }
+
+/* Parent order update: Riwayat first, PPT & Quiz second */
+.parent-bottom-nav{
+  grid-template-columns:repeat(4,1fr) !important;
+  width:min(720px, calc(100% - 28px)) !important;
+}
+
+.parent-bottom-nav .parent-nav-item:nth-child(4){
+  display:flex !important;
+}
+
+@media(max-width:560px){
+  .parent-bottom-nav{
+    width:calc(100% - 18px) !important;
+  }
+}
+
+/* Parent order update: Kalender, Riwayat, PPT & Quiz, Sertifikat */
+.parent-bottom-nav{
+  grid-template-columns:repeat(4,1fr) !important;
+  width:min(720px, calc(100% - 28px)) !important;
+}
+
+.parent-bottom-nav .parent-nav-item:nth-child(4){
+  display:flex !important;
+}
+
+@media(max-width:560px){
+  .parent-bottom-nav{
+    width:calc(100% - 18px) !important;
+  }
+}
