@@ -26,7 +26,8 @@
     <p class="subtitle">Masukkan kode untuk melihat progress anak. Semua PPT terlihat, tapi yang locked belum bisa didownload.</p>
     <div style="margin-top:18px">
       <label>Kode Akses</label>
-      <input id="parentCode" class="field" placeholder="Contoh: ANDI123"/>
+      <div class="remember-note">Akun parent akan tersimpan di device ini sampai kamu klik Logout.</div>
+        <input id="parentCode" class="field" placeholder="Contoh: ANDI123"/>
     </div>
     <div class="modal-actions"><button class="btn btn-primary" onclick="loginParent()">Masuk</button></div>
   
@@ -248,19 +249,105 @@ function coverHTML(item, locked){
   return `<div class="cover-wrap">${content}<div class="lock-layer">LOCKED</div></div>`;
 }
 
-async function loginParent(){
-  const code = getEl("parentCode").value.trim().toUpperCase();
-  if(!code){ showToast("Kode wajib diisi","error"); return; }
-  localStorage.setItem("parentCode", code);
-  await loadParent(code);
+
+
+/* Remember parent login on this device */
+const PARENT_DEVICE_KEY = "parentCode";
+
+function parentCodeInputEl(){
+  return document.getElementById("parentCode") || document.getElementById("code") || document.querySelector("input[type='password']") || document.querySelector("input");
+}
+
+function getParentCodeValue(){
+  const input = parentCodeInputEl();
+  return input ? String(input.value || "").trim() : "";
+}
+
+function saveParentDevice(code){
+  try{
+    const finalCode = String(code || getParentCodeValue() || "").trim();
+    if(finalCode) localStorage.setItem(PARENT_DEVICE_KEY, finalCode);
+  }catch(e){}
+}
+
+function getSavedParentDevice(){
+  try{
+    return localStorage.getItem(PARENT_DEVICE_KEY) || "";
+  }catch(e){
+    return "";
+  }
+}
+
+function clearParentDevice(){
+  try{ localStorage.removeItem(PARENT_DEVICE_KEY); }catch(e){}
+}
+
+async function autoLoginParentFromDevice(){
+  const savedCode = getSavedParentDevice();
+  if(!savedCode) return;
+
+  const input = parentCodeInputEl();
+  if(input) input.value = savedCode;
+
+  try{
+    if(typeof loadParent === "function"){
+      await loadParent(savedCode);
+      showParentAppAfterLogin();
+      return;
+    }
+    if(typeof loginParent === "function"){
+      await loginParent(true);
+      showParentAppAfterLogin();
+    }
+  }catch(e){
+    clearParentDevice();
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  const input = parentCodeInputEl();
+  if(input){
+    input.value = getSavedParentDevice() || input.value;
+  }
+
+  document.addEventListener("submit", function(){
+    saveParentDevice();
+  }, true);
+
+  document.addEventListener("click", function(e){
+    const btn = e.target.closest("button, a");
+    if(!btn) return;
+    const text = (btn.textContent || "").toLowerCase();
+    if(text.includes("login") || text.includes("masuk")){
+      saveParentDevice();
+    }
+  }, true);
+
+  setTimeout(autoLoginParentFromDevice, 350);
+});
+
+async function loginParent(silent){
+  const input = parentCodeInputEl();
+  const code = input ? input.value.trim().toUpperCase() : "";
+  if(!code){
+    if(!silent) showToast("Kode wajib diisi","error");
+    return;
+  }
+
+  try{
+    saveParentDevice(code);
+    await loadParent(code);
+    showParentAppAfterLogin();
+  }catch(e){
+    if(!silent) showToast("Kode parent salah atau gagal login","error");
+    else clearParentDevice();
+  }
 }
 
 function logoutParent(){
-  localStorage.removeItem("parentCode");
-  currentStudent = null;
-  getEl("loginView").classList.remove("hidden");
-  getEl("parentApp").classList.add("hidden");
-  getEl("parentCode").value = "";
+  clearParentDevice();
+  try{ localStorage.removeItem("parentCode"); }catch(e){}
+  location.reload();
 }
 
 async function loadParent(code){
@@ -273,9 +360,11 @@ async function loadParent(code){
       return;
     }
     currentStudent = data;
+  saveParentDevice(code);
     getEl("loginView").classList.add("hidden");
     getEl("parentApp").classList.remove("hidden");
     renderParent();
+  showParentAppAfterLogin();
   }catch(e){ showToast("Gagal mengambil data","error"); }
 }
 
@@ -294,6 +383,7 @@ function setParentPPTSortMode(mode){
   parentPPTSortMode = mode === "all" ? "all" : "smart";
   if(currentStudent){
     renderParent(currentStudent);
+  showParentAppAfterLogin();
   }
 }
 
@@ -301,6 +391,21 @@ function setParentPPTSortMode(mode){
 function toggleParentSection(section){
   parentSectionExpanded[section] = !parentSectionExpanded[section];
   renderParent();
+  showParentAppAfterLogin();
+}
+
+
+function showParentAppAfterLogin(){
+  const loginBox = document.getElementById("loginBox") || document.getElementById("parentLogin") || document.querySelector(".login-card");
+  const app = document.getElementById("parentApp");
+  if(app){
+    app.classList.remove("hidden");
+    app.style.display = "";
+  }
+  if(loginBox){
+    loginBox.classList.add("hidden");
+    loginBox.style.display = "none";
+  }
 }
 
 function renderParent(){
@@ -373,7 +478,7 @@ function renderParent(){
     </div>
   `).join("") : '<div class="empty">Belum ada notifikasi.</div>';
 
-  renderParentCalendar(attendances);
+  renderParentCalendar((currentStudent && currentStudent.attendances) ? currentStudent.attendances : []);
   renderMaterials(materials);
   renderCertificates(certificates);
   renderAttendances(attendances);
@@ -781,7 +886,7 @@ function normalizeDateOnly(value){
 }
 
 function openCalendarInfo(dateText){
-  if(!currentStudent) return;
+  if(typeof currentStudent === "undefined" || !currentStudent) return;
 
   const target = normalizeDateOnly(dateText);
   const sessions = (currentStudent.attendances || []).filter(function(item){
@@ -792,6 +897,7 @@ function openCalendarInfo(dateText){
   const body = getEl("calendarInfoBody");
 
   if(title) title.textContent = "Info Pertemuan";
+  if(!target){ return; }
 
   if(!sessions.length){
     body.innerHTML = `
@@ -966,6 +1072,25 @@ window.addEventListener("load", function(){
   setTimeout(initParentAdvancedAnimations, 150);
 });
 
+
+
+function forceHidePageLoader(){
+  const loader = document.getElementById("pageLoader");
+  if(loader){
+    loader.classList.add("hide");
+    setTimeout(function(){ if(loader) loader.remove(); }, 650);
+  }
+}
+
+window.addEventListener("load", function(){
+  setTimeout(forceHidePageLoader, 900);
+});
+
+setTimeout(forceHidePageLoader, 2500);
+
+window.addEventListener("error", function(){
+  forceHidePageLoader();
+});
 
 </script>
 
