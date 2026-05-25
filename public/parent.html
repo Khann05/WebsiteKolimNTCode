@@ -1127,6 +1127,30 @@ window.addEventListener("error", function(){
   forceHidePageLoader();
 });
 
+
+function markLongLevelBadges(){
+  const levels = ["Beginner","Intermediate","Advanced","Professional"];
+  document.querySelectorAll("span, div, button, strong").forEach(function(el){
+    const text = (el.textContent || "").trim();
+    if(levels.includes(text)){
+      el.classList.add("level-no-cut");
+      let p = el.parentElement;
+      for(let i = 0; i < 3 && p; i++){
+        p.classList.add("level-no-cut-wrap");
+        p = p.parentElement;
+      }
+    }
+  });
+}
+
+window.addEventListener("load", function(){
+  setTimeout(markLongLevelBadges, 300);
+});
+
+document.addEventListener("DOMContentLoaded", function(){
+  setTimeout(markLongLevelBadges, 500);
+});
+
 </script>
 
 <div class="overlay" id="parentQuizOverlay">

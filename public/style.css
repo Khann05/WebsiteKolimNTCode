@@ -2825,3 +2825,175 @@ body{
     min-width:720px !important;
   }
 }
+
+
+/* FINAL FIX: level/progress badge must not be clipped */
+.hero,
+#parentHero,
+.detail-hero,
+.progress-card,
+.profile-card,
+.parent-hero,
+.student-progress,
+.progress-wrapper,
+.progress-level,
+.level-progress,
+.level-card{
+  overflow:visible !important;
+}
+
+.hero .level-badge,
+.hero .level-pill,
+.hero .badge,
+.hero .tag,
+#parentHero .level-badge,
+#parentHero .level-pill,
+#parentHero .badge,
+#parentHero .tag,
+.detail-hero .level-badge,
+.detail-hero .level-pill,
+.detail-hero .badge,
+.detail-hero .tag{
+  width:max-content !important;
+  min-width:max-content !important;
+  max-width:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+  flex:0 0 auto !important;
+}
+
+/* The big red level pill from progress area */
+.progress-level,
+.level-progress,
+.level-track,
+.progress-road,
+.progress-line,
+.progress-step,
+.level-step,
+.level-current,
+.level-badge-large,
+.level-pill-large{
+  overflow:visible !important;
+}
+
+.progress-level .level-badge,
+.progress-level .level-pill,
+.level-progress .level-badge,
+.level-progress .level-pill,
+.progress-road .level-badge,
+.progress-road .level-pill,
+.level-current,
+.level-badge-large,
+.level-pill-large{
+  width:max-content !important;
+  min-width:max-content !important;
+  max-width:none !important;
+  white-space:nowrap !important;
+  overflow:visible !important;
+  text-overflow:clip !important;
+}
+
+/* If the badge is inside a grid/card, let it extend horizontally instead of cutting */
+.file-card,
+.panel,
+.stat,
+.parent-card{
+  overflow:visible !important;
+}
+
+@media(max-width:720px){
+  /* Keep page from cutting the long Intermediate label */
+  body,
+  html,
+  #parentApp{
+    overflow-x:clip;
+  }
+
+  .hero,
+  #parentHero,
+  .detail-hero,
+  .progress-card,
+  .profile-card,
+  .student-progress,
+  .progress-wrapper{
+    overflow:visible !important;
+    padding-right:18px !important;
+  }
+
+  /* Progress area can scroll sideways if a level label is too long */
+  .progress-card,
+  .student-progress,
+  .progress-wrapper,
+  .progress-level,
+  .level-progress,
+  .progress-road,
+  .level-track{
+    max-width:100% !important;
+    overflow-x:auto !important;
+    overflow-y:visible !important;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:thin;
+  }
+
+  .progress-card::-webkit-scrollbar,
+  .student-progress::-webkit-scrollbar,
+  .progress-wrapper::-webkit-scrollbar,
+  .progress-level::-webkit-scrollbar,
+  .level-progress::-webkit-scrollbar,
+  .progress-road::-webkit-scrollbar,
+  .level-track::-webkit-scrollbar{
+    height:6px;
+  }
+
+  .progress-card::-webkit-scrollbar-thumb,
+  .student-progress::-webkit-scrollbar-thumb,
+  .progress-wrapper::-webkit-scrollbar-thumb,
+  .progress-level::-webkit-scrollbar-thumb,
+  .level-progress::-webkit-scrollbar-thumb,
+  .progress-road::-webkit-scrollbar-thumb,
+  .level-track::-webkit-scrollbar-thumb{
+    background:#c7d2fe;
+    border-radius:999px;
+  }
+
+  .level-badge,
+  .level-pill,
+  .badge,
+  .tag,
+  .level-current,
+  .level-badge-large,
+  .level-pill-large{
+    width:max-content !important;
+    min-width:max-content !important;
+    max-width:none !important;
+    white-space:nowrap !important;
+    overflow:visible !important;
+    text-overflow:clip !important;
+    font-size:clamp(22px, 8vw, 42px) !important;
+  }
+}
+
+
+.level-no-cut,
+.level-no-cut-wrap{
+  overflow:visible !important;
+}
+
+.level-no-cut{
+  width:max-content !important;
+  min-width:max-content !important;
+  max-width:none !important;
+  white-space:nowrap !important;
+  text-overflow:clip !important;
+  flex:0 0 auto !important;
+}
+
+@media(max-width:720px){
+  .level-no-cut-wrap{
+    max-width:100% !important;
+    overflow-x:auto !important;
+    overflow-y:visible !important;
+    -webkit-overflow-scrolling:touch;
+  }
+}
