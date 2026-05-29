@@ -3453,3 +3453,277 @@ body.parent-popup-open .quiz-modal{
     padding-bottom:78px !important;
   }
 }
+
+
+
+/* =========================================================
+   FINAL CALENDAR CLEAN FIX
+   - bulan tidak melebar keluar
+   - tidak ada judul kalender dobel
+   - kotak tanggal mobile lebih kecil
+   - desktop tetap 7 kolom rapi
+   ========================================================= */
+
+/* Kalau ada title/subtitle nyasar di dalam hasil render kalender, sembunyikan */
+#parentCalendar .title,
+#parentCalendar .subtitle,
+#parentCalendar h1,
+#parentCalendar h2,
+#parentCalendar h3{
+  display:none !important;
+}
+
+/* Wadah kalender */
+#parentCalendar{
+  width:100% !important;
+  max-width:100% !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+}
+
+/* Controls bulan */
+#parentCalendar .parent-calendar-controls,
+#parentCalendar .calendar-controls{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  display:grid !important;
+  grid-template-columns:minmax(110px,1fr) minmax(128px,auto) minmax(110px,1fr) !important;
+  align-items:center !important;
+  gap:8px !important;
+  margin:8px 0 12px !important;
+  overflow:hidden !important;
+}
+
+#parentCalendar .calendar-nav-btn{
+  width:100% !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 12px !important;
+  border-radius:14px !important;
+  font-size:13px !important;
+  font-weight:950 !important;
+  box-sizing:border-box !important;
+}
+
+#parentCalendar .calendar-nav-btn:disabled{
+  opacity:.45 !important;
+  cursor:not-allowed !important;
+}
+
+#parentCalendar .calendar-month-label{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 14px !important;
+  margin:0 auto !important;
+  border-radius:14px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:#e9edff !important;
+  color:#4f46e5 !important;
+  font-size:17px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+  box-shadow:inset 0 0 0 1px #dbe4ff !important;
+}
+
+/* Grid kalender desktop */
+#parentCalendar .parent-calendar-grid,
+#parentCalendar .calendar-grid{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  display:grid !important;
+  grid-template-columns:repeat(7, minmax(0, 1fr)) !important;
+  gap:5px !important;
+  padding:7px !important;
+  border-radius:18px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+
+#parentCalendar .parent-calendar-grid .day-name,
+#parentCalendar .calendar-grid .day-name{
+  min-width:0 !important;
+  width:auto !important;
+  text-align:center !important;
+  color:#64748b !important;
+  font-size:11px !important;
+  font-weight:1000 !important;
+  padding:4px 0 !important;
+}
+
+#parentCalendar .parent-calendar-grid .day,
+#parentCalendar .calendar-grid .day{
+  min-width:0 !important;
+  width:auto !important;
+  max-width:none !important;
+  height:72px !important;
+  min-height:72px !important;
+  padding:5px !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  background:#fff !important;
+}
+
+#parentCalendar .parent-calendar-grid .empty-day,
+#parentCalendar .calendar-grid .empty-day{
+  background:transparent !important;
+  border-color:transparent !important;
+  box-shadow:none !important;
+  pointer-events:none !important;
+}
+
+#parentCalendar .parent-calendar-grid .day-number,
+#parentCalendar .calendar-grid .day-number{
+  width:20px !important;
+  height:20px !important;
+  display:grid !important;
+  place-items:center !important;
+  font-size:11px !important;
+  font-weight:1000 !important;
+  margin-bottom:3px !important;
+  border-radius:7px !important;
+  color:#334155 !important;
+}
+
+#parentCalendar .parent-calendar-grid .chip,
+#parentCalendar .calendar-grid .chip{
+  width:100% !important;
+  max-width:100% !important;
+  padding:3px 4px !important;
+  border-radius:7px !important;
+  font-size:8px !important;
+  line-height:1.02 !important;
+  max-height:28px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  background:#5142e9 !important;
+  color:#fff !important;
+}
+
+#parentCalendar .parent-calendar-grid .chip b,
+#parentCalendar .parent-calendar-grid .chip span,
+#parentCalendar .calendar-grid .chip b,
+#parentCalendar .calendar-grid .chip span{
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+#parentCalendar .parent-calendar-grid .chip span,
+#parentCalendar .calendar-grid .chip span{
+  font-size:7.5px !important;
+}
+
+/* Mobile */
+@media(max-width:720px){
+  .panel:has(#parentCalendar){
+    padding:14px !important;
+    border-radius:22px !important;
+    overflow:hidden !important;
+  }
+
+  #parentCalendar .parent-calendar-controls,
+  #parentCalendar .calendar-controls{
+    grid-template-columns:1fr !important;
+    gap:6px !important;
+    margin:6px 0 10px !important;
+  }
+
+  #parentCalendar .calendar-nav-btn,
+  #parentCalendar .calendar-month-label{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    height:36px !important;
+    min-height:36px !important;
+    border-radius:13px !important;
+    font-size:13px !important;
+    padding:0 10px !important;
+    box-sizing:border-box !important;
+  }
+
+  #parentCalendar .calendar-month-label{
+    font-size:16px !important;
+    background:#e9edff !important;
+  }
+
+  #parentCalendar .parent-calendar-grid,
+  #parentCalendar .calendar-grid{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    grid-template-columns:repeat(7, minmax(0, 1fr)) !important;
+    gap:2px !important;
+    padding:4px !important;
+    border-radius:14px !important;
+    overflow:hidden !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .day-name,
+  #parentCalendar .calendar-grid .day-name{
+    font-size:9px !important;
+    padding:2px 0 !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .day,
+  #parentCalendar .calendar-grid .day{
+    min-width:0 !important;
+    width:auto !important;
+    height:44px !important;
+    min-height:44px !important;
+    padding:2px !important;
+    border-radius:8px !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .day-number,
+  #parentCalendar .calendar-grid .day-number{
+    width:14px !important;
+    height:14px !important;
+    font-size:8.5px !important;
+    margin-bottom:1px !important;
+    border-radius:4px !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .chip,
+  #parentCalendar .calendar-grid .chip{
+    padding:2px !important;
+    border-radius:4px !important;
+    font-size:5.8px !important;
+    line-height:1 !important;
+    max-height:24px !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .chip span,
+  #parentCalendar .calendar-grid .chip span{
+    font-size:5.5px !important;
+  }
+}
+
+@media(max-width:390px){
+  #parentCalendar .parent-calendar-grid .day,
+  #parentCalendar .calendar-grid .day{
+    height:40px !important;
+    min-height:40px !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .chip,
+  #parentCalendar .calendar-grid .chip{
+    font-size:5.3px !important;
+  }
+
+  #parentCalendar .parent-calendar-grid .chip span,
+  #parentCalendar .calendar-grid .chip span{
+    font-size:5px !important;
+  }
+}

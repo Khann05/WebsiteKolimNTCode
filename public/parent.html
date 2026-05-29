@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css"/>
+  <link rel="stylesheet" href="/style.css?v=final-calendar-clean-20260529"/>
 </head>
 <body class="parent-logged-out">
 
@@ -98,7 +98,7 @@
 <script>
 const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const START_YEAR = 2026;
-const START_MONTH = 4;
+const START_MONTH = 3; // April, karena index JS mulai dari 0
 const nowDate = new Date();
 let currentMonth = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_MONTH : nowDate.getMonth();
 let currentYear = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_YEAR : nowDate.getFullYear();
@@ -1035,56 +1035,68 @@ function changeParentCalendarMonth(delta){
   renderParentCalendar((currentStudent && currentStudent.attendances) ? currentStudent.attendances : []);
 }
 
+
+function changeMonth(delta){
+  const next = new Date(currentYear, currentMonth + delta, 1);
+  const min = new Date(START_YEAR, START_MONTH, 1);
+
+  if(next < min){
+    showToast("Kalender mulai dari April 2026", "error");
+    return;
+  }
+
+  currentYear = next.getFullYear();
+  currentMonth = next.getMonth();
+  renderParentCalendar((currentStudent && currentStudent.attendances) ? currentStudent.attendances : []);
+}
+
 function renderParentCalendar(attendances){
   const list = attendances || [];
-  const year = parentCalendarDate.getFullYear();
-  const month = parentCalendarDate.getMonth();
-
-  const monthName = new Date(year, month, 1).toLocaleDateString("id-ID", {
-    month:"long",
-    year:"numeric"
-  });
-
-  const minDate = getCalendarMinDate();
-  const isAtMin = year === minDate.getFullYear() && month === minDate.getMonth();
-
-  const firstDay = new Date(year, month, 1);
-  const lastDay = new Date(year, month + 1, 0);
+  const firstDay = new Date(currentYear, currentMonth, 1);
+  const lastDay = new Date(currentYear, currentMonth + 1, 0);
   const totalDays = lastDay.getDate();
+  const monthTitle = months[currentMonth] + " " + currentYear;
+  const atStart = currentYear === START_YEAR && currentMonth === START_MONTH;
 
-  let html =
-    '<div class="section-toolbar calendar-toolbar">' +
-      '<div><div class="title">Kalender Riwayat Les</div><div class="subtitle">Klik tanggal untuk melihat detail absensi.</div></div>' +
-      '<div class="calendar-controls">' +
-        '<button class="btn btn-light" onclick="changeParentCalendarMonth(-1)" ' + (isAtMin ? "disabled" : "") + '>‹ Bulan Sebelumnya</button>' +
-        '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
-        '<button class="btn btn-light" onclick="changeParentCalendarMonth(1)">Bulan Berikutnya ›</button>' +
-      '</div>' +
-    '</div>' +
-    '<div class="calendar-scroll">' +
-      '<div class="calendar-weekdays">' +
-        '<span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>' +
-      '</div>' +
-      '<div class="calendar-grid">';
+  let html = `
+    <div class="calendar-controls parent-calendar-controls">
+      <button class="btn btn-light calendar-nav-btn" onclick="changeMonth(-1)" ${atStart ? "disabled" : ""}>‹ Sebelumnya</button>
+      <div class="calendar-month-label">${safe(monthTitle)}</div>
+      <button class="btn btn-light calendar-nav-btn" onclick="changeMonth(1)">Berikutnya ›</button>
+    </div>
+
+    <div class="calendar-grid parent-calendar-grid">
+      <div class="day-name">Min</div>
+      <div class="day-name">Sen</div>
+      <div class="day-name">Sel</div>
+      <div class="day-name">Rab</div>
+      <div class="day-name">Kam</div>
+      <div class="day-name">Jum</div>
+      <div class="day-name">Sab</div>
+  `;
 
   for(let i = 0; i < firstDay.getDay(); i++){
-    html += '<div class="calendar-day empty"></div>';
+    html += `<div class="day empty-day"></div>`;
   }
 
   for(let day = 1; day <= totalDays; day++){
-    const dateObj = new Date(year, month, day);
-    const dateKey = dateObj.toISOString().slice(0,10);
-    const daySessions = list.filter(function(item){
+    const yyyy = currentYear;
+    const mm = String(currentMonth + 1).padStart(2, "0");
+    const dd = String(day).padStart(2, "0");
+    const dateKey = `${yyyy}-${mm}-${dd}`;
+
+    const events = list.filter(function(item){
       return normalizeDateOnly(item.date) === dateKey;
     });
 
     html += `
-      <div class="calendar-day ${daySessions.length ? "has-session" : ""}" data-date="${dateKey}" onclick="openCalendarInfo('${dateKey}')">
-        <strong>${day}</strong>
-        ${daySessions.map(function(item){
+      <div class="day ${events.length ? "has-event" : ""}" data-date="${dateKey}" onclick="openCalendarInfo('${dateKey}')">
+        <div class="day-number">${day}</div>
+        ${events.slice(0,1).map(function(item){
           return `
-            <div class="session-pill" data-date="${dateKey}">
-              S ${safe(item.session || "-")}<br>${safe(item.time || "-")}
+            <div class="chip" data-date="${dateKey}">
+              <b>S ${safe(item.session || "-")}</b>
+              <span>${safe(item.time || "-")}</span>
             </div>
           `;
         }).join("")}
@@ -1092,12 +1104,10 @@ function renderParentCalendar(attendances){
     `;
   }
 
-  html += '</div></div>';
+  html += `</div>`;
 
   const target = getEl("parentCalendar");
-  if(target){
-    target.innerHTML = html;
-  }
+  if(target) target.innerHTML = html;
 }
 
 function initParentAdvancedAnimations(){
