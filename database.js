@@ -53,6 +53,7 @@ db.serialize(() => {
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       title TEXT NOT NULL,
       category TEXT DEFAULT 'Beginner',
+      material_type TEXT DEFAULT 'ppt',
       note TEXT DEFAULT '',
       file_name TEXT DEFAULT '',
       file_path TEXT DEFAULT '',
@@ -124,6 +125,7 @@ db.serialize(() => {
 
   addColumnIfMissing("students", "progress_session", "INTEGER DEFAULT 0");
   addColumnIfMissing("library_materials", "category", "TEXT DEFAULT 'Beginner'");
+  addColumnIfMissing("library_materials", "material_type", "TEXT DEFAULT 'ppt'");
   addColumnIfMissing("library_materials", "cover_name", "TEXT DEFAULT ''");
   addColumnIfMissing("library_materials", "cover_path", "TEXT DEFAULT ''");
   addColumnIfMissing("library_materials", "cover_type", "TEXT DEFAULT ''");

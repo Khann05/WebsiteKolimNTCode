@@ -1,6 +1,6 @@
 const API = "";
 const START_YEAR = 2026;
-const START_MONTH = 4;
+const START_MONTH = 3; // April, karena index JS mulai dari 0
 const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
 const colors = ["#4f46e5","#10b981","#f97316","#ec4899","#0ea5e9","#8b5cf6","#14b8a6","#64748b"];
 
@@ -12,7 +12,7 @@ let editingId = null;
 let selectedDate = "2026-05-01";
 let activeTab = "calendar";
 let library = [];
-let adminSectionExpanded = { access:false, library:false, certificates:false, sessions:false };
+let adminSectionExpanded = { access:false, library:false, projectFiles:false, certificates:false, sessions:false };
 let pptSortMode = "smart";
 let currentQuizMaterialId = null;
 let currentQuizQuestions = [];
@@ -514,11 +514,40 @@ async function saveAttendance(){
   }catch(e){ toast(e.message,"error"); }
 }
 
-function openLibraryModal(){
-  ["libraryTitle","libraryNote"].forEach(function(id){ $(id).value = ""; });
-  $("libraryCategory").value = "Beginner";
+
+function materialKind(item){
+  return (item && item.material_type === "file") ? "file" : "ppt";
+}
+function isProjectFile(item){ return materialKind(item) === "file"; }
+function isPPTMaterial(item){ return !isProjectFile(item); }
+function materialLabel(item){
+  return isProjectFile(item) ? "File Project" : "PPT";
+}
+function fileProjectBadgeHTML(item){
+  if(!isProjectFile(item)) return "";
+  return '<div class="project-file-badge">File / APK / ZIP / Project</div>';
+}
+function sectionCountText(list, label){
+  return (list || []).length + " " + label;
+}
+
+function openLibraryModal(type){
+  type = type === "file" ? "file" : "ppt";
+  ["libraryTitle","libraryNote"].forEach(function(id){ if($(id)) $(id).value = ""; });
+  $("libraryCategory").value = type === "file" ? "Project Files" : "Beginner";
   $("libraryFile").value = "";
   $("libraryCover").value = "";
+  if($("libraryMaterialType")) $("libraryMaterialType").value = type;
+
+  if($("libraryModalTitle")) $("libraryModalTitle").textContent = type === "file" ? "Upload File / Project Global" : "Upload PPT Global";
+  if($("libraryModalSub")) $("libraryModalSub").textContent = type === "file"
+    ? "Upload APK, ZIP project, folder project ZIP, source code, atau file lain. Default locked sampai kamu unlock per siswa."
+    : "File ini akan masuk library PPT dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.";
+  if($("libraryTitleLabel")) $("libraryTitleLabel").textContent = type === "file" ? "Nama File / Project" : "Judul PPT";
+  if($("libraryCategoryLabel")) $("libraryCategoryLabel").textContent = type === "file" ? "Kategori File" : "Kategori";
+  if($("libraryFileLabel")) $("libraryFileLabel").textContent = type === "file" ? "Upload APK / ZIP / Project / File" : "Upload PPT / file";
+  if($("librarySaveBtn")) $("librarySaveBtn").textContent = type === "file" ? "Simpan File Project" : "Simpan PPT";
+
   openOverlay("libraryOverlay");
 }
 
@@ -528,11 +557,12 @@ async function saveLibraryMaterial(){
     form.append("title", $("libraryTitle").value.trim());
     form.append("category", $("libraryCategory").value.trim() || "Beginner");
     form.append("note", $("libraryNote").value.trim());
+    form.append("material_type", $("libraryMaterialType") ? $("libraryMaterialType").value : "ppt");
     if($("libraryFile").files[0]) form.append("file", $("libraryFile").files[0]);
     if($("libraryCover").files[0]) form.append("cover", $("libraryCover").files[0]);
 
     if(!form.get("title") && !$("libraryFile").files[0] && !$("libraryCover").files[0]){
-      toast("Isi judul, PPT, atau cover","error");
+      toast((($("libraryMaterialType") && $("libraryMaterialType").value === "file") ? "Isi nama file/project, file, atau cover" : "Isi judul, PPT, atau cover"),"error");
       return;
     }
 
@@ -542,7 +572,7 @@ async function saveLibraryMaterial(){
     await loadStudents();
     activeTab = "access";
     renderAll();
-    toast("PPT global berhasil disimpan");
+    toast((($("libraryMaterialType") && $("libraryMaterialType").value === "file") ? "File project berhasil disimpan" : "PPT global berhasil disimpan"));
   }catch(e){ toast(e.message,"error"); }
 }
 
@@ -708,7 +738,8 @@ function renderDetail(){
       <div class="detail-actions">
         <button class="btn btn-blue" onclick="sendWA()">WhatsApp</button>
         <button class="btn btn-orange" onclick="openStudentModal(${s.id})">Edit</button>
-        <button class="btn btn-green" onclick="openLibraryModal()">Upload PPT Global</button>
+        <button class="btn btn-green" onclick="openLibraryModal('ppt')">Upload PPT Global</button>
+        <button class="btn btn-blue" onclick="openLibraryModal('file')">Upload File Project</button>
         <button class="btn btn-purple" onclick="openCertificateModal()">Upload Sertifikat</button>
         <button class="btn btn-red" onclick="deleteSelectedStudent()">Hapus</button>
       </div>
@@ -1104,86 +1135,108 @@ function openEditMaterialModal(id){
 }
 
 function renderAccess(){
-  const list = sortPPTItems(selectedStudent.library || []);
-  const visible = sliceAdminItems("access", list);
-  if(!list.length){
-    $("tabContent").innerHTML = '<div class="empty">Library PPT masih kosong. Klik Upload PPT Global dulu.</div>';
-    return;
-  }
-  const groups = groupByCategory(visible);
-  let html = `
-    <div class="section-toolbar">
-      <div><div class="title">Unlock PPT untuk ${safe(selectedStudent.name)}</div><div class="subtitle">Default: unlocked di atas, locked otomatis ke bawah. Sort All: urut upload asli.</div></div>
-      <div class="section-actions">
-        <button class="btn ${pptSortMode === "smart" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('smart')">Default</button>
-        <button class="btn ${pptSortMode === "all" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('all')">Sort All</button>
-        
-      </div>
-    </div>`;
-  Object.keys(groups).forEach(function(cat){
-    html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
-    html += groups[cat].map(function(item){
-      const locked = !item.is_unlocked;
-      return `
-        <div class="file-card">
-          ${coverHTML(item, locked)}
-          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Kategori: ${safe(item.category || "Beginner")}<br>Status siswa ini: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
-          ${quizBadgeHTML(item)}
-          <div class="row-actions">
-            <button class="btn ${locked ? "btn-green" : "btn-orange"}" onclick="toggleMaterialAccess(${item.id},${item.is_unlocked})">${locked ? "Unlock untuk siswa ini" : "Lock lagi"}</button>
-            ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download Admin</a>` : ""}
-          </div>
-        </div>`;
-    }).join("");
-    html += "</div>";
-  });
-  if(list.length > 4){
-    html += '<div class="see-all-bottom">' + adminSeeAllButton("access", list.length, visible.length) + '</div>';
+  const allItems = selectedStudent.library || [];
+  const pptList = sortPPTItems(allItems.filter(isPPTMaterial));
+  const fileList = sortPPTItems(allItems.filter(isProjectFile));
+
+  function renderAccessSection(title, subtitle, list, sectionKey, emptyText){
+    const visible = sliceAdminItems(sectionKey, list);
+    if(!list.length) return '<div class="section-toolbar"><div><div class="title">' + title + '</div><div class="subtitle">' + emptyText + '</div></div></div>';
+
+    const groups = groupByCategory(visible);
+    let html = `
+      <div class="section-toolbar">
+        <div><div class="title">${title}</div><div class="subtitle">${subtitle}</div></div>
+        <div class="section-actions">
+          <button class="btn ${pptSortMode === "smart" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('smart')">Default</button>
+          <button class="btn ${pptSortMode === "all" ? "btn-primary" : "btn-light"}" onclick="setPPTSortMode('all')">Sort All</button>
+        </div>
+      </div>`;
+
+    Object.keys(groups).forEach(function(cat){
+      html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
+      html += groups[cat].map(function(item){
+        const locked = !item.is_unlocked;
+        const label = materialLabel(item);
+        return `
+          <div class="file-card ${isProjectFile(item) ? "project-file-card" : ""}">
+            ${coverHTML(item, locked)}
+            ${fileProjectBadgeHTML(item)}
+            <strong>${safe(item.title || item.file_name || label)}</strong>
+            <small>Kategori: ${safe(item.category || "-")}<br>Status siswa ini: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
+            ${isPPTMaterial(item) ? quizBadgeHTML(item) : ""}
+            <div class="row-actions">
+              <button class="btn ${locked ? "btn-green" : "btn-orange"}" onclick="toggleMaterialAccess(${item.id},${item.is_unlocked})">${locked ? "Unlock untuk siswa ini" : "Lock lagi"}</button>
+              ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download Admin</a>` : ""}
+            </div>
+          </div>`;
+      }).join("");
+      html += "</div>";
+    });
+    if(list.length > 4){
+      html += '<div class="see-all-bottom">' + adminSeeAllButton(sectionKey, list.length, visible.length) + '</div>';
+    }
+    return html;
   }
 
-  $("tabContent").innerHTML = html;
+  if(!allItems.length){
+    $("tabContent").innerHTML = '<div class="empty">Library masih kosong. Upload PPT atau File Project dulu.</div>';
+    return;
+  }
+
+  $("tabContent").innerHTML =
+    renderAccessSection("Unlock PPT untuk " + safe(selectedStudent.name), "PPT/Materi pembelajaran. Default: unlocked di atas, locked otomatis ke bawah.", pptList, "access", "Belum ada PPT di library.") +
+    '<div style="height:22px"></div>' +
+    renderAccessSection("Unlock File / APK / ZIP Project untuk " + safe(selectedStudent.name), "File tambahan seperti APK, ZIP project, folder project ZIP, source code, dan file lain. Tampil tepat di bawah PPT pada parent.", fileList, "projectFiles", "Belum ada file project di library.");
 }
 
 function renderLibrary(){
-  const list = sortLibraryItems(library || []);
-  const visible = sliceAdminItems("library", list);
-  if(!list.length){
-    $("tabContent").innerHTML = '<div class="empty">Belum ada PPT global. Klik Upload PPT Global.</div>';
-    return;
-  }
-  const groups = groupByCategory(visible);
-  let html = `
-    <div class="section-toolbar">
-      <div><div class="title">Library PPT Global</div><div class="subtitle">Master PPT untuk semua siswa. Awalnya tampil 4 data agar tidak terlalu panjang.</div></div>
-      <div class="section-actions">
-        <button class="btn btn-green" onclick="openLibraryModal()">Upload PPT Global</button>
-        
-      </div>
-    </div>`;
-  Object.keys(groups).forEach(function(cat){
-    html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
-    html += groups[cat].map(function(item){
-      return `
-        <div class="file-card">
-          ${coverHTML(item, false)}
-          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Kategori: ${safe(item.category || "Beginner")}<br>File: ${safe(item.file_name || "-")}</small>
-          ${quizBadgeHTML(item)}
-          <div class="row-actions">
-            <button type="button" class="btn btn-gold" onclick="event.stopPropagation(); openEditMaterialModal(${item.id})">Edit PPT</button>
-            ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : ""}
-            <button class="btn btn-red" onclick="deleteLibraryMaterial(${item.id})">Hapus dari Library</button>
-          </div>
-        </div>`;
-    }).join("");
-    html += "</div>";
-  });
-  if(list.length > 4){
-    html += '<div class="see-all-bottom">' + adminSeeAllButton("library", list.length, visible.length) + '</div>';
+  const allItems = library || [];
+  const pptList = sortLibraryItems(allItems.filter(isPPTMaterial));
+  const fileList = sortLibraryItems(allItems.filter(isProjectFile));
+
+  function renderLibrarySection(title, subtitle, list, sectionKey, uploadType, emptyText){
+    const visible = sliceAdminItems(sectionKey, list);
+    let html = `
+      <div class="section-toolbar">
+        <div><div class="title">${title}</div><div class="subtitle">${subtitle}</div></div>
+        <div class="section-actions">
+          <button class="btn ${uploadType === "file" ? "btn-blue" : "btn-green"}" onclick="openLibraryModal('${uploadType}')">${uploadType === "file" ? "Upload File Project" : "Upload PPT Global"}</button>
+        </div>
+      </div>`;
+    if(!list.length) return html + '<div class="empty">' + emptyText + '</div>';
+
+    const groups = groupByCategory(visible);
+    Object.keys(groups).forEach(function(cat){
+      html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
+      html += groups[cat].map(function(item){
+        const label = materialLabel(item);
+        return `
+          <div class="file-card ${isProjectFile(item) ? "project-file-card" : ""}">
+            ${coverHTML(item, false)}
+            ${fileProjectBadgeHTML(item)}
+            <strong>${safe(item.title || item.file_name || label)}</strong>
+            <small>Kategori: ${safe(item.category || "-")}<br>Jenis: ${safe(label)}<br>File: ${safe(item.file_name || "-")}</small>
+            ${isPPTMaterial(item) ? quizBadgeHTML(item) : ""}
+            <div class="row-actions">
+              <button type="button" class="btn btn-gold" onclick="event.stopPropagation(); openEditMaterialModal(${item.id})">${isProjectFile(item) ? "Edit File" : "Edit PPT"}</button>
+              ${item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : ""}
+              <button class="btn btn-red" onclick="deleteLibraryMaterial(${item.id})">Hapus dari Library</button>
+            </div>
+          </div>`;
+      }).join("");
+      html += "</div>";
+    });
+    if(list.length > 4){
+      html += '<div class="see-all-bottom">' + adminSeeAllButton(sectionKey, list.length, visible.length) + '</div>';
+    }
+    return html;
   }
 
-  $("tabContent").innerHTML = html;
+  $("tabContent").innerHTML =
+    renderLibrarySection("Library PPT Global", "Master PPT untuk semua siswa. File project ada tepat di bawah bagian ini.", pptList, "library", "ppt", "Belum ada PPT global. Klik Upload PPT Global.") +
+    '<div style="height:22px"></div>' +
+    renderLibrarySection("Library File / APK / ZIP Project", "Upload APK, ZIP project, folder project ZIP, source code, atau file lain. Sistem unlock/lock sama seperti PPT.", fileList, "projectFiles", "file", "Belum ada file project. Klik Upload File Project.");
 }
 
 function renderCertificates(){

@@ -30,7 +30,7 @@ const storage = multer.diskStorage({
   }
 });
 
-const upload = multer({ storage, limits: { fileSize: 80 * 1024 * 1024 } });
+const upload = multer({ storage, limits: { fileSize: 300 * 1024 * 1024 } });
 const multiUpload = upload.fields([{ name: "file", maxCount: 1 }, { name: "cover", maxCount: 1 }]);
 
 app.use(cors());
@@ -234,18 +234,19 @@ app.get("/api/admin/library", requireAdmin, async (req, res) => {
 app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
   try {
     const { title = "", category = "Beginner", note = "" } = req.body;
+    const materialType = req.body.material_type === "file" ? "file" : "ppt";
     const main = fileInfo(req, "file");
     const cover = fileInfo(req, "cover");
 
     if (!title && !main.path && !cover.path) {
-      return res.status(400).json({ error: "Judul, PPT, atau cover wajib diisi" });
+      return res.status(400).json({ error: materialType === "file" ? "Judul, file project, atau cover wajib diisi" : "Judul, PPT, atau cover wajib diisi" });
     }
 
     const result = await run(
       `INSERT INTO library_materials
-        (title, category, note, file_name, file_path, file_type, cover_name, cover_path, cover_type)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title || main.name || "Materi", category || "Beginner", note, main.name, main.path, main.type, cover.name, cover.path, cover.type]
+        (title, category, material_type, note, file_name, file_path, file_type, cover_name, cover_path, cover_type)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [title || main.name || (materialType === "file" ? "File Project" : "Materi"), category || (materialType === "file" ? "Project Files" : "Beginner"), materialType, note, main.name, main.path, main.type, cover.name, cover.path, cover.type]
     );
 
     res.json({ ok: true, id: result.id, library: await all(`

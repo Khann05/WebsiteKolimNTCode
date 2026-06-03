@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=final-calendar-clean-20260529"/>
+  <link rel="stylesheet" href="/style.css?v=file-project-upload-final-20260603"/>
 </head>
 <body class="parent-logged-out">
 
@@ -104,7 +104,7 @@ let currentMonth = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() 
 let currentYear = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_YEAR : nowDate.getFullYear();
 let currentStudent = null;
 let parentPPTSortMode = "smart";
-let parentSectionExpanded = { materials:false, certificates:false, attendances:false };
+let parentSectionExpanded = { materials:false, projectFiles:false, certificates:false, attendances:false };
 
 function getEl(id){ return document.getElementById(id); }
 function safe(v){ return String(v || "").replace(/[&<>"]/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
@@ -426,12 +426,17 @@ function renderParent(){
   const attendances = s.attendances || [];
   const materials = s.library || [];
   const certificates = s.certificates || [];
-  const unlockedMaterials = materials.filter(x => x.is_unlocked);
-  const quizItems = materials.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0);
+  const pptOnly = materials.filter(parentIsPPTMaterial);
+  const fileProjects = materials.filter(parentIsProjectFile);
+  const unlockedMaterials = pptOnly.filter(x => x.is_unlocked);
+  const quizItems = pptOnly.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0);
   const quizOpenCount = quizItems.filter(x => x.is_unlocked).length;
   const quizLockedCount = quizItems.filter(x => !x.is_unlocked).length;
-  const lockedMaterials = materials.filter(x => !x.is_unlocked);
+  const lockedMaterials = pptOnly.filter(x => !x.is_unlocked);
   const unlockedCerts = certificates.filter(x => !x.is_locked);
+  const unlockedFiles = fileProjects.filter(x => x.is_unlocked);
+  const lockedFiles = fileProjects.filter(x => !x.is_unlocked);
+
 
   getEl("parentHero").innerHTML = `
     <div>
@@ -482,6 +487,8 @@ function renderParent(){
 
   if(unlockedMaterials.length) notif.push({icon:"folder",title:"PPT terbuka",text:unlockedMaterials.length+" PPT sudah bisa didownload."});
   if(lockedMaterials.length) notif.push({icon:"lock",title:"PPT locked",text:lockedMaterials.length+" PPT masih menunggu dibuka admin."});
+  if(unlockedFiles.length) notif.push({icon:"folder",title:"File project terbuka",text:unlockedFiles.length+" file project/APK/ZIP sudah bisa didownload."});
+  if(lockedFiles.length) notif.push({icon:"lock",title:"File project locked",text:lockedFiles.length+" file project masih menunggu dibuka admin."});
   if(unlockedCerts.length) notif.push({icon:"cert",title:"Sertifikat tersedia",text:unlockedCerts.length+" sertifikat sudah terbuka."});
 
   if(getEl("notifList")) getEl("notifList").innerHTML = notif.length ? notif.map(n => `
@@ -696,7 +703,7 @@ function buildParentNotifications(){
   const materials = currentStudent.library || [];
   const openedPPT = materials.filter(x => x.is_unlocked).length;
   const lockedPPT = materials.filter(x => !x.is_unlocked).length;
-  const quizItems = materials.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0);
+  const quizItems = pptOnly.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0);
   const openedQuiz = quizItems.filter(x => x.is_unlocked).length;
   const certs = currentStudent.certificates || [];
   const openedCerts = certs.filter(x => !x.is_locked).length;
@@ -787,54 +794,75 @@ document.addEventListener("click", function(e){
   }
 });
 
+
+function parentMaterialKind(item){
+  return (item && item.material_type === "file") ? "file" : "ppt";
+}
+function parentIsProjectFile(item){ return parentMaterialKind(item) === "file"; }
+function parentIsPPTMaterial(item){ return !parentIsProjectFile(item); }
+function parentProjectBadgeHTML(item){
+  if(!parentIsProjectFile(item)) return "";
+  return '<div class="project-file-badge">File / APK / ZIP / Project</div>';
+}
+
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
   const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
-  const sorted = sortParentMaterials(materials || []);
-  const expanded = !!parentSectionExpanded.materials;
-  const visible = expanded ? sorted : sorted.slice(0,4);
-  const hidden = Math.max(0, sorted.length - visible.length);
+  const allItems = materials || [];
+  const pptSorted = sortParentMaterials(allItems.filter(parentIsPPTMaterial));
+  const fileSorted = sortParentMaterials(allItems.filter(parentIsProjectFile));
 
-  let html =
-    '<div class="section-toolbar">' +
-      '<div><div class="title">Semua PPT/Materi dan Quiz</div><div class="subtitle">Default: terbuka di atas, locked di bawah. Sort All: urut upload asli.</div></div>' +
+  function renderParentMaterialSection(title, subtitle, list, sectionKey, emptyText){
+    const expanded = !!parentSectionExpanded[sectionKey];
+    const visible = expanded ? list : list.slice(0,4);
+    const hidden = Math.max(0, list.length - visible.length);
+    let html = '<div class="section-toolbar">' +
+      '<div><div class="title">' + title + '</div><div class="subtitle">' + subtitle + '</div></div>' +
       '<div class="section-actions">' +
         '<button class="btn ' + smartClass + '" onclick="setParentPPTSortMode(&quot;smart&quot;)">Default</button>' +
         '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
       '</div>' +
     '</div>';
 
-  if(!sorted.length){
-    getEl("materialList").innerHTML = html + '<div class="empty">Belum ada PPT di library.</div>';
-    return;
-  }
+    if(!list.length){
+      return html + '<div class="empty">' + emptyText + '</div>';
+    }
 
-  const groups = groupByCategory(visible);
-  Object.keys(groups).forEach(function(cat){
-    html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
-    html += groups[cat].map(function(item){
-      const locked = !item.is_unlocked;
-      return `
-        <div class="file-card">
-          ${coverHTML(item, locked)}
-          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
-          <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
-          <div class="row-actions">
-            ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+    const groups = groupByCategory(visible);
+    Object.keys(groups).forEach(function(cat){
+      html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
+      html += groups[cat].map(function(item){
+        const locked = !item.is_unlocked;
+        const isFile = parentIsProjectFile(item);
+        return `
+          <div class="file-card ${isFile ? "project-file-card" : ""}">
+            ${coverHTML(item, locked)}
+            ${parentProjectBadgeHTML(item)}
+            <strong>${safe(item.title || item.file_name || (isFile ? "File Project" : "Materi"))}</strong>
+            <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
+            <div class="row-actions">
+              ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+            </div>
+            ${!isFile ? parentQuizRowHTML(item, locked) : ""}
           </div>
-          ${parentQuizRowHTML(item, locked)}
-        </div>
-      `;
-    }).join("");
-    html += "</div>";
-  });
+        `;
+      }).join("");
+      html += "</div>";
+    });
 
-  if(sorted.length > 4){
-    html += '<div class="see-all-bottom">' +
-      '<button class="btn btn-light" onclick="toggleParentSection(&quot;materials&quot;)">' +
-      (expanded ? "Show Less" : "See All (" + hidden + ")") +
-      '</button></div>';
+    if(list.length > 4){
+      html += '<div class="see-all-bottom">' +
+        '<button class="btn btn-light" onclick="toggleParentSection(&quot;' + sectionKey + '&quot;)">' +
+        (expanded ? "Show Less" : "See All (" + hidden + ")") +
+        '</button></div>';
+    }
+    return html;
   }
+
+  let html =
+    renderParentMaterialSection("Semua PPT/Materi dan Quiz", "Default: terbuka di atas, locked di bawah. Sort All: urut upload asli.", pptSorted, "materials", "Belum ada PPT di library.") +
+    '<div style="height:22px"></div>' +
+    renderParentMaterialSection("File Project / APK / ZIP", "File tambahan dari admin. Sistem unlock/lock sama seperti PPT dan tampil tepat di bawah PPT.", fileSorted, "projectFiles", "Belum ada file project.");
 
   getEl("materialList").innerHTML = html;
 }
@@ -1035,68 +1063,55 @@ function changeParentCalendarMonth(delta){
   renderParentCalendar((currentStudent && currentStudent.attendances) ? currentStudent.attendances : []);
 }
 
-
-function changeMonth(delta){
-  const next = new Date(currentYear, currentMonth + delta, 1);
-  const min = new Date(START_YEAR, START_MONTH, 1);
-
-  if(next < min){
-    showToast("Kalender mulai dari April 2026", "error");
-    return;
-  }
-
-  currentYear = next.getFullYear();
-  currentMonth = next.getMonth();
-  renderParentCalendar((currentStudent && currentStudent.attendances) ? currentStudent.attendances : []);
-}
-
 function renderParentCalendar(attendances){
   const list = attendances || [];
-  const firstDay = new Date(currentYear, currentMonth, 1);
-  const lastDay = new Date(currentYear, currentMonth + 1, 0);
+  const year = parentCalendarDate.getFullYear();
+  const month = parentCalendarDate.getMonth();
+
+  const monthName = new Date(year, month, 1).toLocaleDateString("id-ID", {
+    month:"long",
+    year:"numeric"
+  });
+
+  const minDate = getCalendarMinDate();
+  const isAtMin = year === minDate.getFullYear() && month === minDate.getMonth();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
   const totalDays = lastDay.getDate();
-  const monthTitle = months[currentMonth] + " " + currentYear;
-  const atStart = currentYear === START_YEAR && currentMonth === START_MONTH;
 
-  let html = `
-    <div class="calendar-controls parent-calendar-controls">
-      <button class="btn btn-light calendar-nav-btn" onclick="changeMonth(-1)" ${atStart ? "disabled" : ""}>‹ Sebelumnya</button>
-      <div class="calendar-month-label">${safe(monthTitle)}</div>
-      <button class="btn btn-light calendar-nav-btn" onclick="changeMonth(1)">Berikutnya ›</button>
-    </div>
-
-    <div class="calendar-grid parent-calendar-grid">
-      <div class="day-name">Min</div>
-      <div class="day-name">Sen</div>
-      <div class="day-name">Sel</div>
-      <div class="day-name">Rab</div>
-      <div class="day-name">Kam</div>
-      <div class="day-name">Jum</div>
-      <div class="day-name">Sab</div>
-  `;
+  let html =
+    '<div class="section-toolbar calendar-toolbar">' +
+      '<div class="calendar-controls">' +
+        '<button class="btn btn-light" onclick="changeParentCalendarMonth(-1)" ' + (isAtMin ? "disabled" : "") + '>‹ Bulan Sebelumnya</button>' +
+        '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
+        '<button class="btn btn-light" onclick="changeParentCalendarMonth(1)">Bulan Berikutnya ›</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="calendar-scroll">' +
+      '<div class="calendar-weekdays">' +
+        '<span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>' +
+      '</div>' +
+      '<div class="calendar-grid">';
 
   for(let i = 0; i < firstDay.getDay(); i++){
-    html += `<div class="day empty-day"></div>`;
+    html += '<div class="calendar-day empty"></div>';
   }
 
   for(let day = 1; day <= totalDays; day++){
-    const yyyy = currentYear;
-    const mm = String(currentMonth + 1).padStart(2, "0");
-    const dd = String(day).padStart(2, "0");
-    const dateKey = `${yyyy}-${mm}-${dd}`;
-
-    const events = list.filter(function(item){
+    const dateObj = new Date(year, month, day);
+    const dateKey = dateObj.toISOString().slice(0,10);
+    const daySessions = list.filter(function(item){
       return normalizeDateOnly(item.date) === dateKey;
     });
 
     html += `
-      <div class="day ${events.length ? "has-event" : ""}" data-date="${dateKey}" onclick="openCalendarInfo('${dateKey}')">
-        <div class="day-number">${day}</div>
-        ${events.slice(0,1).map(function(item){
+      <div class="calendar-day ${daySessions.length ? "has-session" : ""}" data-date="${dateKey}" onclick="openCalendarInfo('${dateKey}')">
+        <strong>${day}</strong>
+        ${daySessions.map(function(item){
           return `
-            <div class="chip" data-date="${dateKey}">
-              <b>S ${safe(item.session || "-")}</b>
-              <span>${safe(item.time || "-")}</span>
+            <div class="session-pill" data-date="${dateKey}">
+              S ${safe(item.session || "-")}<br>${safe(item.time || "-")}
             </div>
           `;
         }).join("")}
@@ -1104,10 +1119,12 @@ function renderParentCalendar(attendances){
     `;
   }
 
-  html += `</div>`;
+  html += '</div></div>';
 
   const target = getEl("parentCalendar");
-  if(target) target.innerHTML = html;
+  if(target){
+    target.innerHTML = html;
+  }
 }
 
 function initParentAdvancedAnimations(){

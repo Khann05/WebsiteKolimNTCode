@@ -125,19 +125,20 @@
 <div id="libraryOverlay" class="overlay">
   <div class="modal">
     <div class="modal-head">
-      <div><div class="modal-title">Upload PPT Global</div><div class="modal-sub">File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.</div></div>
+      <div><div class="modal-title" id="libraryModalTitle">Upload PPT Global</div><div class="modal-sub" id="libraryModalSub">File ini akan masuk library dan tampil di parent semua siswa. Default tetap locked sampai kamu unlock per siswa.</div></div>
       <button class="x" onclick="closeOverlay('libraryOverlay')">X</button>
     </div>
     <div class="form">
-      <div><label>Judul PPT</label><input id="libraryTitle" class="field" placeholder="Contoh: HTML Basic"/></div>
-      <div><label>Kategori</label><input id="libraryCategory" class="field" list="categoryList" placeholder="Beginner"/></div>
-      <div><label>Catatan</label><textarea id="libraryNote" class="field"></textarea></div>
-      <div><label>Upload PPT / file</label><input id="libraryFile" class="field" type="file"/></div>
-      <div><label>Upload cover</label><input id="libraryCover" class="field" type="file" accept=".png,.jpg,.jpeg,.webp"/></div>
+      <input id="libraryMaterialType" type="hidden" value="ppt"/>
+      <div><label id="libraryTitleLabel">Judul PPT</label><input id="libraryTitle" class="field" placeholder="Contoh: HTML Basic"/></div>
+      <div><label id="libraryCategoryLabel">Kategori</label><input id="libraryCategory" class="field" list="categoryList" placeholder="Beginner"/></div>
+      <div><label>Catatan / Deskripsi</label><textarea id="libraryNote" class="field"></textarea></div>
+      <div><label id="libraryFileLabel">Upload PPT / file</label><input id="libraryFile" class="field" type="file"/></div>
+      <div><label>Upload cover / preview</label><input id="libraryCover" class="field" type="file" accept=".png,.jpg,.jpeg,.webp"/></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-light" onclick="closeOverlay('libraryOverlay')">Batal</button>
-      <button class="btn btn-primary" onclick="saveLibraryMaterial()">Simpan PPT</button>
+      <button class="btn btn-primary" id="librarySaveBtn" onclick="saveLibraryMaterial()">Simpan PPT</button>
     </div>
   </div>
 </div>
@@ -162,7 +163,7 @@
 </div>
 
 <datalist id="categoryList">
-  <option value="Beginner"><option value="Intermediate"><option value="Advanced"><option value="HTML"><option value="CSS"><option value="JavaScript"><option value="Python">
+  <option value="Beginner"><option value="Intermediate"><option value="Advanced"><option value="HTML"><option value="CSS"><option value="JavaScript"><option value="Python"><option value="Project Files"><option value="APK"><option value="ZIP Project"><option value="Roblox"><option value="Website">
 </datalist>
 
 <script>
