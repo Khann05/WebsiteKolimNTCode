@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=file-project-upload-final-20260603"/>
+  <link rel="stylesheet" href="/style.css?v=parent-swipe-stats-search-notif-20260603"/>
 </head>
 <body class="parent-logged-out">
 
@@ -63,12 +63,12 @@
     <div class="ready-text standalone-ready"><span>Progress anak sudah siap.</span></div>
 
     <section class="stats parent-animate animate-delay-2">
-      <div class="stat"><div class="stat-icon" id="pIconMeet"></div><div><div class="stat-label">Pertemuan</div><div class="stat-num" id="pMeetings">0</div></div></div>
-      <div class="stat"><div class="stat-icon" id="pIconMat"></div><div><div class="stat-label">PPT Terbuka</div><div class="stat-num" id="pMaterials">0</div></div></div>
-      <div class="stat"><div class="stat-icon" id="pIconLocked"></div><div><div class="stat-label">PPT Locked</div><div class="stat-num" id="pLocked">0</div></div></div>
-      <div class="stat"><div class="stat-icon" id="pIconQuizOpen"></div><div><div class="stat-label">Quiz Terbuka</div><div class="stat-num" id="pQuizOpen">0</div></div></div>
-      <div class="stat"><div class="stat-icon" id="pIconQuizLocked"></div><div><div class="stat-label">Quiz Locked</div><div class="stat-num" id="pQuizLocked">0</div></div></div>
-      <div class="stat"><div class="stat-icon" id="pIconCert"></div><div><div class="stat-label">Sertifikat</div><div class="stat-num" id="pCertificates">0</div></div></div>
+      <button type="button" class="stat stat-click" onclick="parentStatAction('meetings')"><div class="stat-icon" id="pIconMeet"></div><div><div class="stat-label">Pertemuan</div><div class="stat-num" id="pMeetings">0</div></div></button>
+      <button type="button" class="stat stat-click" onclick="parentStatAction('pptOpen')"><div class="stat-icon" id="pIconMat"></div><div><div class="stat-label">PPT Terbuka</div><div class="stat-num" id="pMaterials">0</div></div></button>
+      <button type="button" class="stat stat-click" onclick="parentStatAction('pptLocked')"><div class="stat-icon" id="pIconLocked"></div><div><div class="stat-label">PPT Locked</div><div class="stat-num" id="pLocked">0</div></div></button>
+      <button type="button" class="stat stat-click" onclick="parentStatAction('quizOpen')"><div class="stat-icon" id="pIconQuizOpen"></div><div><div class="stat-label">Quiz Terbuka</div><div class="stat-num" id="pQuizOpen">0</div></div></button>
+      <button type="button" class="stat stat-click" onclick="parentStatAction('quizLocked')"><div class="stat-icon" id="pIconQuizLocked"></div><div><div class="stat-label">Quiz Locked</div><div class="stat-num" id="pQuizLocked">0</div></div></button>
+      <button type="button" class="stat stat-click" onclick="parentStatAction('certificates')"><div class="stat-icon" id="pIconCert"></div><div><div class="stat-label">Sertifikat</div><div class="stat-num" id="pCertificates">0</div></div></button>
     </section>
 
     <div id="parentProgressWrap"></div>
@@ -104,6 +104,10 @@ let currentMonth = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() 
 let currentYear = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_YEAR : nowDate.getFullYear();
 let currentStudent = null;
 let parentPPTSortMode = "smart";
+let parentMaterialSearch = "";
+let parentMaterialFilter = "all";
+let parentCalendarTouchStartX = 0;
+let parentCalendarTouchStartY = 0;
 let parentSectionExpanded = { materials:false, projectFiles:false, certificates:false, attendances:false };
 
 function getEl(id){ return document.getElementById(id); }
@@ -503,6 +507,7 @@ function renderParent(){
   renderCertificates(certificates);
   renderAttendances(attendances);
   initParentIcons();
+  renderParentNotifications();
 }
 
 
@@ -736,27 +741,41 @@ function buildParentNotifications(){
 }
 
 function renderParentNotifications(){
+  const s = currentStudent || {};
+  const materials = s.library || [];
+  const ppt = materials.filter(parentIsPPTMaterial);
+  const files = materials.filter(parentIsProjectFile);
+  const certificates = s.certificates || [];
+  const attendances = s.attendances || [];
+
+  const pptOpen = ppt.filter(x => x.is_unlocked).length;
+  const pptLocked = ppt.filter(x => !x.is_unlocked).length;
+  const quizOpen = ppt.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0 && x.is_unlocked).length;
+  const lessonCount = attendances.length;
+  const certOpen = certificates.filter(x => !x.is_locked).length;
+
+  const items = [
+    {target:"materials", icon:"folder", title:"PPT & materi tersedia", text:pptOpen + " PPT terbuka, " + pptLocked + " masih locked."},
+    {target:"quiz", icon:"help-circle", title:"Quiz pembelajaran", text:quizOpen + " quiz bisa dikerjakan dari parent portal."},
+    {target:"attendance", icon:"calendar", title:"Riwayat les", text:lessonCount + " pertemuan sudah tercatat."},
+    {target:"certificate", icon:"cert", title:"Sertifikat", text:certOpen + " sertifikat sudah bisa dilihat/download."}
+  ];
+
   const box = getEl("parentNotifItems");
   if(!box) return;
 
-  const items = buildParentNotifications();
   box.innerHTML = items.map(function(item){
     return `
-      <div class="notif-dropdown-item ${safe(item.type)}">
-        <div class="notif-mini-icon"></div>
+      <button type="button" class="notif-dropdown-item notif-clickable" onclick="parentNotifAction('${item.target}')">
+        <div class="notif-mini-icon">${svg(item.icon)}</div>
         <div>
           <strong>${safe(item.title)}</strong>
           <small>${safe(item.text)}</small>
         </div>
-      </div>
+      </button>
     `;
   }).join("");
-
-  const dot = getEl("notifDot");
-  if(dot) dot.style.display = items.length ? "block" : "none";
 }
-
-
 function ensureNotifDropdownOnBody(){
   const box = document.getElementById("parentNotifDropdown");
   if(box && box.parentElement !== document.body){
@@ -775,7 +794,6 @@ function closeParentNotif(){
 }
 
 function toggleParentNotif(){
-  if(typeof ensureNotifDropdownOnBody === "function") ensureNotifDropdownOnBody();
   const box = getEl("parentNotifDropdown");
   if(!box) return;
   renderParentNotifications();
@@ -805,12 +823,153 @@ function parentProjectBadgeHTML(item){
   return '<div class="project-file-badge">File / APK / ZIP / Project</div>';
 }
 
+
+function closeParentNotif(){
+  const box = document.getElementById("parentNotifDropdown");
+  if(box) box.classList.remove("show");
+  document.body.classList.remove("notif-open");
+  if(typeof setParentPopupUI === "function") setParentPopupUI(false);
+}
+
+function parentNotifAction(target){
+  closeParentNotif();
+  if(target === "materials"){
+    parentMaterialFilter = "all";
+    renderMaterials(currentStudent ? currentStudent.library || [] : []);
+    setTimeout(function(){ goParentSection("parentMaterialsSection"); }, 40);
+    return;
+  }
+  if(target === "quiz"){
+    parentMaterialFilter = "quiz-open";
+    renderMaterials(currentStudent ? currentStudent.library || [] : []);
+    setTimeout(function(){ goParentSection("parentMaterialsSection"); }, 40);
+    return;
+  }
+  if(target === "attendance"){
+    setTimeout(function(){ goParentSection("parentAttendanceSection"); }, 40);
+    return;
+  }
+  if(target === "certificate"){
+    setTimeout(function(){ goParentSection("parentCertificateSection"); }, 40);
+    return;
+  }
+}
+
+function parentStatAction(type){
+  if(!currentStudent) return;
+
+  if(type === "meetings"){
+    goParentSection("parentCalendarSection");
+    return;
+  }
+
+  if(type === "certificates"){
+    goParentSection("parentCertificateSection");
+    return;
+  }
+
+  const lib = currentStudent.library || [];
+  const ppt = lib.filter(parentIsPPTMaterial);
+  const quiz = ppt.filter(function(x){ return x.quiz_id && Number(x.quiz_question_count || 0) > 0; });
+
+  if(type === "pptOpen") parentMaterialFilter = ppt.some(x => x.is_unlocked) ? "ppt-open" : "all";
+  if(type === "pptLocked") parentMaterialFilter = ppt.some(x => !x.is_unlocked) ? "ppt-locked" : "all";
+  if(type === "quizOpen") parentMaterialFilter = quiz.some(x => x.is_unlocked) ? "quiz-open" : "all";
+  if(type === "quizLocked") parentMaterialFilter = quiz.some(x => !x.is_unlocked) ? "quiz-locked" : "all";
+
+  parentSectionExpanded.materials = true;
+  renderMaterials(lib);
+  setTimeout(function(){ goParentSection("parentMaterialsSection"); }, 40);
+}
+
+function setParentMaterialSearch(value){
+  parentMaterialSearch = String(value || "").toLowerCase().trim();
+  parentSectionExpanded.materials = true;
+  parentSectionExpanded.projectFiles = true;
+  renderMaterials(currentStudent ? currentStudent.library || [] : []);
+}
+
+function setParentMaterialFilter(filter){
+  parentMaterialFilter = filter || "all";
+  parentSectionExpanded.materials = true;
+  renderMaterials(currentStudent ? currentStudent.library || [] : []);
+}
+
+function parentItemMatchesSearch(item){
+  if(!parentMaterialSearch) return true;
+  const text = [
+    item.title,
+    item.file_name,
+    item.category,
+    item.note,
+    item.quiz_title
+  ].map(function(x){ return String(x || "").toLowerCase(); }).join(" ");
+  return text.includes(parentMaterialSearch);
+}
+
+function parentItemMatchesFilter(item){
+  const isFile = parentIsProjectFile(item);
+  const hasQuiz = item.quiz_id && Number(item.quiz_question_count || 0) > 0;
+
+  if(parentMaterialFilter === "ppt-open") return !isFile && !!item.is_unlocked;
+  if(parentMaterialFilter === "ppt-locked") return !isFile && !item.is_unlocked;
+  if(parentMaterialFilter === "quiz-open") return !isFile && hasQuiz && !!item.is_unlocked;
+  if(parentMaterialFilter === "quiz-locked") return !isFile && hasQuiz && !item.is_unlocked;
+  if(parentMaterialFilter === "file-open") return isFile && !!item.is_unlocked;
+  if(parentMaterialFilter === "file-locked") return isFile && !item.is_unlocked;
+  return true;
+}
+
+function initParentCalendarSwipe(){
+  const area = document.getElementById("parentCalendar");
+  if(!area || area.dataset.swipeReady === "1") return;
+  area.dataset.swipeReady = "1";
+
+  area.addEventListener("touchstart", function(e){
+    const t = e.touches && e.touches[0];
+    if(!t) return;
+    parentCalendarTouchStartX = t.clientX;
+    parentCalendarTouchStartY = t.clientY;
+  }, { passive:true });
+
+  area.addEventListener("touchend", function(e){
+    const t = e.changedTouches && e.changedTouches[0];
+    if(!t) return;
+    const dx = t.clientX - parentCalendarTouchStartX;
+    const dy = t.clientY - parentCalendarTouchStartY;
+
+    if(Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.25){
+      if(dx < 0) changeParentCalendarMonth(1);
+      else changeParentCalendarMonth(-1);
+    }
+  }, { passive:true });
+}
+
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
   const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
-  const allItems = materials || [];
+  const allItems = (materials || []).filter(parentItemMatchesSearch).filter(parentItemMatchesFilter);
   const pptSorted = sortParentMaterials(allItems.filter(parentIsPPTMaterial));
   const fileSorted = sortParentMaterials(allItems.filter(parentIsProjectFile));
+
+  function filterBtn(label, value){
+    return '<button class="btn ' + (parentMaterialFilter === value ? 'btn-primary' : 'btn-light') + '" onclick="setParentMaterialFilter(&quot;' + value + '&quot;)">' + label + '</button>';
+  }
+
+  const searchBox =
+    '<div class="parent-material-search">' +
+      '<input class="field" id="parentMaterialSearchInput" value="' + safe(parentMaterialSearch) + '" oninput="setParentMaterialSearch(this.value)" placeholder="Cari PPT, quiz, APK, ZIP, project...">' +
+      '<button class="btn btn-light" onclick="setParentMaterialSearch(&quot;&quot;)">Clear</button>' +
+    '</div>' +
+    '<div class="parent-filter-row">' +
+      filterBtn("Semua", "all") +
+      filterBtn("PPT Terbuka", "ppt-open") +
+      filterBtn("PPT Locked", "ppt-locked") +
+      filterBtn("Quiz Terbuka", "quiz-open") +
+      filterBtn("Quiz Locked", "quiz-locked") +
+      filterBtn("File Terbuka", "file-open") +
+      filterBtn("File Locked", "file-locked") +
+    '</div>';
 
   function renderParentMaterialSection(title, subtitle, list, sectionKey, emptyText){
     const expanded = !!parentSectionExpanded[sectionKey];
@@ -823,6 +982,8 @@ function renderMaterials(materials){
         '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
       '</div>' +
     '</div>';
+
+    if(sectionKey === "materials") html += searchBox;
 
     if(!list.length){
       return html + '<div class="empty">' + emptyText + '</div>';
@@ -859,12 +1020,21 @@ function renderMaterials(materials){
     return html;
   }
 
-  let html =
-    renderParentMaterialSection("Semua PPT/Materi dan Quiz", "Default: terbuka di atas, locked di bawah. Sort All: urut upload asli.", pptSorted, "materials", "Belum ada PPT di library.") +
+  let filterNote = parentMaterialFilter !== "all" ? '<div class="filter-active-note">Filter aktif. Klik <b>Semua</b> untuk melihat semua PPT dan file.</div>' : "";
+
+  let html = filterNote +
+    renderParentMaterialSection("Semua PPT/Materi dan Quiz", "Default: terbuka di atas, locked di bawah. Gunakan search untuk cari materi lebih cepat.", pptSorted, "materials", "Tidak ada PPT yang cocok dengan search/filter.") +
     '<div style="height:22px"></div>' +
-    renderParentMaterialSection("File Project / APK / ZIP", "File tambahan dari admin. Sistem unlock/lock sama seperti PPT dan tampil tepat di bawah PPT.", fileSorted, "projectFiles", "Belum ada file project.");
+    renderParentMaterialSection("File Project / APK / ZIP", "File tambahan dari admin. Sistem unlock/lock sama seperti PPT dan tampil tepat di bawah PPT.", fileSorted, "projectFiles", "Tidak ada file project yang cocok dengan search/filter.");
 
   getEl("materialList").innerHTML = html;
+
+  const input = getEl("parentMaterialSearchInput");
+  if(input){
+    const len = input.value.length;
+    input.focus();
+    input.setSelectionRange(len, len);
+  }
 }
 
 function renderCertificates(certificates){
@@ -1124,6 +1294,7 @@ function renderParentCalendar(attendances){
   const target = getEl("parentCalendar");
   if(target){
     target.innerHTML = html;
+    initParentCalendarSwipe();
   }
 }
 
@@ -1221,6 +1392,16 @@ document.addEventListener("DOMContentLoaded", function(){
 
 
 window.addEventListener("load", initParentIcons);
+
+document.addEventListener("click", function(e){
+  const btn = document.getElementById("parentNotifBtn");
+  const box = document.getElementById("parentNotifDropdown");
+  if(!box || !btn) return;
+  if(box.classList.contains("show") && !box.contains(e.target) && !btn.contains(e.target)){
+    closeParentNotif();
+  }
+});
+
 </script>
 
 <div class="overlay" id="parentQuizOverlay">
