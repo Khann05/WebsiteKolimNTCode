@@ -4264,3 +4264,1878 @@ body.notif-open .topbar{
     min-height:62px !important;
   }
 }
+
+
+
+/* =========================================================
+   FINAL MOBILE FIX: notif text not clipped + search bar inside card
+   ========================================================= */
+
+/* 1) Notifikasi HP: teks jangan ketutup / kepotong */
+@media(max-width:720px){
+  #parentNotifDropdown.notif-dropdown{
+    box-sizing:border-box !important;
+    width:100vw !important;
+    max-width:100vw !important;
+    overflow-x:hidden !important;
+    padding-left:16px !important;
+    padding-right:16px !important;
+  }
+
+  #parentNotifItems{
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+    overflow:hidden !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item,
+  #parentNotifDropdown .notif-dropdown-item,
+  .notif-dropdown-item.notif-clickable{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    box-sizing:border-box !important;
+    display:grid !important;
+    grid-template-columns:52px minmax(0, 1fr) !important;
+    align-items:center !important;
+    gap:12px !important;
+    padding:12px !important;
+    border-radius:18px !important;
+    overflow:hidden !important;
+  }
+
+  #parentNotifItems .notif-mini-icon,
+  #parentNotifDropdown .notif-mini-icon{
+    width:50px !important;
+    height:50px !important;
+    min-width:50px !important;
+    max-width:50px !important;
+    border-radius:16px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item > div:last-child,
+  #parentNotifDropdown .notif-dropdown-item > div:last-child{
+    min-width:0 !important;
+    max-width:100% !important;
+    overflow:hidden !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item strong,
+  #parentNotifDropdown .notif-dropdown-item strong{
+    display:block !important;
+    max-width:100% !important;
+    white-space:normal !important;
+    overflow-wrap:anywhere !important;
+    word-break:normal !important;
+    line-height:1.12 !important;
+    font-size:17px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item small,
+  #parentNotifDropdown .notif-dropdown-item small{
+    display:block !important;
+    max-width:100% !important;
+    white-space:normal !important;
+    overflow-wrap:anywhere !important;
+    word-break:normal !important;
+    line-height:1.28 !important;
+    font-size:13px !important;
+    margin-top:4px !important;
+  }
+
+  /* ruang untuk tombol X floating supaya judul tidak ketabrak */
+  body.notif-open #parentNotifDropdown .notif-dropdown-head{
+    padding-right:70px !important;
+  }
+}
+
+/* 2) Search bar PPT: jangan keluar card / jalur */
+.parent-material-search{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+
+.parent-material-search input,
+.parent-material-search .field,
+#parentMaterialSearchInput{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  display:block !important;
+}
+
+.parent-material-search .btn{
+  box-sizing:border-box !important;
+  white-space:nowrap !important;
+}
+
+#materialList,
+#parentMaterialsSection,
+#parentMaterialsSection .panel,
+#parentMaterialsSection .section-toolbar,
+#parentMaterialsSection .file-grid,
+#parentMaterialsSection .file-card{
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+
+@media(max-width:720px){
+  #parentMaterialsSection{
+    overflow:hidden !important;
+  }
+
+  #parentMaterialsSection .panel,
+  .panel:has(#materialList){
+    overflow:hidden !important;
+  }
+
+  .parent-material-search{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+    margin:0 0 12px !important;
+    padding:0 !important;
+  }
+
+  .parent-material-search input,
+  .parent-material-search .field,
+  #parentMaterialSearchInput{
+    height:52px !important;
+    border-radius:18px !important;
+    padding:0 16px !important;
+    font-size:14px !important;
+  }
+
+  .parent-material-search .btn{
+    width:100% !important;
+    min-height:44px !important;
+    border-radius:16px !important;
+  }
+
+  .parent-filter-row{
+    width:100% !important;
+    max-width:100% !important;
+    box-sizing:border-box !important;
+    overflow-x:auto !important;
+    overflow-y:hidden !important;
+    flex-wrap:nowrap !important;
+    padding-bottom:8px !important;
+    margin-bottom:14px !important;
+  }
+
+  .parent-filter-row .btn{
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+
+  .section-toolbar{
+    max-width:100% !important;
+    box-sizing:border-box !important;
+  }
+}
+
+/* 3) Safety: cegah horizontal overflow yang bikin layout terasa keluar jalur */
+@media(max-width:720px){
+  html, body{
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  #parentApp{
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+}
+
+
+/* =========================================================
+   PRELOAD ALL PARENT IMAGES
+   Covers/PPT thumbnails render immediately after login/loading.
+   ========================================================= */
+.file-card img,
+.cover img,
+.material-cover img,
+.cover-img{
+  content-visibility:auto;
+}
+
+.file-card img[loading="eager"],
+.cover img[loading="eager"]{
+  background:#f8fafc;
+}
+
+
+/* =========================================================
+   HERO LAST PPT + QUIZ CARD
+   ========================================================= */
+#parentHero,
+.hero{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.35fr) minmax(320px, .65fr) !important;
+  align-items:center !important;
+  gap:28px !important;
+}
+
+#parentHero > :not(.hero-last-material),
+.hero > :not(.hero-last-material){
+  min-width:0 !important;
+}
+
+.hero-last-material{
+  width:100%;
+  max-width:420px;
+  justify-self:end;
+}
+
+.hero-last-card,
+.hero-last-empty{
+  border:1px solid var(--line, #e5e7eb);
+  border-radius:28px;
+  background:rgba(255,255,255,.86);
+  box-shadow:0 20px 56px rgba(15,23,42,.10);
+  padding:16px;
+  overflow:hidden;
+  backdrop-filter:blur(12px);
+}
+
+.hero-last-kicker{
+  display:inline-flex;
+  width:max-content;
+  max-width:100%;
+  padding:7px 11px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#4f46e5;
+  font-size:12px;
+  font-weight:1000;
+  margin-bottom:12px;
+}
+
+.hero-last-cover{
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+
+.hero-last-cover .cover,
+.hero-last-cover .cover-wrap,
+.hero-last-cover img{
+  width:100% !important;
+  height:150px !important;
+  object-fit:cover !important;
+  border-radius:20px !important;
+}
+
+.hero-last-content strong,
+.hero-last-empty strong{
+  display:block;
+  font-size:22px;
+  line-height:1.12;
+  font-weight:1000;
+  color:#111827;
+  margin-bottom:6px;
+}
+
+.hero-last-content small,
+.hero-last-empty small{
+  display:block;
+  color:#64748b;
+  font-weight:800;
+  line-height:1.35;
+}
+
+.hero-last-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:14px;
+}
+
+.hero-last-actions .btn{
+  width:100%;
+  min-height:42px;
+  border-radius:15px;
+  padding:0 10px;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+@media(max-width:980px){
+  #parentHero,
+  .hero{
+    grid-template-columns:1fr !important;
+  }
+
+  .hero-last-material{
+    max-width:100%;
+    justify-self:stretch;
+  }
+}
+
+@media(max-width:720px){
+  #parentHero,
+  .hero{
+    gap:18px !important;
+  }
+
+  .hero-last-card,
+  .hero-last-empty{
+    border-radius:24px;
+    padding:13px;
+  }
+
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:132px !important;
+    border-radius:18px !important;
+  }
+
+  .hero-last-content strong,
+  .hero-last-empty strong{
+    font-size:18px;
+  }
+
+  .hero-last-actions{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* =========================================================
+   FINAL FIX: only one notification X button
+   ========================================================= */
+#mobileNotifForceClose,
+.mobile-notif-force-close{
+  display:none !important;
+  opacity:0 !important;
+  visibility:hidden !important;
+  pointer-events:none !important;
+}
+
+/* Internal X inside notification panel stays visible */
+#parentNotifDropdown #notifCloseBtn,
+#parentNotifDropdown .notif-close-btn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:absolute !important;
+  top:18px !important;
+  right:18px !important;
+  z-index:100000 !important;
+  width:48px !important;
+  height:48px !important;
+  min-width:48px !important;
+  border-radius:16px !important;
+  border:1px solid #e5e7eb !important;
+  background:#fff !important;
+  color:#111827 !important;
+  font-size:34px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  box-shadow:0 12px 28px rgba(15,23,42,.16) !important;
+  cursor:pointer !important;
+}
+
+#parentNotifDropdown .notif-dropdown-head{
+  position:relative !important;
+  padding-right:72px !important;
+}
+
+@media(max-width:720px){
+  #parentNotifDropdown #notifCloseBtn,
+  #parentNotifDropdown .notif-close-btn{
+    position:fixed !important;
+    top:14px !important;
+    right:14px !important;
+  }
+
+  #parentNotifDropdown .notif-dropdown-head{
+    padding-right:76px !important;
+    min-height:62px !important;
+  }
+}
+
+
+/* =========================================================
+   RESTORE CORRECT NOTIF X + HERO LAST CARD
+   ========================================================= */
+
+/* Hide internal duplicate X inside panel */
+#parentNotifDropdown #notifCloseBtn,
+#parentNotifDropdown .notif-close-btn{
+  display:none !important;
+}
+
+/* Show only floating X when notification is open */
+.mobile-notif-force-close{
+  display:none !important;
+}
+
+body.notif-open .mobile-notif-force-close{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:fixed !important;
+  top:14px !important;
+  right:14px !important;
+  z-index:2147483647 !important;
+  width:52px !important;
+  height:52px !important;
+  min-width:52px !important;
+  border-radius:18px !important;
+  border:1px solid #e5e7eb !important;
+  background:#fff !important;
+  color:#111827 !important;
+  font-size:38px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  box-shadow:0 16px 36px rgba(15,23,42,.22) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+
+/* Leave space for floating X */
+body.notif-open #parentNotifDropdown .notif-dropdown-head{
+  padding-right:78px !important;
+  min-height:64px !important;
+}
+
+/* Hero right card */
+#parentHero,
+.hero{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.3fr) minmax(310px, .7fr) !important;
+  align-items:center !important;
+  gap:28px !important;
+}
+
+.hero-last-material{
+  width:100%;
+  max-width:420px;
+  justify-self:end;
+  display:block !important;
+}
+
+.hero-last-card,
+.hero-last-empty{
+  border:1px solid var(--line, #e5e7eb);
+  border-radius:28px;
+  background:rgba(255,255,255,.88);
+  box-shadow:0 20px 56px rgba(15,23,42,.10);
+  padding:16px;
+  overflow:hidden;
+  backdrop-filter:blur(12px);
+}
+
+.hero-last-kicker{
+  display:inline-flex;
+  width:max-content;
+  max-width:100%;
+  padding:7px 11px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#4f46e5;
+  font-size:12px;
+  font-weight:1000;
+  margin-bottom:12px;
+}
+
+.hero-last-cover{
+  border-radius:20px;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+
+.hero-last-cover .cover,
+.hero-last-cover .cover-wrap,
+.hero-last-cover img{
+  width:100% !important;
+  height:150px !important;
+  object-fit:cover !important;
+  border-radius:20px !important;
+}
+
+.hero-last-content strong,
+.hero-last-empty strong{
+  display:block;
+  font-size:22px;
+  line-height:1.12;
+  font-weight:1000;
+  color:#111827;
+  margin-bottom:6px;
+}
+
+.hero-last-content small,
+.hero-last-empty small{
+  display:block;
+  color:#64748b;
+  font-weight:800;
+  line-height:1.35;
+}
+
+.hero-last-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:9px;
+  margin-top:14px;
+}
+
+.hero-last-actions .btn{
+  width:100%;
+  min-height:42px;
+  border-radius:15px;
+  padding:0 10px;
+  font-size:13px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+
+@media(max-width:980px){
+  #parentHero,
+  .hero{
+    grid-template-columns:1fr !important;
+  }
+  .hero-last-material{
+    max-width:100%;
+    justify-self:stretch;
+  }
+}
+
+@media(max-width:720px){
+  #parentHero,
+  .hero{
+    gap:18px !important;
+  }
+  .hero-last-card,
+  .hero-last-empty{
+    border-radius:24px;
+    padding:13px;
+  }
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:132px !important;
+    border-radius:18px !important;
+  }
+  .hero-last-content strong,
+  .hero-last-empty strong{
+    font-size:18px;
+  }
+  .hero-last-actions{
+    grid-template-columns:1fr;
+  }
+}
+
+
+/* =========================================================
+   FINAL: X inside notif panel + hero last card visible
+   ========================================================= */
+
+/* hide old external X if still present */
+#mobileNotifForceClose,
+.mobile-notif-force-close{
+  display:none !important;
+}
+
+/* show exactly one internal X in circled area */
+#parentNotifDropdown #notifCloseBtn,
+#parentNotifDropdown .notif-close-btn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:absolute !important;
+  top:18px !important;
+  right:18px !important;
+  z-index:1000000 !important;
+  width:48px !important;
+  height:48px !important;
+  min-width:48px !important;
+  border-radius:16px !important;
+  border:1px solid #e5e7eb !important;
+  background:#fff !important;
+  color:#111827 !important;
+  font-size:34px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  box-shadow:0 12px 28px rgba(15,23,42,.16) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+
+#parentNotifDropdown{
+  position:fixed !important;
+}
+
+#parentNotifDropdown .notif-dropdown-head{
+  position:relative !important;
+  padding-right:82px !important;
+  min-height:64px !important;
+}
+
+@media(max-width:720px){
+  #parentNotifDropdown #notifCloseBtn,
+  #parentNotifDropdown .notif-close-btn{
+    top:14px !important;
+    right:14px !important;
+    width:50px !important;
+    height:50px !important;
+    min-width:50px !important;
+    font-size:36px !important;
+  }
+
+  #parentNotifDropdown .notif-dropdown-head{
+    padding-right:78px !important;
+    min-height:66px !important;
+  }
+}
+
+/* Hero side card */
+#parentHero,
+.hero{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.28fr) minmax(320px,.72fr) !important;
+  align-items:center !important;
+  gap:28px !important;
+}
+
+#parentHero .hero-main-copy{
+  min-width:0 !important;
+}
+
+.hero-last-material{
+  width:100% !important;
+  max-width:430px !important;
+  justify-self:end !important;
+  display:block !important;
+}
+
+.hero-last-card,
+.hero-last-empty{
+  border:1px solid var(--line, #e5e7eb) !important;
+  border-radius:28px !important;
+  background:rgba(255,255,255,.90) !important;
+  box-shadow:0 20px 56px rgba(15,23,42,.10) !important;
+  padding:16px !important;
+  overflow:hidden !important;
+  backdrop-filter:blur(12px) !important;
+}
+
+.hero-last-kicker{
+  display:inline-flex !important;
+  width:max-content !important;
+  max-width:100% !important;
+  padding:7px 11px !important;
+  border-radius:999px !important;
+  background:#eef2ff !important;
+  color:#4f46e5 !important;
+  font-size:12px !important;
+  font-weight:1000 !important;
+  margin-bottom:12px !important;
+}
+
+.hero-last-cover{
+  border-radius:20px !important;
+  overflow:hidden !important;
+  margin-bottom:12px !important;
+}
+
+.hero-last-cover .cover,
+.hero-last-cover .cover-wrap,
+.hero-last-cover img{
+  width:100% !important;
+  height:150px !important;
+  object-fit:cover !important;
+  border-radius:20px !important;
+}
+
+.hero-last-content strong,
+.hero-last-empty strong{
+  display:block !important;
+  font-size:22px !important;
+  line-height:1.12 !important;
+  font-weight:1000 !important;
+  color:#111827 !important;
+  margin-bottom:6px !important;
+}
+
+.hero-last-content small,
+.hero-last-empty small{
+  display:block !important;
+  color:#64748b !important;
+  font-weight:800 !important;
+  line-height:1.35 !important;
+}
+
+.hero-last-actions{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:9px !important;
+  margin-top:14px !important;
+}
+
+.hero-last-actions .btn{
+  width:100% !important;
+  min-height:42px !important;
+  border-radius:15px !important;
+  padding:0 10px !important;
+  font-size:13px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+
+@media(max-width:980px){
+  #parentHero,
+  .hero{
+    grid-template-columns:1fr !important;
+  }
+
+  .hero-last-material{
+    max-width:100% !important;
+    justify-self:stretch !important;
+  }
+}
+
+@media(max-width:720px){
+  #parentHero,
+  .hero{
+    gap:18px !important;
+  }
+
+  .hero-last-card,
+  .hero-last-empty{
+    border-radius:24px !important;
+    padding:13px !important;
+  }
+
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:132px !important;
+    border-radius:18px !important;
+  }
+
+  .hero-last-content strong,
+  .hero-last-empty strong{
+    font-size:18px !important;
+  }
+
+  .hero-last-actions{
+    grid-template-columns:1fr !important;
+  }
+}
+
+
+/* =========================================================
+   PROFESSIONAL RESPONSIVE FINAL OVERRIDE
+   Parent portal clean on laptop + phone
+   ========================================================= */
+
+/* Global overflow safety */
+html, body{
+  max-width:100% !important;
+  overflow-x:hidden !important;
+}
+
+#parentApp{
+  width:min(1280px, calc(100% - 36px)) !important;
+  margin:0 auto !important;
+  padding-bottom:112px !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+}
+
+.panel, .hero, .file-card, .stat, .parent-top{
+  box-sizing:border-box !important;
+}
+
+/* Header */
+.parent-top{
+  position:sticky !important;
+  top:16px !important;
+  z-index:1200 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  width:100% !important;
+  min-height:76px !important;
+  padding:12px 18px !important;
+  border-radius:28px !important;
+  background:rgba(255,255,255,.92) !important;
+  border:1px solid var(--line, #e5e7eb) !important;
+  box-shadow:0 18px 48px rgba(15,23,42,.10) !important;
+  backdrop-filter:blur(16px) !important;
+}
+
+.parent-top .brand{
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  min-width:0 !important;
+}
+
+.parent-top .brand > div:last-child{
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  font-weight:1000 !important;
+}
+
+.parent-top-actions{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+  flex:0 0 auto !important;
+}
+
+/* Notification dropdown */
+#parentNotifDropdown.notif-dropdown{
+  position:fixed !important;
+  top:102px !important;
+  right:44px !important;
+  left:auto !important;
+  width:min(430px, calc(100vw - 88px)) !important;
+  max-height:calc(100vh - 126px) !important;
+  overflow:auto !important;
+  border-radius:28px !important;
+  padding:18px !important;
+  background:rgba(255,255,255,.98) !important;
+  border:1px solid var(--line, #e5e7eb) !important;
+  box-shadow:0 28px 80px rgba(15,23,42,.18) !important;
+  z-index:9999 !important;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateY(-8px) scale(.98);
+  transition:.18s ease;
+  box-sizing:border-box !important;
+}
+
+#parentNotifDropdown.notif-dropdown.show{
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+  transform:translateY(0) scale(1) !important;
+}
+
+#parentNotifDropdown .notif-dropdown-head{
+  position:relative !important;
+  display:block !important;
+  min-height:58px !important;
+  padding:0 76px 14px 0 !important;
+  margin-bottom:12px !important;
+  border-bottom:1px solid var(--line, #e5e7eb) !important;
+}
+
+#parentNotifDropdown #notifCloseBtn,
+#parentNotifDropdown .notif-close-btn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:absolute !important;
+  top:0 !important;
+  right:0 !important;
+  width:50px !important;
+  height:50px !important;
+  min-width:50px !important;
+  border-radius:17px !important;
+  border:1px solid #e5e7eb !important;
+  background:#fff !important;
+  color:#111827 !important;
+  font-size:36px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  box-shadow:0 14px 32px rgba(15,23,42,.16) !important;
+  cursor:pointer !important;
+  z-index:20 !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+
+#mobileNotifForceClose,
+.mobile-notif-force-close{
+  display:none !important;
+}
+
+#parentNotifItems{
+  width:100% !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+}
+
+#parentNotifItems .notif-dropdown-item{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  display:grid !important;
+  grid-template-columns:54px minmax(0,1fr) !important;
+  align-items:center !important;
+  gap:12px !important;
+  padding:13px !important;
+  border-radius:20px !important;
+  overflow:hidden !important;
+  text-align:left !important;
+}
+
+#parentNotifItems .notif-dropdown-item > div:last-child{
+  min-width:0 !important;
+  overflow:hidden !important;
+}
+
+#parentNotifItems .notif-dropdown-item strong,
+#parentNotifItems .notif-dropdown-item small{
+  display:block !important;
+  max-width:100% !important;
+  white-space:normal !important;
+  overflow-wrap:anywhere !important;
+}
+
+/* Hero with last PPT card */
+#parentHero.hero,
+#parentHero{
+  display:grid !important;
+  grid-template-columns:minmax(0,1.28fr) minmax(320px,.72fr) !important;
+  align-items:center !important;
+  gap:28px !important;
+  width:100% !important;
+  overflow:visible !important;
+}
+
+#parentHero .hero-main-copy{
+  min-width:0 !important;
+}
+
+.hero-last-material{
+  display:block !important;
+  width:100% !important;
+  max-width:430px !important;
+  justify-self:end !important;
+}
+
+.hero-last-card,
+.hero-last-empty{
+  border:1px solid var(--line, #e5e7eb) !important;
+  border-radius:28px !important;
+  background:rgba(255,255,255,.92) !important;
+  box-shadow:0 20px 56px rgba(15,23,42,.10) !important;
+  padding:16px !important;
+  overflow:hidden !important;
+  backdrop-filter:blur(12px) !important;
+}
+
+.hero-last-kicker{
+  display:inline-flex !important;
+  padding:7px 11px !important;
+  border-radius:999px !important;
+  background:#eef2ff !important;
+  color:#4f46e5 !important;
+  font-size:12px !important;
+  font-weight:1000 !important;
+  margin-bottom:12px !important;
+}
+
+.hero-last-cover{
+  border-radius:20px !important;
+  overflow:hidden !important;
+  margin-bottom:12px !important;
+}
+
+.hero-last-cover .cover,
+.hero-last-cover .cover-wrap,
+.hero-last-cover img{
+  width:100% !important;
+  height:150px !important;
+  object-fit:cover !important;
+  border-radius:20px !important;
+}
+
+.hero-last-content strong,
+.hero-last-empty strong{
+  display:block !important;
+  font-size:22px !important;
+  line-height:1.12 !important;
+  font-weight:1000 !important;
+  color:#111827 !important;
+  margin-bottom:6px !important;
+}
+
+.hero-last-content small,
+.hero-last-empty small{
+  display:block !important;
+  color:#64748b !important;
+  font-weight:800 !important;
+  line-height:1.35 !important;
+}
+
+.hero-last-actions{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:9px !important;
+  margin-top:14px !important;
+}
+
+.hero-last-actions .btn{
+  width:100% !important;
+  min-height:42px !important;
+  border-radius:15px !important;
+  padding:0 10px !important;
+  font-size:13px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+}
+
+/* Materials/search professional spacing */
+.parent-material-search{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+}
+
+#parentMaterialSearchInput{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+}
+
+/* Mobile */
+@media(max-width:900px){
+  #parentApp{
+    width:calc(100% - 24px) !important;
+    padding-bottom:92px !important;
+  }
+
+  .parent-top{
+    top:8px !important;
+    min-height:62px !important;
+    padding:8px 10px !important;
+    border-radius:20px !important;
+  }
+
+  .parent-top .brand{
+    gap:8px !important;
+  }
+
+  .parent-top .logo,
+  .parent-top .site-logo-img{
+    width:38px !important;
+    height:38px !important;
+  }
+
+  .parent-top .brand > div:last-child{
+    font-size:16px !important;
+  }
+
+  .notif-btn{
+    width:42px !important;
+    height:42px !important;
+    min-width:42px !important;
+    border-radius:15px !important;
+  }
+
+  .parent-top-actions .btn{
+    height:42px !important;
+    min-height:42px !important;
+    padding:0 12px !important;
+    border-radius:15px !important;
+    font-size:13px !important;
+  }
+
+  /* phone/tablet notification panel: never clipped */
+  #parentNotifDropdown.notif-dropdown{
+    top:82px !important;
+    left:12px !important;
+    right:12px !important;
+    width:auto !important;
+    max-width:none !important;
+    max-height:calc(100vh - 100px) !important;
+    border-radius:24px !important;
+    padding:16px !important;
+    box-sizing:border-box !important;
+  }
+
+  #parentNotifDropdown .notif-dropdown-head{
+    padding-right:68px !important;
+    min-height:56px !important;
+  }
+
+  #parentNotifDropdown #notifCloseBtn,
+  #parentNotifDropdown .notif-close-btn{
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    border-radius:16px !important;
+    font-size:34px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item{
+    grid-template-columns:50px minmax(0,1fr) !important;
+    gap:11px !important;
+    padding:12px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item strong{
+    font-size:17px !important;
+    line-height:1.15 !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item small{
+    font-size:13px !important;
+    line-height:1.3 !important;
+  }
+
+  #parentHero.hero,
+  #parentHero{
+    grid-template-columns:1fr !important;
+    gap:18px !important;
+  }
+
+  .hero-last-material{
+    max-width:100% !important;
+    justify-self:stretch !important;
+  }
+
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:132px !important;
+  }
+
+  .hero-last-actions{
+    grid-template-columns:1fr !important;
+  }
+
+  .parent-material-search{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+
+  .parent-material-search .btn{
+    width:100% !important;
+  }
+
+  .parent-filter-row{
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:auto !important;
+    flex-wrap:nowrap !important;
+    padding-bottom:8px !important;
+  }
+
+  .parent-filter-row .btn{
+    flex:0 0 auto !important;
+    white-space:nowrap !important;
+  }
+}
+
+/* Very small phones */
+@media(max-width:420px){
+  #parentApp{
+    width:calc(100% - 18px) !important;
+  }
+
+  #parentNotifDropdown.notif-dropdown{
+    left:8px !important;
+    right:8px !important;
+    padding:14px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item{
+    grid-template-columns:46px minmax(0,1fr) !important;
+    gap:9px !important;
+    padding:10px !important;
+  }
+
+  #parentNotifItems .notif-mini-icon{
+    width:46px !important;
+    height:46px !important;
+    min-width:46px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item strong{
+    font-size:15.5px !important;
+  }
+
+  #parentNotifItems .notif-dropdown-item small{
+    font-size:12px !important;
+  }
+}
+
+
+/* =========================================================
+   HERO LAST CARD BUTTON POLISH + ALWAYS START AT TOP
+   ========================================================= */
+
+.hero-last-actions{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:10px !important;
+  margin-top:16px !important;
+}
+
+.hero-last-actions .btn,
+.hero-last-card .btn{
+  width:100% !important;
+  min-height:48px !important;
+  height:48px !important;
+  border-radius:18px !important;
+  padding:0 16px !important;
+  font-size:15px !important;
+  font-weight:1000 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
+  text-decoration:none !important;
+  border:0 !important;
+  box-shadow:none !important;
+  transition:transform .18s ease, box-shadow .18s ease, background .18s ease !important;
+}
+
+.hero-last-actions .btn:hover{
+  transform:translateY(-2px) !important;
+}
+
+.hero-last-actions .btn-blue{
+  background:linear-gradient(135deg,#eef6ff,#dbeafe) !important;
+  color:#1d4ed8 !important;
+  border:1px solid #bfdbfe !important;
+  box-shadow:0 10px 24px rgba(37,99,235,.10) !important;
+}
+
+.hero-last-actions .btn-blue:hover{
+  background:linear-gradient(135deg,#dbeafe,#bfdbfe) !important;
+  box-shadow:0 16px 34px rgba(37,99,235,.16) !important;
+}
+
+.hero-last-actions .btn-purple{
+  background:linear-gradient(135deg,#7c3aed,#5b21b6) !important;
+  color:#fff !important;
+  border:1px solid rgba(124,58,237,.35) !important;
+  box-shadow:0 16px 36px rgba(124,58,237,.26) !important;
+}
+
+.hero-last-actions .btn-purple:hover{
+  background:linear-gradient(135deg,#6d28d9,#4c1d95) !important;
+  box-shadow:0 20px 44px rgba(124,58,237,.32) !important;
+}
+
+.hero-last-actions .btn-light{
+  background:#f8fafc !important;
+  color:#64748b !important;
+  border:1px solid #e5e7eb !important;
+}
+
+.hero-last-card{
+  padding:18px !important;
+}
+
+.hero-last-content strong{
+  margin-top:2px !important;
+}
+
+@media(max-width:720px){
+  .hero-last-actions .btn,
+  .hero-last-card .btn{
+    min-height:46px !important;
+    height:46px !important;
+    border-radius:16px !important;
+    font-size:14px !important;
+  }
+
+  .hero-last-card{
+    padding:14px !important;
+  }
+}
+
+
+
+/* =========================================================
+   PROFESSIONAL HERO LAST CARD POLISH
+   ========================================================= */
+.hero-last-material{
+  max-width:460px !important;
+}
+
+.hero-last-card,
+.hero-last-empty{
+  position:relative !important;
+  border-radius:30px !important;
+  padding:18px !important;
+  background:linear-gradient(180deg, rgba(255,255,255,.98), rgba(255,252,246,.94)) !important;
+  border:1px solid rgba(226,211,178,.95) !important;
+  box-shadow:
+    0 24px 60px rgba(15,23,42,.10),
+    inset 0 1px 0 rgba(255,255,255,.85) !important;
+}
+
+.hero-last-kicker{
+  padding:8px 13px !important;
+  border-radius:999px !important;
+  background:linear-gradient(135deg,#eef2ff,#f5f3ff) !important;
+  color:#4f46e5 !important;
+  font-size:12px !important;
+  letter-spacing:.1px !important;
+  box-shadow:inset 0 0 0 1px rgba(199,210,254,.75) !important;
+}
+
+.hero-last-cover{
+  margin:10px 0 16px !important;
+  border-radius:24px !important;
+  overflow:hidden !important;
+  background:#f8fafc !important;
+  box-shadow:0 14px 34px rgba(15,23,42,.09) !important;
+}
+
+.hero-last-cover .cover,
+.hero-last-cover .cover-wrap,
+.hero-last-cover img{
+  width:100% !important;
+  height:190px !important;
+  border-radius:24px !important;
+  object-fit:cover !important;
+  display:block !important;
+}
+
+.hero-last-content{
+  padding:0 2px !important;
+}
+
+.hero-last-content strong,
+.hero-last-empty strong{
+  font-size:25px !important;
+  line-height:1.08 !important;
+  letter-spacing:-.7px !important;
+  margin:0 0 8px !important;
+  color:#0f172a !important;
+  max-width:100% !important;
+  overflow-wrap:anywhere !important;
+}
+
+.hero-last-content small,
+.hero-last-empty small{
+  font-size:14px !important;
+  line-height:1.35 !important;
+  color:#64748b !important;
+  font-weight:850 !important;
+  max-width:100% !important;
+  overflow-wrap:anywhere !important;
+}
+
+.hero-last-actions{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:12px !important;
+  margin-top:18px !important;
+}
+
+.hero-last-actions .btn,
+.hero-last-card .btn{
+  position:relative !important;
+  overflow:hidden !important;
+  min-height:50px !important;
+  height:50px !important;
+  border-radius:18px !important;
+  padding:0 16px !important;
+  font-size:14px !important;
+  font-weight:1000 !important;
+  letter-spacing:.1px !important;
+  border:1px solid transparent !important;
+  box-shadow:none !important;
+  transform:translateZ(0) !important;
+}
+
+.hero-last-actions .btn span{
+  position:relative !important;
+  z-index:1 !important;
+}
+
+.hero-last-actions .btn-blue{
+  background:linear-gradient(135deg,#eff6ff,#dbeafe) !important;
+  color:#1d4ed8 !important;
+  border-color:#bfdbfe !important;
+  box-shadow:0 12px 26px rgba(37,99,235,.12) !important;
+}
+
+.hero-last-actions .btn-blue::before{
+  content:"↓" !important;
+  width:24px !important;
+  height:24px !important;
+  border-radius:9px !important;
+  background:rgba(29,78,216,.10) !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin-right:8px !important;
+  font-weight:1000 !important;
+}
+
+.hero-last-actions .btn-purple{
+  background:linear-gradient(135deg,#7c3aed,#5b21b6) !important;
+  color:#fff !important;
+  border-color:rgba(124,58,237,.28) !important;
+  box-shadow:0 16px 34px rgba(124,58,237,.28) !important;
+}
+
+.hero-last-actions .btn-purple::before{
+  content:"▶" !important;
+  width:24px !important;
+  height:24px !important;
+  border-radius:9px !important;
+  background:rgba(255,255,255,.16) !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin-right:8px !important;
+  font-size:11px !important;
+}
+
+.hero-last-actions .btn:hover{
+  transform:translateY(-2px) !important;
+}
+
+.hero-last-actions .btn-blue:hover{
+  background:linear-gradient(135deg,#dbeafe,#bfdbfe) !important;
+  box-shadow:0 18px 36px rgba(37,99,235,.18) !important;
+}
+
+.hero-last-actions .btn-purple:hover{
+  background:linear-gradient(135deg,#6d28d9,#4c1d95) !important;
+  box-shadow:0 22px 44px rgba(124,58,237,.34) !important;
+}
+
+@media(max-width:1100px){
+  .hero-last-material{
+    max-width:420px !important;
+  }
+
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:168px !important;
+  }
+
+  .hero-last-content strong,
+  .hero-last-empty strong{
+    font-size:22px !important;
+  }
+}
+
+@media(max-width:980px){
+  .hero-last-material{
+    max-width:100% !important;
+  }
+
+  .hero-last-actions{
+    grid-template-columns:1fr 1fr !important;
+  }
+}
+
+@media(max-width:720px){
+  .hero-last-card,
+  .hero-last-empty{
+    border-radius:26px !important;
+    padding:14px !important;
+  }
+
+  .hero-last-cover{
+    border-radius:20px !important;
+    margin:8px 0 14px !important;
+  }
+
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:150px !important;
+    border-radius:20px !important;
+  }
+
+  .hero-last-content strong,
+  .hero-last-empty strong{
+    font-size:21px !important;
+    letter-spacing:-.45px !important;
+  }
+
+  .hero-last-content small,
+  .hero-last-empty small{
+    font-size:13px !important;
+  }
+
+  .hero-last-actions{
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+
+  .hero-last-actions .btn,
+  .hero-last-card .btn{
+    min-height:48px !important;
+    height:48px !important;
+    border-radius:16px !important;
+  }
+}
+
+
+
+/* =========================================================
+   FINAL FIX: HERO CARD BUTTONS NO OVERLAP / NO OUTSIDE
+   ========================================================= */
+.hero-last-card{
+  overflow:hidden !important;
+}
+
+.hero-last-actions{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  display:grid !important;
+  grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+  gap:10px !important;
+  margin-top:18px !important;
+  overflow:hidden !important;
+}
+
+.hero-last-actions .btn,
+.hero-last-card .btn{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  box-sizing:border-box !important;
+  height:50px !important;
+  min-height:50px !important;
+  padding:0 12px !important;
+  border-radius:17px !important;
+  font-size:13px !important;
+  line-height:1 !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+}
+
+.hero-last-actions .btn::before{
+  flex:0 0 24px !important;
+  margin-right:0 !important;
+}
+
+.hero-last-actions .btn span{
+  min-width:0 !important;
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+
+/* PC/laptop sedang: tombol otomatis turun 1 baris supaya tidak nabrak */
+@media(min-width:981px) and (max-width:1250px){
+  .hero-last-actions{
+    grid-template-columns:1fr !important;
+  }
+
+  .hero-last-actions .btn,
+  .hero-last-card .btn{
+    font-size:14px !important;
+  }
+}
+
+/* Card kanan kalau space sempit jangan terlalu kecil */
+@media(min-width:981px){
+  #parentHero,
+  #parentHero.hero,
+  .hero{
+    grid-template-columns:minmax(0, 1fr) minmax(390px, 460px) !important;
+  }
+
+  .hero-last-material{
+    min-width:0 !important;
+    width:100% !important;
+  }
+}
+
+/* Mobile tetap 1 kolom tombol, aman */
+@media(max-width:720px){
+  .hero-last-actions{
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+
+  .hero-last-actions .btn,
+  .hero-last-card .btn{
+    height:48px !important;
+    min-height:48px !important;
+    font-size:14px !important;
+    padding:0 14px !important;
+  }
+}
+
+/* HP kecil: tetap rapi */
+@media(max-width:390px){
+  .hero-last-actions .btn,
+  .hero-last-card .btn{
+    font-size:13px !important;
+    padding:0 12px !important;
+  }
+}
+
+
+/* =========================================================
+   QUIZ AUTO FEEDBACK + PACKAGE 4/4 POPUP
+   ========================================================= */
+.quiz-feedback-card{
+  margin-top:16px;
+  border-radius:24px;
+  padding:18px;
+  border:1px solid #e5e7eb;
+  background:#ffffff;
+  box-shadow:0 18px 42px rgba(15,23,42,.08);
+}
+
+.quiz-feedback-top{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:14px;
+}
+
+.quiz-feedback-kicker{
+  display:inline-flex;
+  width:max-content;
+  padding:6px 10px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#4f46e5;
+  font-size:12px;
+  font-weight:1000;
+  margin-bottom:8px;
+}
+
+.quiz-feedback-card h3{
+  margin:0 0 6px;
+  font-size:22px;
+  line-height:1.1;
+  color:#0f172a;
+}
+
+.quiz-feedback-card p{
+  margin:0;
+  color:#64748b;
+  font-weight:750;
+  line-height:1.45;
+}
+
+.quiz-feedback-score{
+  flex:0 0 auto;
+  width:74px;
+  height:74px;
+  border-radius:24px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  color:#fff;
+  font-size:22px;
+  font-weight:1000;
+  box-shadow:0 16px 34px rgba(79,70,229,.25);
+}
+
+.quiz-feedback-grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:12px;
+}
+
+.quiz-feedback-box{
+  border-radius:18px;
+  padding:14px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+}
+
+.quiz-feedback-box strong{
+  display:block;
+  margin-bottom:8px;
+  color:#0f172a;
+  font-weight:1000;
+}
+
+.quiz-feedback-box ul{
+  margin:0;
+  padding-left:18px;
+  color:#475569;
+  font-weight:750;
+  line-height:1.45;
+}
+
+.quiz-feedback-box li{
+  margin-bottom:6px;
+}
+
+.quiz-feedback-great .quiz-feedback-score{
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+}
+
+.quiz-feedback-good .quiz-feedback-score{
+  background:linear-gradient(135deg,#3b82f6,#4f46e5);
+}
+
+.quiz-feedback-warn .quiz-feedback-score{
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+}
+
+.quiz-feedback-danger .quiz-feedback-score{
+  background:linear-gradient(135deg,#ef4444,#b91c1c);
+}
+
+/* Package popup blocks the whole page until closed */
+.package-complete-overlay{
+  position:fixed;
+  inset:0;
+  z-index:2147483000;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  background:rgba(15,23,42,.42);
+  backdrop-filter:blur(14px);
+}
+
+.package-complete-card{
+  width:min(520px, 100%);
+  border-radius:32px;
+  padding:26px;
+  background:linear-gradient(180deg,#ffffff,#fffaf0);
+  border:1px solid rgba(226,211,178,.95);
+  box-shadow:0 30px 90px rgba(15,23,42,.24);
+  text-align:center;
+  animation:packagePop .28s ease both;
+}
+
+@keyframes packagePop{
+  from{ opacity:0; transform:translateY(16px) scale(.96); }
+  to{ opacity:1; transform:translateY(0) scale(1); }
+}
+
+.package-complete-icon{
+  width:84px;
+  height:84px;
+  margin:0 auto 16px;
+  border-radius:28px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(135deg,#7c3aed,#4f46e5);
+  color:#fff;
+  font-size:26px;
+  font-weight:1000;
+  box-shadow:0 18px 42px rgba(79,70,229,.28);
+}
+
+.package-complete-card h2{
+  margin:0 0 10px;
+  font-size:30px;
+  line-height:1.1;
+  color:#0f172a;
+}
+
+.package-complete-card p{
+  margin:0;
+  color:#64748b;
+  font-weight:800;
+  line-height:1.5;
+}
+
+.package-complete-info{
+  margin:18px 0;
+  padding:14px 16px;
+  border-radius:18px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:#64748b;
+  font-weight:900;
+}
+
+.package-complete-info b{
+  color:#0f172a;
+  font-size:22px;
+}
+
+.package-close-btn{
+  width:100%;
+  min-height:50px;
+  border-radius:18px;
+  font-size:16px;
+  font-weight:1000;
+}
+
+body.package-popup-open{
+  overflow:hidden !important;
+}
+
+body.package-popup-open #parentApp,
+body.package-popup-open .parent-top,
+body.package-popup-open .parent-bottom-nav{
+  filter:blur(4px);
+  pointer-events:none !important;
+  user-select:none !important;
+}
+
+#packageCompleteOverlay,
+#packageCompleteOverlay *{
+  pointer-events:auto !important;
+}
+
+@media(max-width:720px){
+  .quiz-feedback-top{
+    display:block;
+  }
+
+  .quiz-feedback-score{
+    width:68px;
+    height:68px;
+    border-radius:22px;
+    margin-top:12px;
+  }
+
+  .quiz-feedback-grid{
+    grid-template-columns:1fr;
+  }
+
+  .quiz-feedback-card{
+    padding:14px;
+    border-radius:22px;
+  }
+
+  .package-complete-card{
+    border-radius:28px;
+    padding:22px;
+  }
+
+  .package-complete-card h2{
+    font-size:24px;
+  }
+}

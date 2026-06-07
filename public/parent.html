@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=mobile-notif-x-force-20260607"/>
+  <link rel="stylesheet" href="/style.css?v=quiz-feedback-package-popup-20260607"/>
 </head>
 <body class="parent-logged-out">
 
@@ -53,13 +53,15 @@
             <strong>Pemberitahuan</strong>
             <small>Informasi terbaru parent portal</small>
           </div>
-          <button type="button" id="notifCloseBtn" class="notif-close-btn notif-floating-close" onclick="closeParentNotif()" aria-label="Tutup pemberitahuan">×</button>
+          <button type="button" id="notifCloseBtn" class="notif-close-btn" onclick="closeParentNotif()" aria-label="Tutup pemberitahuan">×</button>
         </div>
         <div id="parentNotifItems" class="notif-dropdown-list"></div>
       </div>
     </div>
 
-    <section id="parentHero" class="hero parent-animate animate-delay-1"></section>
+    <section id="parentHero" class="hero parent-animate animate-delay-1">
+      <aside id="parentHeroLastMaterial" class="hero-last-material"></aside>
+</section>
     <div class="ready-text standalone-ready"><span>Progress anak sudah siap.</span></div>
 
     <section class="stats parent-animate animate-delay-2">
@@ -103,6 +105,7 @@ const nowDate = new Date();
 let currentMonth = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_MONTH : nowDate.getMonth();
 let currentYear = nowDate.getFullYear() < START_YEAR || (nowDate.getFullYear() === START_YEAR && nowDate.getMonth() < START_MONTH) ? START_YEAR : nowDate.getFullYear();
 let currentStudent = null;
+    preloadAllParentImages(currentStudent);
 let parentPPTSortMode = "smart";
 let parentMaterialSearch = "";
 let parentMaterialFilter = "all";
@@ -365,6 +368,7 @@ async function loadParent(code){
       return;
     }
     currentStudent = data;
+    preloadAllParentImages(currentStudent);
   saveParentDevice(code);
     getEl("loginView").classList.add("hidden");
     getEl("parentApp").classList.remove("hidden");
@@ -440,7 +444,65 @@ function lessonCycleNumber(total){
   return mod === 0 ? 4 : mod;
 }
 
+
+function preloadParentImageUrl(url){
+  if(!url || typeof url !== "string") return;
+  if(!window.__parentImagePreloadCache) window.__parentImagePreloadCache = {};
+  if(window.__parentImagePreloadCache[url]) return;
+
+  const img = new Image();
+  img.decoding = "async";
+  img.loading = "eager";
+  img.src = url;
+  window.__parentImagePreloadCache[url] = img;
+}
+
+function preloadAllParentImages(student){
+  const s = student || currentStudent || {};
+  const urls = [];
+
+  (s.library || []).forEach(function(item){
+    if(item.cover_path) urls.push(item.cover_path);
+    if(item.file_path && String(item.file_type || "").startsWith("image/")) urls.push(item.file_path);
+  });
+
+  (s.certificates || []).forEach(function(item){
+    if(item.cover_path) urls.push(item.cover_path);
+    if(item.file_path && String(item.file_type || "").startsWith("image/")) urls.push(item.file_path);
+  });
+
+  urls.filter(Boolean).forEach(preloadParentImageUrl);
+}
+
+function forceRenderParentVisibleImages(){
+  document.querySelectorAll("img[data-src]").forEach(function(img){
+    img.src = img.getAttribute("data-src");
+    img.removeAttribute("data-src");
+  });
+
+  document.querySelectorAll("img").forEach(function(img){
+    img.loading = "eager";
+    img.decoding = "async";
+    if(img.dataset && img.dataset.original) img.src = img.dataset.original;
+  });
+}
+
+
+function forceParentScrollTop(){
+  try{
+    if(history.scrollRestoration) history.scrollRestoration = "manual";
+  }catch(e){}
+  setTimeout(function(){
+    window.scrollTo({ top:0, left:0, behavior:"auto" });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, 60);
+}
+
 function renderParent(){
+  forceParentScrollTop();
+  preloadAllParentImages(currentStudent);
+  forceRenderParentVisibleImages();
   const s = currentStudent;
   const attendances = s.attendances || [];
   const materials = s.library || [];
@@ -458,14 +520,17 @@ function renderParent(){
 
 
   getEl("parentHero").innerHTML = `
-    <div>
+    <div class="hero-main-copy">
       <div class="eyebrow">Halo, Orang Tua ${safe(s.name)}</div>
       <h1><span class="gradient">Progress anak</span> sudah siap.</h1>
       <p>Level: <b>${safe(s.level || "Belum diisi")}</b><br>${safe(s.description || "Belum ada deskripsi.")}</p>
     </div>
+    <aside id="parentHeroLastMaterial" class="hero-last-material"></aside>
   `;
+  renderParentHeroLastMaterial(materials);
 
   getEl("pMeetings").textContent = lessonCycleText(attendances.length);
+  showPackageCompletePopupIfNeeded();
   getEl("pMaterials").textContent = unlockedMaterials.length;
   getEl("pLocked").textContent = lockedMaterials.length;
   if(getEl("pQuizOpen")) getEl("pQuizOpen").textContent = quizOpenCount;
@@ -523,10 +588,13 @@ function renderParent(){
   renderAttendances(attendances);
   initParentIcons();
   renderParentNotifications();
+  renderParentHeroLastMaterial(materials);
 }
 
 
 let parentQuizAnswers = {};
+let parentCurrentQuizQuestions = [];
+let packagePopupShownThisLoad = false;
 
 function parentQuizRowHTML(item, locked){
   const count = Number(item.quiz_question_count || 0);
@@ -552,7 +620,7 @@ function parentQuizRowHTML(item, locked){
         <strong>${safe(title)}</strong>
         <small>${count} soal pilihan ganda</small>
       </div>
-      <button class="btn btn-purple" onclick="openMaterialQuiz(${item.id})">Kerjakan Quiz</button>
+      <button class="btn btn-purple" onclick="openMaterialQuiz(${item.id})"><span>Kerjakan Quiz</span></button>
     </div>
   `;
 }
@@ -574,11 +642,102 @@ function closeParentQuiz(){
   setParentPopupUI(false);
 }
 
+
+function buildQuizFeedback(score, total, wrongItems){
+  const percent = total ? Math.round((score / total) * 100) : 0;
+  let levelTitle = "Perlu latihan lagi";
+  let levelText = "Tidak apa-apa, ini bagian dari proses belajar. Coba ulangi PPT dan kerjakan quiz lagi pelan-pelan.";
+  let tone = "danger";
+
+  if(percent >= 90){
+    levelTitle = "Keren banget!";
+    levelText = "Pemahaman materi sudah sangat kuat. Lanjut ke materi berikutnya sambil tetap review poin penting.";
+    tone = "great";
+  }else if(percent >= 70){
+    levelTitle = "Bagus, tinggal dirapikan";
+    levelText = "Dasarnya sudah paham. Perbaiki beberapa bagian yang masih salah supaya makin matang.";
+    tone = "good";
+  }else if(percent >= 50){
+    levelTitle = "Lumayan, tapi perlu review";
+    levelText = "Kamu sudah menangkap sebagian materi, tapi masih perlu baca ulang PPT dan coba lagi.";
+    tone = "warn";
+  }
+
+  const wrongHTML = wrongItems.length
+    ? wrongItems.slice(0,4).map(function(item){
+        return `<li><b>No. ${item.no}</b> — Jawaban benar: <b>${safe(item.correct)}</b>. ${safe(item.question)}</li>`;
+      }).join("")
+    : "<li>Semua jawaban benar. Pertahankan cara belajarnya.</li>";
+
+  const nextStep = wrongItems.length
+    ? "Buka kembali PPT, fokus ke nomor yang salah, lalu ulangi quiz sampai minimal 80%."
+    : "Lanjut ke materi berikutnya atau coba jelaskan ulang materi ini dengan kata-kata sendiri.";
+
+  return `
+    <div class="quiz-feedback-card quiz-feedback-${tone}">
+      <div class="quiz-feedback-top">
+        <div>
+          <div class="quiz-feedback-kicker">Feedback otomatis</div>
+          <h3>${levelTitle}</h3>
+          <p>${levelText}</p>
+        </div>
+        <div class="quiz-feedback-score">${percent}%</div>
+      </div>
+      <div class="quiz-feedback-grid">
+        <div class="quiz-feedback-box">
+          <strong>Yang perlu diperhatikan</strong>
+          <ul>${wrongHTML}</ul>
+        </div>
+        <div class="quiz-feedback-box">
+          <strong>Saran belajar</strong>
+          <p>${safe(nextStep)}</p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function showPackageCompletePopupIfNeeded(){
+  if(packagePopupShownThisLoad || !currentStudent) return;
+  const total = (currentStudent.attendances || []).length;
+  if(total > 0 && total % 4 === 0){
+    packagePopupShownThisLoad = true;
+    const existing = document.getElementById("packageCompleteOverlay");
+    if(existing) existing.remove();
+
+    const overlay = document.createElement("div");
+    overlay.id = "packageCompleteOverlay";
+    overlay.className = "package-complete-overlay";
+    overlay.innerHTML = `
+      <div class="package-complete-card">
+        <div class="package-complete-icon">4/4</div>
+        <h2>Paket pertemuan sudah selesai</h2>
+        <p>Progress les saat ini sudah mencapai <b>4/4 pertemuan</b>. Silakan lanjutkan paket berikutnya agar pembelajaran tetap berjalan.</p>
+        <div class="package-complete-info">
+          <span>Total riwayat pertemuan</span>
+          <b>${total}x</b>
+        </div>
+        <button class="btn btn-purple package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+    document.body.classList.add("package-popup-open");
+  }
+}
+
+function closePackageCompletePopup(){
+  const overlay = document.getElementById("packageCompleteOverlay");
+  if(overlay) overlay.remove();
+  document.body.classList.remove("package-popup-open");
+}
+
 async function openMaterialQuiz(materialId){
+  saveParentLastMaterial(materialId, "quiz");
   parentQuizAnswers = {};
   try{
     const quiz = await fetch("/api/parent/materials/" + materialId + "/quiz").then(r => r.json());
     const questions = quiz.questions || [];
+    parentCurrentQuizQuestions = questions;
 
     getEl("parentQuizTitle").textContent = quiz.title || "Quiz";
 
@@ -640,20 +799,32 @@ function launchQuizConfetti(){
 function checkParentQuiz(){
   const cards = document.querySelectorAll(".quiz-answer");
   let score = 0;
+  const wrongItems = [];
 
   cards.forEach(function(el, i){
     const correct = el.getAttribute("data-correct");
     const answer = parentQuizAnswers[i] || "-";
+    const q = parentCurrentQuizQuestions[i] || {};
+    const questionText = q.question || "Soal quiz";
+
     if(answer === correct){
       score++;
       el.innerHTML = '<span class="quiz-correct">Benar</span>';
     }else{
+      wrongItems.push({
+        no:i + 1,
+        correct:correct,
+        answer:answer,
+        question:questionText
+      });
       el.innerHTML = '<span class="quiz-wrong">Salah. Jawaban benar: ' + correct + '</span>';
     }
   });
 
   const old = document.querySelector(".quiz-score");
   if(old) old.remove();
+  const oldFeedback = document.querySelector(".quiz-feedback-card");
+  if(oldFeedback) oldFeedback.remove();
   const oldClose = document.querySelector(".quiz-close-bottom");
   if(oldClose) oldClose.remove();
 
@@ -662,15 +833,19 @@ function checkParentQuiz(){
   result.innerHTML = "Skor: " + score + " / " + cards.length;
   getEl("parentQuizBody").appendChild(result);
 
+  const feedbackWrap = document.createElement("div");
+  feedbackWrap.innerHTML = buildQuizFeedback(score, cards.length, wrongItems);
+  getEl("parentQuizBody").appendChild(feedbackWrap.firstElementChild);
+
   const closeWrap = document.createElement("div");
   closeWrap.className = "quiz-close-bottom";
   closeWrap.innerHTML = '<button class="btn btn-light" onclick="closeParentQuiz()">Tutup</button>';
   getEl("parentQuizBody").appendChild(closeWrap);
 
-  launchQuizConfetti();
+  if(score >= Math.ceil(cards.length * 0.7)){
+    launchQuizConfetti();
+  }
 }
-
-
 
 function goParentSection(id, btn){
   const el = getEl(id);
@@ -953,6 +1128,92 @@ function initParentCalendarSwipe(){
   }, { passive:true });
 }
 
+
+function parentLastMaterialKey(){
+  const code = (currentStudent && currentStudent.parent_code) ? currentStudent.parent_code : "guest";
+  return "kolimnt_parent_last_material_" + code;
+}
+
+function saveParentLastMaterial(materialId, type){
+  if(!currentStudent || !materialId) return;
+  try{
+    localStorage.setItem(parentLastMaterialKey(), JSON.stringify({
+      materialId:Number(materialId),
+      type:type || "material",
+      time:Date.now()
+    }));
+  }catch(e){}
+  renderParentHeroLastMaterial(currentStudent.library || []);
+}
+
+function getParentLastMaterialId(list){
+  try{
+    const raw = localStorage.getItem(parentLastMaterialKey());
+    if(raw){
+      const saved = JSON.parse(raw);
+      if(saved && saved.materialId && (list || []).some(x => Number(x.id) === Number(saved.materialId) && x.is_unlocked)){
+        return Number(saved.materialId);
+      }
+    }
+  }catch(e){}
+
+  const unlockedWithQuiz = (list || []).filter(function(x){
+    return x.is_unlocked && parentIsPPTMaterial(x) && x.quiz_id && Number(x.quiz_question_count || 0) > 0;
+  });
+  if(unlockedWithQuiz.length) return Number(unlockedWithQuiz[unlockedWithQuiz.length - 1].id);
+
+  const unlockedPPT = (list || []).filter(function(x){
+    return x.is_unlocked && parentIsPPTMaterial(x);
+  });
+  if(unlockedPPT.length) return Number(unlockedPPT[unlockedPPT.length - 1].id);
+
+  const unlockedAny = (list || []).filter(function(x){ return x.is_unlocked; });
+  if(unlockedAny.length) return Number(unlockedAny[unlockedAny.length - 1].id);
+
+  return null;
+}
+
+function renderParentHeroLastMaterial(list){
+  const box = document.getElementById("parentHeroLastMaterial");
+  if(!box) return;
+
+  const materials = list || [];
+  const id = getParentLastMaterialId(materials);
+  const item = materials.find(function(x){ return Number(x.id) === Number(id); });
+
+  if(!item){
+    box.innerHTML = `
+      <div class="hero-last-empty">
+        <div class="hero-last-kicker">Aktivitas terakhir</div>
+        <strong>Belum ada PPT terbuka</strong>
+        <small>PPT dan quiz terakhir akan tampil di sini setelah admin membuka materi.</small>
+      </div>
+    `;
+    return;
+  }
+
+  const locked = !item.is_unlocked;
+  const hasQuiz = item.quiz_id && Number(item.quiz_question_count || 0) > 0;
+  const title = item.title || item.file_name || "Materi";
+
+  box.innerHTML = `
+    <div class="hero-last-card">
+      <div class="hero-last-kicker">Terakhir dibuka</div>
+      <div class="hero-last-cover">
+        ${coverHTML(item, locked)}
+      </div>
+      <div class="hero-last-content">
+        <strong>${safe(title)}</strong>
+        <small>${safe(item.category || "Materi")} • ${safe(item.file_name || "-")}</small>
+      </div>
+      <div class="hero-last-actions">
+        ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download onclick="saveParentLastMaterial(${item.id}, 'download')"><span>Download PPT</span></a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+        ${hasQuiz && !locked ? `<button class="btn btn-purple" onclick="saveParentLastMaterial(${item.id}, 'quiz'); openMaterialQuiz(${item.id})"><span>Kerjakan Quiz</span></button>` : `<button class="btn btn-light" disabled>Quiz belum ada</button>`}
+      </div>
+    </div>
+  `;
+}
+
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
   const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
@@ -1010,7 +1271,7 @@ function renderMaterials(materials){
             <strong>${safe(item.title || item.file_name || (isFile ? "File Project" : "Materi"))}</strong>
             <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
             <div class="row-actions">
-              ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+              ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download onclick="saveParentLastMaterial(${item.id}, \'download\')">Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
             </div>
             ${!isFile ? parentQuizRowHTML(item, locked) : ""}
           </div>
@@ -1036,6 +1297,8 @@ function renderMaterials(materials){
     renderParentMaterialSection("File Project / APK / ZIP", "File tambahan dari admin. Sistem unlock/lock sama seperti PPT dan tampil tepat di bawah PPT.", fileSorted, "projectFiles", "Tidak ada file project yang cocok dengan search/filter.");
 
   getEl("materialList").innerHTML = html;
+  forceRenderParentVisibleImages();
+  preloadAllParentImages(currentStudent);
 
   const input = getEl("parentMaterialSearchInput");
   if(input){
@@ -1070,7 +1333,7 @@ function renderCertificates(certificates){
         <strong>${safe(item.title || item.file_name || "Sertifikat")}</strong>
         <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
         <div class="row-actions">
-          ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download>Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+          ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download onclick="saveParentLastMaterial(${item.id}, \'download\')">Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
         </div>
       </div>
     `;
@@ -1127,6 +1390,7 @@ function normalizeDateOnly(value){
 
 function openCalendarInfo(dateText){
   if(typeof currentStudent === "undefined" || !currentStudent) return;
+    preloadAllParentImages(currentStudent);
 
   const target = normalizeDateOnly(dateText);
   const sessions = (currentStudent.attendances || []).filter(function(item){
@@ -1439,6 +1703,9 @@ document.addEventListener("click", function(e){
   }
 });
 
+
+// parent-scroll-top-load-final
+window.addEventListener("load", forceParentScrollTop);
 </script>
 
 <div class="overlay" id="parentQuizOverlay">
@@ -1487,7 +1754,5 @@ document.addEventListener("click", function(e){
     <div id="calendarInfoBody" class="calendar-info-body"></div>
   </div>
 </div>
-
-<button type="button" id="mobileNotifForceClose" class="mobile-notif-force-close" onclick="closeParentNotif()" aria-label="Tutup pemberitahuan">×</button>
 </body>
 </html>
