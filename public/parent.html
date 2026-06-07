@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=parent-swipe-stats-search-notif-20260603"/>
+  <link rel="stylesheet" href="/style.css?v=mobile-notif-x-force-20260607"/>
 </head>
 <body class="parent-logged-out">
 
@@ -49,11 +49,11 @@
       </div>
       <div class="notif-dropdown" id="parentNotifDropdown">
         <div class="notif-dropdown-head">
-          <div>
+          <div class="notif-head-text">
             <strong>Pemberitahuan</strong>
             <small>Informasi terbaru parent portal</small>
           </div>
-          <button type="button" class="notif-close-mobile" onclick="closeParentNotif()" aria-label="Tutup pemberitahuan">×</button>
+          <button type="button" id="notifCloseBtn" class="notif-close-btn notif-floating-close" onclick="closeParentNotif()" aria-label="Tutup pemberitahuan">×</button>
         </div>
         <div id="parentNotifItems" class="notif-dropdown-list"></div>
       </div>
@@ -425,6 +425,21 @@ function showParentAppAfterLogin(){
   }
 }
 
+
+function lessonCycleText(total){
+  const n = Number(total || 0);
+  if(n <= 0) return "0/4";
+  const mod = n % 4;
+  const current = mod === 0 ? 4 : mod;
+  return current + "/4";
+}
+function lessonCycleNumber(total){
+  const n = Number(total || 0);
+  if(n <= 0) return 0;
+  const mod = n % 4;
+  return mod === 0 ? 4 : mod;
+}
+
 function renderParent(){
   const s = currentStudent;
   const attendances = s.attendances || [];
@@ -450,7 +465,7 @@ function renderParent(){
     </div>
   `;
 
-  getEl("pMeetings").textContent = attendances.length;
+  getEl("pMeetings").textContent = lessonCycleText(attendances.length);
   getEl("pMaterials").textContent = unlockedMaterials.length;
   getEl("pLocked").textContent = lockedMaterials.length;
   if(getEl("pQuizOpen")) getEl("pQuizOpen").textContent = quizOpenCount;
@@ -744,20 +759,18 @@ function renderParentNotifications(){
   const s = currentStudent || {};
   const materials = s.library || [];
   const ppt = materials.filter(parentIsPPTMaterial);
-  const files = materials.filter(parentIsProjectFile);
   const certificates = s.certificates || [];
   const attendances = s.attendances || [];
 
   const pptOpen = ppt.filter(x => x.is_unlocked).length;
   const pptLocked = ppt.filter(x => !x.is_unlocked).length;
   const quizOpen = ppt.filter(x => x.quiz_id && Number(x.quiz_question_count || 0) > 0 && x.is_unlocked).length;
-  const lessonCount = attendances.length;
   const certOpen = certificates.filter(x => !x.is_locked).length;
 
   const items = [
     {target:"materials", icon:"folder", title:"PPT & materi tersedia", text:pptOpen + " PPT terbuka, " + pptLocked + " masih locked."},
     {target:"quiz", icon:"help-circle", title:"Quiz pembelajaran", text:quizOpen + " quiz bisa dikerjakan dari parent portal."},
-    {target:"attendance", icon:"calendar", title:"Riwayat les", text:lessonCount + " pertemuan sudah tercatat."},
+    {target:"attendance", icon:"calendar", title:"Riwayat les", text:"Progress pertemuan: " + lessonCycleText(attendances.length) + " dari paket 4x."},
     {target:"certificate", icon:"cert", title:"Sertifikat", text:certOpen + " sertifikat sudah bisa dilihat/download."}
   ];
 
@@ -787,20 +800,15 @@ function ensureNotifDropdownOnBody(){
 function closeParentNotif(){
   const box = document.getElementById("parentNotifDropdown");
   if(box) box.classList.remove("show");
-    document.body.classList.remove("notif-open");
-    if(typeof setParentPopupUI === "function") setParentPopupUI(false);
   document.body.classList.remove("notif-open");
-  if(typeof setParentPopupUI === "function") setParentPopupUI(false);
 }
 
 function toggleParentNotif(){
-  const box = getEl("parentNotifDropdown");
+  const box = document.getElementById("parentNotifDropdown");
   if(!box) return;
   renderParentNotifications();
   box.classList.toggle("show");
-  const isOpen = box.classList.contains("show");
-  document.body.classList.toggle("notif-open", isOpen);
-  if(typeof setParentPopupUI === "function") setParentPopupUI(isOpen);
+  document.body.classList.toggle("notif-open", box.classList.contains("show"));
 }
 
 document.addEventListener("click", function(e){
@@ -828,7 +836,7 @@ function closeParentNotif(){
   const box = document.getElementById("parentNotifDropdown");
   if(box) box.classList.remove("show");
   document.body.classList.remove("notif-open");
-  if(typeof setParentPopupUI === "function") setParentPopupUI(false);
+  
 }
 
 function parentNotifAction(target){
@@ -1251,18 +1259,13 @@ function renderParentCalendar(attendances){
   const totalDays = lastDay.getDate();
 
   let html =
-    '<div class="section-toolbar calendar-toolbar">' +
-      '<div class="calendar-controls">' +
-        '<button class="btn btn-light" onclick="changeParentCalendarMonth(-1)" ' + (isAtMin ? "disabled" : "") + '>‹ Bulan Sebelumnya</button>' +
-        '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
-        '<button class="btn btn-light" onclick="changeParentCalendarMonth(1)">Bulan Berikutnya ›</button>' +
-      '</div>' +
+    '<div class="calendar-controls parent-calendar-controls">' +
+      '<button class="btn btn-light calendar-nav-btn" onclick="changeParentCalendarMonth(-1)" ' + (isAtMin ? "disabled" : "") + '>‹ Sebelumnya</button>' +
+      '<div class="calendar-month-label">' + safe(monthName) + '</div>' +
+      '<button class="btn btn-light calendar-nav-btn" onclick="changeParentCalendarMonth(1)">Berikutnya ›</button>' +
     '</div>' +
-    '<div class="calendar-scroll">' +
-      '<div class="calendar-weekdays">' +
-        '<span>Min</span><span>Sen</span><span>Sel</span><span>Rab</span><span>Kam</span><span>Jum</span><span>Sab</span>' +
-      '</div>' +
-      '<div class="calendar-grid">';
+    '<div class="calendar-grid parent-calendar-grid">' +
+      '<div class="day-name">Min</div><div class="day-name">Sen</div><div class="day-name">Sel</div><div class="day-name">Rab</div><div class="day-name">Kam</div><div class="day-name">Jum</div><div class="day-name">Sab</div>';
 
   for(let i = 0; i < firstDay.getDay(); i++){
     html += '<div class="calendar-day empty"></div>';
@@ -1278,10 +1281,11 @@ function renderParentCalendar(attendances){
     html += `
       <div class="calendar-day ${daySessions.length ? "has-session" : ""}" data-date="${dateKey}" onclick="openCalendarInfo('${dateKey}')">
         <strong>${day}</strong>
-        ${daySessions.map(function(item){
+        ${daySessions.slice(0,1).map(function(item){
           return `
             <div class="session-pill" data-date="${dateKey}">
-              S ${safe(item.session || "-")}<br>${safe(item.time || "-")}
+              <b>S ${safe(item.session || "-")}</b>
+              <span>${safe(item.time || "-")}</span>
             </div>
           `;
         }).join("")}
@@ -1289,7 +1293,7 @@ function renderParentCalendar(attendances){
     `;
   }
 
-  html += '</div></div>';
+  html += '</div>';
 
   const target = getEl("parentCalendar");
   if(target){
@@ -1402,6 +1406,39 @@ document.addEventListener("click", function(e){
   }
 });
 
+
+// notif-outside-click-fixed
+document.addEventListener("click", function(e){
+  const btn = document.getElementById("parentNotifBtn");
+  const box = document.getElementById("parentNotifDropdown");
+  if(!box || !btn) return;
+  if(box.classList.contains("show") && !box.contains(e.target) && !btn.contains(e.target)){
+    closeParentNotif();
+  }
+});
+
+
+// notif-escape-close-final
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closeParentNotif();
+});
+
+
+// mobile-notif-force-outside-final
+document.addEventListener("keydown", function(e){
+  if(e.key === "Escape") closeParentNotif();
+});
+
+document.addEventListener("click", function(e){
+  const btn = document.getElementById("parentNotifBtn");
+  const box = document.getElementById("parentNotifDropdown");
+  const closeBtn = document.getElementById("mobileNotifForceClose");
+  if(!box || !btn) return;
+  if(box.classList.contains("show") && !box.contains(e.target) && !btn.contains(e.target) && (!closeBtn || !closeBtn.contains(e.target))){
+    closeParentNotif();
+  }
+});
+
 </script>
 
 <div class="overlay" id="parentQuizOverlay">
@@ -1451,5 +1488,6 @@ document.addEventListener("click", function(e){
   </div>
 </div>
 
+<button type="button" id="mobileNotifForceClose" class="mobile-notif-force-close" onclick="closeParentNotif()" aria-label="Tutup pemberitahuan">×</button>
 </body>
 </html>

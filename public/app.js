@@ -420,28 +420,36 @@ async function selectStudent(id){
   await loadSelectedStudent(id, true);
 }
 
-function sendWA(){
-  if(!selectedStudent) return;
 
-  const text =
-`Halo 👋
-
-Berikut update perkembangan les coding untuk ${selectedStudent.name}:
-
-📔 Level saat ini: ${selectedStudent.level || "Beginner"}
-🗓️ Total pertemuan: ${sessionCount(selectedStudent)} / 4 sesi
-🔐 Password / Kode Parent: ${selectedStudent.parent_code}
-
-Untuk melihat progress lengkap, materi, quiz, sertifikat, dan informasi lainnya, silakan kunjungi Parent Portal berikut:
-
-https://websitekolimntcode-production.up.railway.app/parent.html
-
-Terima kasih 🙏`;
-
-  const url = "https://wa.me/" + digits(selectedStudent.phone) + "?text=" + encodeURIComponent(text);
-  window.open(url, "_blank");
+function lessonCycleText(total){
+  const n = Number(total || 0);
+  if(n <= 0) return "0/4";
+  const mod = n % 4;
+  const current = mod === 0 ? 4 : mod;
+  return current + "/4";
+}
+function lessonCycleNumber(total){
+  const n = Number(total || 0);
+  if(n <= 0) return 0;
+  const mod = n % 4;
+  return mod === 0 ? 4 : mod;
 }
 
+function sendWA(){
+  if(!selectedStudent){ toast("Pilih siswa dulu","error"); return; }
+  const totalMeetings = sessionCount(selectedStudent);
+  const cycle = lessonCycleText(totalMeetings);
+  const cycleNum = lessonCycleNumber(totalMeetings);
+  const parentUrl = "https://websitekolimntcode-production.up.railway.app/parent.html";
+  const msg =
+    "Halo Orang Tua " + selectedStudent.name + "%0A%0A" +
+    "Progress pertemuan les coding saat ini: " + cycle + ".%0A" +
+    "Total riwayat pertemuan tercatat: " + totalMeetings + "x.%0A%0A" +
+    "Silakan lihat PPT/Materi, Quiz, kalender, dan sertifikat melalui Parent Portal:%0A" +
+    parentUrl + "%0A%0A" +
+    "Kode akses parent: " + selectedStudent.parent_code;
+  window.open("https://wa.me/" + digits(selectedStudent.phone) + "?text=" + msg, "_blank");
+}
 function changeMonth(step){
   currentMonth += step;
   if(currentMonth < 0){ currentMonth = 11; currentYear--; }

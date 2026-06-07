@@ -3655,3 +3655,612 @@ body.parent-popup-open .quiz-modal{
     line-height:1.35 !important;
   }
 }
+
+
+/* =========================================================
+   RESTORE SMALL CALENDAR FINAL + KEEP SWIPE
+   ========================================================= */
+#parentCalendar{
+  width:100% !important;
+  max-width:100% !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+  touch-action:pan-y !important;
+}
+
+#parentCalendar .calendar-controls,
+#parentCalendar .parent-calendar-controls{
+  width:100% !important;
+  max-width:100% !important;
+  box-sizing:border-box !important;
+  display:grid !important;
+  grid-template-columns:minmax(110px,1fr) minmax(128px,auto) minmax(110px,1fr) !important;
+  align-items:center !important;
+  gap:8px !important;
+  margin:8px 0 12px !important;
+  overflow:hidden !important;
+  background:transparent !important;
+  padding:0 !important;
+  border:0 !important;
+}
+
+#parentCalendar .calendar-nav-btn{
+  width:100% !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 12px !important;
+  border-radius:14px !important;
+  font-size:13px !important;
+  font-weight:950 !important;
+  box-sizing:border-box !important;
+}
+
+#parentCalendar .calendar-month-label{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  height:40px !important;
+  min-height:40px !important;
+  padding:0 14px !important;
+  margin:0 auto !important;
+  border-radius:14px !important;
+  box-sizing:border-box !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:#e9edff !important;
+  color:#4f46e5 !important;
+  font-size:17px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+  box-shadow:inset 0 0 0 1px #dbe4ff !important;
+}
+
+#parentCalendar .calendar-grid,
+#parentCalendar .parent-calendar-grid{
+  width:100% !important;
+  max-width:100% !important;
+  min-width:0 !important;
+  display:grid !important;
+  grid-template-columns:repeat(7, minmax(0, 1fr)) !important;
+  gap:5px !important;
+  padding:7px !important;
+  border-radius:18px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  background:#f8fafc !important;
+  border:1px solid var(--line) !important;
+}
+
+#parentCalendar .calendar-grid .day-name,
+#parentCalendar .parent-calendar-grid .day-name{
+  min-width:0 !important;
+  width:auto !important;
+  text-align:center !important;
+  color:#64748b !important;
+  font-size:11px !important;
+  font-weight:1000 !important;
+  padding:4px 0 !important;
+}
+
+#parentCalendar .calendar-day{
+  min-width:0 !important;
+  width:auto !important;
+  max-width:none !important;
+  height:72px !important;
+  min-height:72px !important;
+  padding:5px !important;
+  border-radius:12px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  background:#fff !important;
+}
+
+#parentCalendar .calendar-day.empty{
+  background:transparent !important;
+  border-color:transparent !important;
+  box-shadow:none !important;
+  pointer-events:none !important;
+}
+
+#parentCalendar .calendar-day strong{
+  width:20px !important;
+  height:20px !important;
+  display:grid !important;
+  place-items:center !important;
+  font-size:11px !important;
+  font-weight:1000 !important;
+  margin-bottom:3px !important;
+  border-radius:7px !important;
+  color:#334155 !important;
+}
+
+#parentCalendar .session-pill{
+  width:100% !important;
+  max-width:100% !important;
+  padding:3px 4px !important;
+  border-radius:7px !important;
+  font-size:8px !important;
+  line-height:1.02 !important;
+  max-height:28px !important;
+  box-sizing:border-box !important;
+  overflow:hidden !important;
+  background:#5142e9 !important;
+  color:#fff !important;
+  display:block !important;
+}
+
+#parentCalendar .session-pill b,
+#parentCalendar .session-pill span{
+  display:block !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+#parentCalendar .session-pill span{
+  font-size:7.5px !important;
+}
+
+@media(max-width:720px){
+  .panel:has(#parentCalendar){
+    padding:14px !important;
+    border-radius:22px !important;
+    overflow:hidden !important;
+  }
+
+  #parentCalendar .calendar-controls,
+  #parentCalendar .parent-calendar-controls{
+    grid-template-columns:1fr !important;
+    gap:6px !important;
+    margin:6px 0 10px !important;
+  }
+
+  #parentCalendar .calendar-nav-btn,
+  #parentCalendar .calendar-month-label{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    height:36px !important;
+    min-height:36px !important;
+    border-radius:13px !important;
+    font-size:13px !important;
+    padding:0 10px !important;
+    box-sizing:border-box !important;
+  }
+
+  #parentCalendar .calendar-month-label{
+    font-size:16px !important;
+    background:#e9edff !important;
+  }
+
+  #parentCalendar .calendar-grid,
+  #parentCalendar .parent-calendar-grid{
+    width:100% !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    grid-template-columns:repeat(7, minmax(0, 1fr)) !important;
+    gap:2px !important;
+    padding:4px !important;
+    border-radius:14px !important;
+    overflow:hidden !important;
+  }
+
+  #parentCalendar .calendar-grid .day-name,
+  #parentCalendar .parent-calendar-grid .day-name{
+    font-size:9px !important;
+    padding:2px 0 !important;
+  }
+
+  #parentCalendar .calendar-day{
+    min-width:0 !important;
+    width:auto !important;
+    height:44px !important;
+    min-height:44px !important;
+    padding:2px !important;
+    border-radius:8px !important;
+  }
+
+  #parentCalendar .calendar-day strong{
+    width:14px !important;
+    height:14px !important;
+    font-size:8.5px !important;
+    margin-bottom:1px !important;
+    border-radius:4px !important;
+  }
+
+  #parentCalendar .session-pill{
+    padding:2px !important;
+    border-radius:4px !important;
+    font-size:5.8px !important;
+    line-height:1 !important;
+    max-height:24px !important;
+  }
+
+  #parentCalendar .session-pill span{
+    font-size:5.5px !important;
+  }
+}
+
+@media(max-width:390px){
+  #parentCalendar .calendar-day{
+    height:40px !important;
+    min-height:40px !important;
+  }
+
+  #parentCalendar .session-pill{
+    font-size:5.3px !important;
+  }
+
+  #parentCalendar .session-pill span{
+    font-size:5px !important;
+  }
+}
+
+
+/* =========================================================
+   NOTIFICATION FIX: clickable, visible, header stays visible
+   ========================================================= */
+
+/* Saat notif dibuka, jangan hilangkan header atas */
+body.notif-open .parent-top,
+body.notif-open .topbar{
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+  transform:none !important;
+}
+
+/* Notif dropdown harus muncul di atas konten */
+#parentNotifDropdown.notif-dropdown{
+  display:block !important;
+  z-index:9999 !important;
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transform:translateY(-8px) scale(.98);
+}
+
+#parentNotifDropdown.notif-dropdown.show{
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+  transform:translateY(0) scale(1) !important;
+}
+
+.notif-dropdown-head{
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  margin-bottom:12px !important;
+  padding-bottom:12px !important;
+  border-bottom:1px solid var(--line) !important;
+}
+
+.notif-dropdown-head strong{
+  display:block !important;
+  font-size:22px !important;
+  line-height:1.1 !important;
+}
+
+.notif-dropdown-head small{
+  display:block !important;
+  margin-top:4px !important;
+  color:#64748b !important;
+  font-weight:800 !important;
+}
+
+.notif-close-mobile{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:42px !important;
+  height:42px !important;
+  border-radius:14px !important;
+  border:1px solid var(--line) !important;
+  background:#fff !important;
+  color:#111827 !important;
+  font-size:26px !important;
+  font-weight:950 !important;
+}
+
+.notif-clickable{
+  width:100% !important;
+  text-align:left !important;
+  cursor:pointer !important;
+  border:1px solid #e5e7eb !important;
+  background:#f8fafc !important;
+}
+
+.notif-clickable:hover{
+  background:#fff !important;
+  transform:translateY(-2px) !important;
+  box-shadow:0 16px 32px rgba(15,23,42,.08) !important;
+}
+
+.notif-mini-icon svg{
+  width:23px !important;
+  height:23px !important;
+  color:#fff !important;
+}
+
+@media(max-width:720px){
+  #parentNotifDropdown.notif-dropdown{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    max-height:none !important;
+    border-radius:0 !important;
+    padding:22px 18px 110px !important;
+    overflow:auto !important;
+    background:linear-gradient(135deg,#fffaf0,#fff,#f8fafc) !important;
+  }
+
+  .notif-dropdown-item{
+    grid-template-columns:52px 1fr !important;
+    border-radius:20px !important;
+    padding:14px !important;
+  }
+
+  .notif-dropdown-item strong{
+    font-size:18px !important;
+    line-height:1.15 !important;
+  }
+
+  .notif-dropdown-item small{
+    font-size:14px !important;
+    line-height:1.35 !important;
+  }
+}
+
+
+/* =========================================================
+   FINAL NOTIF CLOSE BUTTON FIX
+   ========================================================= */
+#parentNotifDropdown.notif-dropdown{
+  position:fixed !important;
+  right:28px !important;
+  top:92px !important;
+  width:min(430px, calc(100vw - 36px)) !important;
+  max-height:calc(100vh - 120px) !important;
+  overflow:auto !important;
+  z-index:99999 !important;
+}
+
+#parentNotifDropdown.notif-dropdown.show{
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+  display:block !important;
+}
+
+#parentNotifDropdown .notif-dropdown-head{
+  position:sticky !important;
+  top:0 !important;
+  z-index:2 !important;
+  background:inherit !important;
+  display:flex !important;
+  align-items:flex-start !important;
+  justify-content:space-between !important;
+  gap:14px !important;
+  padding:4px 2px 14px !important;
+  margin-bottom:12px !important;
+  border-bottom:1px solid var(--line, #e5e7eb) !important;
+}
+
+#parentNotifDropdown .notif-head-text{
+  min-width:0 !important;
+}
+
+#parentNotifDropdown .notif-head-text strong,
+#parentNotifDropdown .notif-dropdown-head strong{
+  display:block !important;
+  font-size:22px !important;
+  line-height:1.1 !important;
+  font-weight:1000 !important;
+}
+
+#parentNotifDropdown .notif-head-text small,
+#parentNotifDropdown .notif-dropdown-head small{
+  display:block !important;
+  margin-top:4px !important;
+  color:#64748b !important;
+  font-weight:800 !important;
+}
+
+.notif-close-btn,
+.notif-close-mobile,
+#notifCloseBtn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:44px !important;
+  height:44px !important;
+  min-width:44px !important;
+  border-radius:15px !important;
+  border:1px solid var(--line, #e5e7eb) !important;
+  background:#ffffff !important;
+  color:#111827 !important;
+  font-size:30px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  box-shadow:0 12px 26px rgba(15,23,42,.10) !important;
+}
+
+.notif-close-btn:hover,
+#notifCloseBtn:hover{
+  transform:translateY(-1px) !important;
+  background:#f8fafc !important;
+}
+
+/* HP: notif full screen, tombol X selalu kelihatan di kanan atas */
+@media(max-width:720px){
+  #parentNotifDropdown.notif-dropdown{
+    inset:0 !important;
+    right:auto !important;
+    top:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    max-height:none !important;
+    border-radius:0 !important;
+    padding:20px 16px 110px !important;
+    overflow:auto !important;
+    background:linear-gradient(135deg,#fffaf0,#fff,#f8fafc) !important;
+  }
+
+  #parentNotifDropdown .notif-dropdown-head{
+    top:0 !important;
+    padding:4px 0 14px !important;
+    background:linear-gradient(135deg,#fffaf0,#fff,#f8fafc) !important;
+  }
+
+  #parentNotifDropdown .notif-dropdown-head strong{
+    font-size:24px !important;
+  }
+
+  #notifCloseBtn,
+  .notif-close-btn{
+    width:46px !important;
+    height:46px !important;
+    min-width:46px !important;
+    font-size:32px !important;
+  }
+}
+
+
+/* =========================================================
+   FINAL FIX: NOTIF X ALWAYS VISIBLE + MEETING 1/4 CLEAN
+   ========================================================= */
+#parentNotifDropdown{
+  position:fixed !important;
+}
+
+#notifCloseBtn,
+.notif-floating-close,
+.notif-close-btn{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:sticky !important;
+  top:8px !important;
+  margin-left:auto !important;
+  z-index:1000000 !important;
+  width:46px !important;
+  height:46px !important;
+  min-width:46px !important;
+  border-radius:16px !important;
+  border:1px solid #e5e7eb !important;
+  background:#ffffff !important;
+  color:#111827 !important;
+  font-size:32px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  box-shadow:0 12px 28px rgba(15,23,42,.16) !important;
+}
+
+#parentNotifDropdown .notif-dropdown-head{
+  padding-right:56px !important;
+}
+
+@media(max-width:720px){
+  #parentNotifDropdown.notif-dropdown{
+    padding-top:16px !important;
+  }
+
+  #notifCloseBtn,
+  .notif-floating-close,
+  .notif-close-btn{
+    position:fixed !important;
+    top:14px !important;
+    right:14px !important;
+    margin:0 !important;
+    width:48px !important;
+    height:48px !important;
+    min-width:48px !important;
+    border-radius:16px !important;
+    font-size:34px !important;
+    background:#fff !important;
+    color:#111827 !important;
+  }
+
+  #parentNotifDropdown .notif-dropdown-head{
+    padding-right:62px !important;
+    min-height:58px !important;
+  }
+
+  #pMeetings{
+    font-size:26px !important;
+  }
+}
+
+
+/* =========================================================
+   FORCE MOBILE NOTIF X - always visible above everything
+   ========================================================= */
+.mobile-notif-force-close{
+  display:none;
+}
+
+body.notif-open .mobile-notif-force-close{
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  position:fixed !important;
+  top:14px !important;
+  right:14px !important;
+  z-index:2147483647 !important;
+  width:50px !important;
+  height:50px !important;
+  min-width:50px !important;
+  border-radius:18px !important;
+  border:1px solid #e5e7eb !important;
+  background:#ffffff !important;
+  color:#111827 !important;
+  font-size:36px !important;
+  font-weight:1000 !important;
+  line-height:1 !important;
+  cursor:pointer !important;
+  box-shadow:0 16px 36px rgba(15,23,42,.22) !important;
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+
+/* Leave room so title doesn't collide with floating X */
+body.notif-open #parentNotifDropdown .notif-dropdown-head{
+  padding-right:72px !important;
+}
+
+/* Header should not disappear when notif is open */
+body.notif-open .parent-top,
+body.notif-open .topbar{
+  opacity:1 !important;
+  visibility:visible !important;
+  pointer-events:auto !important;
+}
+
+@media(max-width:720px){
+  body.notif-open .mobile-notif-force-close{
+    top:12px !important;
+    right:12px !important;
+    width:52px !important;
+    height:52px !important;
+    min-width:52px !important;
+    font-size:38px !important;
+  }
+
+  body.notif-open #parentNotifDropdown.notif-dropdown{
+    padding-top:18px !important;
+  }
+
+  body.notif-open #parentNotifDropdown .notif-dropdown-head{
+    padding-right:76px !important;
+    min-height:62px !important;
+  }
+}
