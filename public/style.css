@@ -6139,3 +6139,1587 @@ body.package-popup-open .parent-bottom-nav{
     font-size:24px;
   }
 }
+
+
+
+/* =========================================================
+   NEW SOFT PURPLE PROFESSIONAL DESIGN
+   Asset:
+   - /assets/kolimnt-soft-purple-bg.png
+   - /assets/kolimnt-robot-python.png
+   ========================================================= */
+
+:root{
+  --kolim-purple:#6d28d9;
+  --kolim-purple-2:#4f46e5;
+  --kolim-blue:#2563eb;
+  --kolim-cream:#fffaf0;
+  --kolim-card:rgba(255,255,255,.88);
+  --kolim-line:rgba(226,211,178,.92);
+  --kolim-text:#07112f;
+  --kolim-muted:#64748b;
+}
+
+html, body{
+  min-height:100%;
+  background:
+    linear-gradient(180deg, rgba(255,250,240,.72), rgba(255,250,240,.84)),
+    url("/assets/kolimnt-soft-purple-bg.png") center top / cover fixed no-repeat !important;
+  color:var(--kolim-text) !important;
+  overflow-x:hidden !important;
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 4% 22%, rgba(255,255,255,.9) 0 3px, transparent 4px),
+    radial-gradient(circle at 96% 44%, rgba(124,58,237,.18), transparent 23%),
+    radial-gradient(circle at 14% 78%, rgba(255,255,255,.55), transparent 18%);
+}
+
+#parentApp{
+  width:min(1320px, calc(100% - 34px)) !important;
+  margin:0 auto !important;
+  padding:20px 0 120px !important;
+}
+
+.parent-top{
+  position:sticky !important;
+  top:14px !important;
+  z-index:1200 !important;
+  min-height:64px !important;
+  padding:10px 16px !important;
+  border-radius:24px !important;
+  background:rgba(255,255,255,.88) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 18px 50px rgba(15,23,42,.09) !important;
+  backdrop-filter:blur(18px) !important;
+}
+
+.parent-top .brand > div:last-child{
+  color:#0f172a !important;
+  font-weight:1000 !important;
+  letter-spacing:-.25px !important;
+}
+
+.notif-btn,
+.parent-top-actions .btn{
+  border-radius:18px !important;
+  border:1px solid rgba(226,211,178,.95) !important;
+  background:rgba(255,255,255,.92) !important;
+  box-shadow:0 10px 28px rgba(15,23,42,.08) !important;
+}
+
+/* HERO */
+#parentHero.hero,
+#parentHero{
+  position:relative !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1.1fr) minmax(420px,.9fr) !important;
+  align-items:stretch !important;
+  gap:18px !important;
+  margin-top:18px !important;
+  overflow:visible !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+}
+
+#parentHero .hero-main-copy{
+  position:relative !important;
+  min-height:360px !important;
+  padding:42px 48px !important;
+  border-radius:34px !important;
+  background:
+    radial-gradient(circle at 92% 10%, rgba(124,58,237,.09), transparent 26%),
+    linear-gradient(135deg, rgba(255,255,255,.96), rgba(255,252,246,.88)) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 24px 70px rgba(15,23,42,.10) !important;
+  overflow:hidden !important;
+}
+
+#parentHero .hero-main-copy::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 77% 15%, rgba(167,139,250,.38) 0 3px, transparent 4px),
+    radial-gradient(circle at 91% 72%, rgba(251,146,60,.30) 0 2px, transparent 3px),
+    linear-gradient(125deg, transparent 0 56%, rgba(124,58,237,.08) 56% 100%);
+  pointer-events:none;
+}
+
+#parentHero .hero-main-copy::after{
+  content:"";
+  position:absolute;
+  right:22px;
+  bottom:-4px;
+  width:330px;
+  height:300px;
+  background:url("/assets/kolimnt-robot-python.png") center bottom / contain no-repeat;
+  filter:drop-shadow(0 18px 30px rgba(79,70,229,.18));
+  pointer-events:none;
+}
+
+#parentHero .hero-main-copy > *{
+  position:relative;
+  z-index:1;
+  max-width:580px;
+}
+
+#parentHero .eyebrow{
+  display:inline-flex !important;
+  align-items:center !important;
+  width:max-content !important;
+  max-width:100% !important;
+  padding:12px 20px !important;
+  border-radius:999px !important;
+  background:#eef2ff !important;
+  color:#4338ca !important;
+  font-size:16px !important;
+  font-weight:1000 !important;
+  box-shadow:inset 0 0 0 1px rgba(199,210,254,.8) !important;
+}
+
+#parentHero h1{
+  margin:44px 0 26px !important;
+  font-size:clamp(44px, 5vw, 76px) !important;
+  line-height:.98 !important;
+  letter-spacing:-3px !important;
+  color:#07112f !important;
+}
+
+#parentHero h1 .gradient,
+#parentHero .hero-purple-word{
+  color:var(--kolim-purple) !important;
+  background:none !important;
+  -webkit-text-fill-color:initial !important;
+}
+
+#parentHero p{
+  font-size:17px !important;
+  line-height:1.5 !important;
+  color:#6b6258 !important;
+  font-weight:850 !important;
+}
+
+#parentHero p b{
+  color:var(--kolim-purple) !important;
+}
+
+/* HERO LAST CARD */
+.hero-last-material{
+  width:100% !important;
+  max-width:none !important;
+  justify-self:stretch !important;
+}
+
+.hero-last-card,
+.hero-last-empty{
+  height:100% !important;
+  min-height:360px !important;
+  border-radius:34px !important;
+  padding:24px !important;
+  background:rgba(255,255,255,.92) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 24px 70px rgba(15,23,42,.10) !important;
+  backdrop-filter:blur(16px) !important;
+}
+
+.hero-last-kicker{
+  padding:9px 15px !important;
+  border-radius:999px !important;
+  background:linear-gradient(135deg,#eef2ff,#f5f3ff) !important;
+  color:#4f46e5 !important;
+  font-size:13px !important;
+  font-weight:1000 !important;
+  box-shadow:inset 0 0 0 1px rgba(199,210,254,.75) !important;
+}
+
+.hero-last-cover{
+  margin:16px 0 16px !important;
+  border-radius:24px !important;
+  overflow:hidden !important;
+  box-shadow:0 14px 34px rgba(15,23,42,.09) !important;
+}
+
+.hero-last-cover .cover,
+.hero-last-cover .cover-wrap,
+.hero-last-cover img{
+  width:100% !important;
+  height:190px !important;
+  object-fit:cover !important;
+  border-radius:24px !important;
+}
+
+.hero-last-content strong{
+  font-size:25px !important;
+  line-height:1.08 !important;
+  letter-spacing:-.7px !important;
+  color:#07112f !important;
+}
+
+.hero-last-content small{
+  display:block !important;
+  margin-top:8px !important;
+  color:#64748b !important;
+  font-size:14px !important;
+  font-weight:850 !important;
+}
+
+.hero-last-actions{
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:12px !important;
+  margin-top:20px !important;
+  width:100% !important;
+  overflow:hidden !important;
+}
+
+.hero-last-actions .btn{
+  min-width:0 !important;
+  width:100% !important;
+  height:52px !important;
+  min-height:52px !important;
+  border-radius:18px !important;
+  font-size:14px !important;
+  font-weight:1000 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:8px !important;
+  overflow:hidden !important;
+  white-space:nowrap !important;
+}
+
+.hero-last-actions .btn-blue{
+  background:linear-gradient(135deg,#eef6ff,#dbeafe) !important;
+  color:#1d4ed8 !important;
+  border:1px solid #bfdbfe !important;
+}
+
+.hero-last-actions .btn-purple{
+  background:linear-gradient(135deg,#7c3aed,#5b21b6) !important;
+  color:#fff !important;
+  box-shadow:0 16px 34px rgba(124,58,237,.25) !important;
+}
+
+/* STATS */
+.stats{
+  display:grid !important;
+  grid-template-columns:repeat(6, minmax(0, 1fr)) !important;
+  gap:14px !important;
+  margin:18px 0 !important;
+}
+
+.stat{
+  min-height:96px !important;
+  border-radius:24px !important;
+  background:rgba(255,255,255,.90) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 18px 44px rgba(15,23,42,.07) !important;
+}
+
+.stat-label{
+  color:#6b6258 !important;
+  font-weight:1000 !important;
+}
+
+.stat-num{
+  color:#07112f !important;
+  font-weight:1000 !important;
+}
+
+/* Panels */
+.panel{
+  border-radius:28px !important;
+  background:rgba(255,255,255,.90) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 20px 54px rgba(15,23,42,.075) !important;
+  backdrop-filter:blur(14px) !important;
+}
+
+.title{
+  color:#07112f !important;
+  letter-spacing:-.6px !important;
+}
+
+.subtitle{
+  color:#6b6258 !important;
+  font-weight:750 !important;
+}
+
+/* Layout middle sections */
+#parentCalendarSection + #parentCalendar,
+#parentCalendar{
+  overflow:hidden !important;
+}
+
+#parentAttendanceSection{
+  min-height:100% !important;
+}
+
+.parent-material-search input,
+#parentMaterialSearchInput{
+  background:rgba(255,255,255,.92) !important;
+  border:1px solid var(--kolim-line) !important;
+  border-radius:18px !important;
+}
+
+.file-card{
+  border-radius:24px !important;
+  background:rgba(255,255,255,.92) !important;
+  border:1px solid rgba(226,211,178,.85) !important;
+  box-shadow:0 12px 32px rgba(15,23,42,.06) !important;
+}
+
+/* Bottom nav */
+.parent-bottom-nav{
+  border-radius:28px !important;
+  background:rgba(255,255,255,.88) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 20px 60px rgba(15,23,42,.16) !important;
+  backdrop-filter:blur(18px) !important;
+}
+
+/* Notification panel */
+#parentNotifDropdown.notif-dropdown{
+  background:rgba(255,255,255,.98) !important;
+  border:1px solid var(--kolim-line) !important;
+  box-shadow:0 28px 80px rgba(15,23,42,.18) !important;
+}
+
+#parentNotifItems .notif-dropdown-item{
+  background:#f8fafc !important;
+  border:1px solid #e5e7eb !important;
+  border-radius:20px !important;
+}
+
+/* Responsive */
+@media(max-width:1180px){
+  #parentHero.hero,
+  #parentHero{
+    grid-template-columns:1fr !important;
+  }
+
+  #parentHero .hero-main-copy{
+    min-height:340px !important;
+  }
+
+  .hero-last-card,
+  .hero-last-empty{
+    min-height:auto !important;
+  }
+
+  .stats{
+    grid-template-columns:repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media(max-width:720px){
+  html, body{
+    background:
+      linear-gradient(180deg, rgba(255,250,240,.80), rgba(255,250,240,.90)),
+      url("/assets/kolimnt-soft-purple-bg.png") center top / cover fixed no-repeat !important;
+  }
+
+  #parentApp{
+    width:calc(100% - 18px) !important;
+    padding-top:10px !important;
+    padding-bottom:96px !important;
+  }
+
+  .parent-top{
+    top:8px !important;
+    min-height:62px !important;
+    border-radius:22px !important;
+    padding:8px 10px !important;
+  }
+
+  #parentHero .hero-main-copy{
+    min-height:390px !important;
+    padding:28px 24px 220px !important;
+    border-radius:30px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:250px !important;
+    height:230px !important;
+    right:16px !important;
+    bottom:0 !important;
+  }
+
+  #parentHero .eyebrow{
+    font-size:13px !important;
+    padding:10px 14px !important;
+  }
+
+  #parentHero h1{
+    margin:32px 0 20px !important;
+    font-size:clamp(38px, 12vw, 56px) !important;
+    letter-spacing:-2px !important;
+  }
+
+  #parentHero p{
+    font-size:14px !important;
+  }
+
+  .hero-last-card,
+  .hero-last-empty{
+    border-radius:28px !important;
+    padding:16px !important;
+  }
+
+  .hero-last-cover .cover,
+  .hero-last-cover .cover-wrap,
+  .hero-last-cover img{
+    height:150px !important;
+    border-radius:20px !important;
+  }
+
+  .hero-last-content strong{
+    font-size:21px !important;
+  }
+
+  .hero-last-actions{
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+  }
+
+  .hero-last-actions .btn{
+    height:48px !important;
+    min-height:48px !important;
+  }
+
+  .stats{
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+  }
+
+  .stat{
+    min-height:86px !important;
+    border-radius:22px !important;
+  }
+
+  .panel{
+    border-radius:26px !important;
+  }
+
+  .parent-bottom-nav{
+    width:calc(100% - 18px) !important;
+    left:9px !important;
+    right:9px !important;
+    bottom:8px !important;
+  }
+}
+
+@media(max-width:420px){
+  .stats{
+    grid-template-columns:1fr !important;
+  }
+
+  #parentHero .hero-main-copy{
+    min-height:360px !important;
+    padding:24px 18px 205px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:220px !important;
+    height:205px !important;
+  }
+}
+
+
+
+/* =========================================================
+   FINAL HERO ADJUST: less wasted space, cleaner professional layout
+   ========================================================= */
+#parentHero.hero,
+#parentHero{
+  grid-template-columns:minmax(0,1.18fr) minmax(380px,.82fr) !important;
+  gap:18px !important;
+  align-items:stretch !important;
+}
+
+#parentHero .hero-main-copy{
+  min-height:300px !important;
+  padding:34px 38px !important;
+  border-radius:30px !important;
+}
+
+#parentHero .hero-main-copy::after{
+  width:270px !important;
+  height:250px !important;
+  right:26px !important;
+  bottom:0 !important;
+  opacity:1 !important;
+}
+
+#parentHero .hero-main-copy > *{
+  max-width:620px !important;
+}
+
+#parentHero .eyebrow{
+  font-size:14px !important;
+  padding:10px 16px !important;
+}
+
+#parentHero h1{
+  max-width:720px !important;
+  margin:28px 0 18px !important;
+  font-size:clamp(42px, 4.2vw, 66px) !important;
+  line-height:.98 !important;
+  letter-spacing:-2.4px !important;
+}
+
+#parentHero p{
+  font-size:15px !important;
+  line-height:1.42 !important;
+  max-width:520px !important;
+}
+
+/* kalau layar laptop normal, robot jangan nutup text */
+@media(min-width:981px) and (max-width:1280px){
+  #parentHero .hero-main-copy{
+    padding-right:290px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:245px !important;
+    height:230px !important;
+    right:18px !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(38px, 4vw, 58px) !important;
+    letter-spacing:-2px !important;
+  }
+}
+
+/* layar besar: tetap compact */
+@media(min-width:1281px){
+  #parentHero .hero-main-copy{
+    padding-right:330px !important;
+  }
+}
+
+/* tablet */
+@media(max-width:980px){
+  #parentHero.hero,
+  #parentHero{
+    grid-template-columns:1fr !important;
+  }
+
+  #parentHero .hero-main-copy{
+    min-height:310px !important;
+    padding:30px 34px !important;
+    padding-right:270px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:240px !important;
+    height:220px !important;
+    right:18px !important;
+    bottom:0 !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(38px, 7vw, 58px) !important;
+    margin:26px 0 16px !important;
+  }
+}
+
+/* HP: no huge empty vertical space */
+@media(max-width:720px){
+  #parentHero .hero-main-copy{
+    min-height:0 !important;
+    padding:24px 20px 180px !important;
+    border-radius:28px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:190px !important;
+    height:178px !important;
+    right:18px !important;
+    bottom:4px !important;
+  }
+
+  #parentHero .eyebrow{
+    font-size:12px !important;
+    padding:9px 12px !important;
+    max-width:100% !important;
+    white-space:normal !important;
+  }
+
+  #parentHero h1{
+    margin:24px 0 14px !important;
+    font-size:clamp(34px, 10.5vw, 48px) !important;
+    line-height:1.02 !important;
+    letter-spacing:-1.8px !important;
+  }
+
+  #parentHero p{
+    font-size:13px !important;
+    line-height:1.35 !important;
+  }
+}
+
+@media(max-width:390px){
+  #parentHero .hero-main-copy{
+    padding:22px 16px 165px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:170px !important;
+    height:158px !important;
+    right:12px !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(31px, 10vw, 42px) !important;
+  }
+}
+
+
+
+/* =========================================================
+   FIX EDIT REQUEST 404 + MOBILE HERO PROFESSIONAL COMPACT
+   ========================================================= */
+
+/* Desktop compact refinements */
+@media(min-width:981px){
+  #parentHero .hero-main-copy{
+    min-height:300px !important;
+    padding:32px 300px 32px 42px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:255px !important;
+    height:235px !important;
+    right:30px !important;
+    bottom:22px !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(42px, 4.1vw, 62px) !important;
+    line-height:1 !important;
+    letter-spacing:-2.2px !important;
+    margin:26px 0 18px !important;
+  }
+}
+
+/* Tablet */
+@media(max-width:980px){
+  #parentHero .hero-main-copy{
+    min-height:280px !important;
+    padding:28px 260px 28px 32px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:225px !important;
+    height:205px !important;
+    right:24px !important;
+    bottom:24px !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(36px, 7vw, 52px) !important;
+    line-height:1 !important;
+    margin:24px 0 16px !important;
+  }
+}
+
+/* HP: robot di sebelah teks, bukan makan ruang bawah */
+@media(max-width:720px){
+  #parentHero .hero-main-copy{
+    min-height:300px !important;
+    padding:20px 150px 20px 18px !important;
+    border-radius:26px !important;
+    display:flex !important;
+    flex-direction:column !important;
+    justify-content:center !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:142px !important;
+    height:138px !important;
+    right:12px !important;
+    bottom:50% !important;
+    transform:translateY(54%) !important;
+    background-position:center center !important;
+  }
+
+  #parentHero .eyebrow{
+    font-size:11px !important;
+    padding:8px 10px !important;
+    max-width:calc(100vw - 190px) !important;
+    line-height:1.2 !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(28px, 8.7vw, 42px) !important;
+    line-height:1.04 !important;
+    letter-spacing:-1.4px !important;
+    margin:18px 0 12px !important;
+    max-width:100% !important;
+  }
+
+  #parentHero p{
+    font-size:11.5px !important;
+    line-height:1.32 !important;
+    max-width:100% !important;
+  }
+}
+
+/* HP kecil */
+@media(max-width:420px){
+  #parentHero .hero-main-copy{
+    min-height:270px !important;
+    padding:18px 126px 18px 14px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:116px !important;
+    height:112px !important;
+    right:8px !important;
+  }
+
+  #parentHero .eyebrow{
+    max-width:calc(100vw - 160px) !important;
+    font-size:10px !important;
+    padding:7px 9px !important;
+  }
+
+  #parentHero h1{
+    font-size:clamp(25px, 8.5vw, 34px) !important;
+    letter-spacing:-1.1px !important;
+  }
+
+  #parentHero p{
+    font-size:10.5px !important;
+  }
+}
+
+/* Sangat sempit: biar tidak ketabrak */
+@media(max-width:350px){
+  #parentHero .hero-main-copy{
+    padding-right:106px !important;
+  }
+
+  #parentHero .hero-main-copy::after{
+    width:96px !important;
+    height:96px !important;
+  }
+
+  #parentHero h1{
+    font-size:24px !important;
+  }
+}
+
+
+
+/* =========================================================
+   LOADER LOGO.PNG + BOUNCE ANIMATION
+   ========================================================= */
+
+/* Ganti icon batang 3 di loading menjadi public/logo.png */
+.loader-logo,
+.loading-logo,
+.preloader-logo,
+.splash-logo,
+.parent-loader-logo,
+#parentLoader .logo,
+#parentLoader .loader-icon,
+#parentLoader .loading-icon,
+#parentSplash .logo,
+#parentSplash .loader-icon,
+#parentSplash .loading-icon{
+  background:url("/logo.png") center / contain no-repeat !important;
+  background-color:transparent !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+  animation:loaderLogoFloat 1.65s ease-in-out infinite !important;
+}
+
+/* Kalau elemen logo lama punya garis/batang di dalamnya, sembunyikan */
+.loader-logo *,
+.loading-logo *,
+.preloader-logo *,
+.splash-logo *,
+.parent-loader-logo *,
+#parentLoader .logo *,
+#parentLoader .loader-icon *,
+#parentLoader .loading-icon *,
+#parentSplash .logo *,
+#parentSplash .loader-icon *,
+#parentSplash .loading-icon *{
+  opacity:0 !important;
+  visibility:hidden !important;
+}
+
+/* Fallback kalau logo loader di HTML berupa kotak tanpa class spesifik */
+#parentLoader [class*="logo"],
+#parentLoader [class*="icon"],
+#parentSplash [class*="logo"],
+#parentSplash [class*="icon"]{
+  background-image:url("/logo.png") !important;
+  background-position:center !important;
+  background-size:contain !important;
+  background-repeat:no-repeat !important;
+  animation:loaderLogoFloat 1.65s ease-in-out infinite !important;
+}
+
+/* Ukuran logo loading */
+#parentLoader .loader-logo,
+#parentLoader .loading-logo,
+#parentLoader .preloader-logo,
+#parentLoader .splash-logo,
+#parentLoader .parent-loader-logo,
+#parentLoader .logo,
+#parentLoader .loader-icon,
+#parentLoader .loading-icon,
+#parentSplash .loader-logo,
+#parentSplash .loading-logo,
+#parentSplash .preloader-logo,
+#parentSplash .splash-logo,
+#parentSplash .parent-loader-logo,
+#parentSplash .logo,
+#parentSplash .loader-icon,
+#parentSplash .loading-icon{
+  width:120px !important;
+  height:120px !important;
+  margin:0 auto 18px !important;
+}
+
+@keyframes loaderLogoFloat{
+  0%,100%{
+    transform:translateY(0) scale(1);
+    filter:drop-shadow(0 16px 26px rgba(79,70,229,.18));
+  }
+  50%{
+    transform:translateY(-14px) scale(1.04);
+    filter:drop-shadow(0 26px 38px rgba(79,70,229,.24));
+  }
+}
+
+/* Tambahan fallback: kalau loader memakai .loader-mark */
+.loader-mark{
+  background:url("/logo.png") center / contain no-repeat !important;
+  background-color:transparent !important;
+  animation:loaderLogoFloat 1.65s ease-in-out infinite !important;
+}
+.loader-mark *{
+  display:none !important;
+}
+
+@media(max-width:720px){
+  #parentLoader .loader-logo,
+  #parentLoader .loading-logo,
+  #parentLoader .preloader-logo,
+  #parentLoader .splash-logo,
+  #parentLoader .parent-loader-logo,
+  #parentLoader .logo,
+  #parentLoader .loader-icon,
+  #parentLoader .loading-icon,
+  #parentSplash .loader-logo,
+  #parentSplash .loading-logo,
+  #parentSplash .preloader-logo,
+  #parentSplash .splash-logo,
+  #parentSplash .parent-loader-logo,
+  #parentSplash .logo,
+  #parentSplash .loader-icon,
+  #parentSplash .loading-icon,
+  .loader-mark{
+    width:96px !important;
+    height:96px !important;
+    margin-bottom:14px !important;
+  }
+}
+
+
+
+/* =========================================================
+   POPUP SETIAP ADA PERTEMUAN + DETAIL PERTEMUAN TERAKHIR
+   ========================================================= */
+.package-last-session{
+  margin:18px 0;
+  padding:16px;
+  border-radius:20px;
+  background:linear-gradient(135deg,#f8fafc,#ffffff);
+  border:1px solid #e5e7eb;
+  text-align:left;
+}
+
+.package-last-session span{
+  display:block;
+  color:#64748b;
+  font-size:13px;
+  font-weight:1000;
+  margin-bottom:7px;
+}
+
+.package-last-session b{
+  display:block;
+  color:#0f172a;
+  font-size:16px;
+  line-height:1.35;
+  font-weight:1000;
+  overflow-wrap:anywhere;
+}
+
+.package-last-session small{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:800;
+  line-height:1.35;
+  overflow-wrap:anywhere;
+}
+
+.package-complete-icon{
+  width:auto !important;
+  min-width:88px !important;
+  padding:0 18px !important;
+}
+
+@media(max-width:720px){
+  .package-last-session{
+    padding:14px;
+    border-radius:18px;
+  }
+
+  .package-last-session b{
+    font-size:14px;
+  }
+}
+
+
+
+/* =========================================================
+   HERO IMAGE 1 BACKGROUND + DYNAMIC NAME/LEVEL
+   ========================================================= */
+#parentHero.hero,
+#parentHero{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.14fr) minmax(380px, .86fr) !important;
+  gap:18px !important;
+  align-items:stretch !important;
+}
+
+#parentHero .hero-main-copy.hero-image-bg-mode{
+  min-height:390px !important;
+  padding:0 !important;
+  border-radius:32px !important;
+  overflow:hidden !important;
+  position:relative !important;
+  background:
+    linear-gradient(90deg, rgba(5,17,47,.04), rgba(255,255,255,.02)),
+    url("/assets/kolimnt-parent-hero-progress-bg.png") center center / cover no-repeat !important;
+  border:1px solid rgba(226,211,178,.92) !important;
+  box-shadow:0 24px 70px rgba(15,23,42,.10) !important;
+}
+
+#parentHero .hero-main-copy.hero-image-bg-mode::before,
+#parentHero .hero-main-copy.hero-image-bg-mode::after{
+  display:none !important;
+  content:none !important;
+}
+
+#parentHero .hero-main-copy.hero-image-bg-mode > *{
+  position:absolute !important;
+  z-index:2 !important;
+}
+
+#parentHero .hero-dynamic-badge{
+  left:6.2% !important;
+  top:8.4% !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  max-width:52% !important;
+  padding:11px 18px !important;
+  border-radius:999px !important;
+  background:rgba(238,242,255,.92) !important;
+  color:#4338ca !important;
+  font-size:15px !important;
+  line-height:1.15 !important;
+  font-weight:1000 !important;
+  box-shadow:inset 0 0 0 1px rgba(199,210,254,.8), 0 10px 26px rgba(79,70,229,.08) !important;
+  backdrop-filter:blur(8px) !important;
+  white-space:normal !important;
+}
+
+#parentHero .hero-dynamic-level{
+  left:6.4% !important;
+  bottom:15.6% !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  padding:7px 0 !important;
+  color:#ffffff !important;
+  text-shadow:0 2px 12px rgba(0,0,0,.35) !important;
+  font-size:20px !important;
+  line-height:1.2 !important;
+  font-weight:900 !important;
+}
+
+#parentHero .hero-dynamic-level b{
+  color:#ffffff !important;
+  font-weight:1000 !important;
+}
+
+/* Keep last-card professional beside hero */
+.hero-last-card,
+.hero-last-empty{
+  min-height:390px !important;
+}
+
+/* Tablet */
+@media(max-width:1180px){
+  #parentHero.hero,
+  #parentHero{
+    grid-template-columns:1fr !important;
+  }
+
+  #parentHero .hero-main-copy.hero-image-bg-mode{
+    min-height:430px !important;
+    background-position:center center !important;
+  }
+
+  .hero-last-card,
+  .hero-last-empty{
+    min-height:auto !important;
+  }
+}
+
+/* Mobile: use image as compact visual, no giant wasted space */
+@media(max-width:720px){
+  #parentHero .hero-main-copy.hero-image-bg-mode{
+    min-height:235px !important;
+    border-radius:26px !important;
+    background-size:cover !important;
+    background-position:center center !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    left:5.2% !important;
+    top:6.5% !important;
+    max-width:66% !important;
+    padding:8px 11px !important;
+    font-size:11px !important;
+    line-height:1.15 !important;
+  }
+
+  #parentHero .hero-dynamic-level{
+    left:5.8% !important;
+    bottom:11.5% !important;
+    font-size:12px !important;
+    line-height:1.2 !important;
+  }
+}
+
+@media(max-width:420px){
+  #parentHero .hero-main-copy.hero-image-bg-mode{
+    min-height:205px !important;
+    border-radius:24px !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    font-size:10px !important;
+    padding:7px 10px !important;
+    max-width:70% !important;
+  }
+
+  #parentHero .hero-dynamic-level{
+    font-size:10.5px !important;
+    bottom:10% !important;
+  }
+}
+
+
+
+/* =========================================================
+   BLUE HERO FINAL - sesuai referensi gambar 2
+   Asset: /assets/kolimnt-blue-progress-hero.png
+   ========================================================= */
+#parentHero.hero,
+#parentHero{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.18fr) minmax(390px, .82fr) !important;
+  gap:18px !important;
+  align-items:stretch !important;
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  padding:0 !important;
+  overflow:visible !important;
+}
+
+#parentHero .hero-main-copy.hero-blue-bg-mode{
+  position:relative !important;
+  min-height:430px !important;
+  padding:0 !important;
+  border-radius:34px !important;
+  overflow:hidden !important;
+  background:
+    linear-gradient(90deg, rgba(3,7,18,.06), rgba(3,7,18,.02)),
+    url("/assets/kolimnt-blue-progress-hero.png") center center / cover no-repeat !important;
+  border:1px solid rgba(147,197,253,.42) !important;
+  box-shadow:
+    0 28px 78px rgba(15,23,42,.20),
+    0 0 0 1px rgba(255,255,255,.08) inset !important;
+}
+
+#parentHero .hero-main-copy.hero-blue-bg-mode::before,
+#parentHero .hero-main-copy.hero-blue-bg-mode::after{
+  display:none !important;
+  content:none !important;
+}
+
+#parentHero .hero-main-copy.hero-blue-bg-mode > *{
+  position:absolute !important;
+  z-index:2 !important;
+}
+
+#parentHero .hero-dynamic-badge{
+  left:6.2% !important;
+  top:12.7% !important;
+  display:inline-flex !important;
+  align-items:center !important;
+  max-width:52% !important;
+  padding:15px 24px !important;
+  border-radius:999px !important;
+  background:rgba(24,75,185,.52) !important;
+  color:#ffffff !important;
+  font-size:20px !important;
+  line-height:1.12 !important;
+  font-weight:850 !important;
+  letter-spacing:-.35px !important;
+  border:1px solid rgba(125,211,252,.55) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.12),
+    0 18px 44px rgba(37,99,235,.28) !important;
+  backdrop-filter:blur(12px) !important;
+  text-shadow:0 2px 10px rgba(0,0,0,.22) !important;
+  white-space:normal !important;
+}
+
+#parentHero .hero-level-card{
+  left:6.3% !important;
+  bottom:10.5% !important;
+  display:flex !important;
+  align-items:center !important;
+  gap:12px !important;
+  padding:17px 24px !important;
+  border-radius:22px !important;
+  background:rgba(17,54,157,.55) !important;
+  border:1px solid rgba(125,211,252,.42) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.10),
+    0 20px 48px rgba(37,99,235,.22) !important;
+  backdrop-filter:blur(14px) !important;
+  color:rgba(255,255,255,.82) !important;
+  font-size:19px !important;
+  line-height:1 !important;
+  font-weight:800 !important;
+}
+
+#parentHero .hero-level-card b{
+  color:#facc15 !important;
+  font-weight:1000 !important;
+}
+
+#parentHero .hero-level-icon{
+  color:#facc15 !important;
+  font-size:18px !important;
+  letter-spacing:2px !important;
+  text-shadow:0 0 16px rgba(250,204,21,.55) !important;
+}
+
+/* card kanan tetap clean */
+.hero-last-card,
+.hero-last-empty{
+  min-height:430px !important;
+  border-radius:34px !important;
+}
+
+/* Laptop sedang */
+@media(max-width:1180px){
+  #parentHero.hero,
+  #parentHero{
+    grid-template-columns:1fr !important;
+  }
+
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:430px !important;
+  }
+
+  .hero-last-card,
+  .hero-last-empty{
+    min-height:auto !important;
+  }
+}
+
+/* HP - crop seperti banner, tetap mirip referensi */
+@media(max-width:720px){
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:245px !important;
+    border-radius:26px !important;
+    background-position:center center !important;
+    background-size:cover !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    left:5.3% !important;
+    top:8.7% !important;
+    max-width:64% !important;
+    padding:8px 12px !important;
+    font-size:11px !important;
+    line-height:1.15 !important;
+    letter-spacing:-.15px !important;
+  }
+
+  #parentHero .hero-level-card{
+    left:5.3% !important;
+    bottom:7.5% !important;
+    gap:6px !important;
+    padding:8px 11px !important;
+    border-radius:14px !important;
+    font-size:11px !important;
+  }
+
+  #parentHero .hero-level-icon{
+    font-size:10px !important;
+    letter-spacing:1px !important;
+  }
+}
+
+@media(max-width:420px){
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:210px !important;
+    border-radius:24px !important;
+    background-position:center center !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    max-width:70% !important;
+    font-size:9.5px !important;
+    padding:7px 10px !important;
+  }
+
+  #parentHero .hero-level-card{
+    font-size:9.5px !important;
+    padding:7px 9px !important;
+  }
+}
+
+
+
+/* =========================================================
+   BLUE HERO TEXT POSITION FIX
+   Dynamic badge/level tidak nutup teks bawaan gambar
+   ========================================================= */
+
+/* Laptop / desktop */
+@media(min-width:721px){
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:430px !important;
+    background-position:center center !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    left:5.8% !important;
+    top:5.8% !important;
+    max-width:47% !important;
+    padding:11px 18px !important;
+    font-size:16px !important;
+    line-height:1.12 !important;
+    border-radius:999px !important;
+  }
+
+  #parentHero .hero-level-card{
+    left:5.8% !important;
+    bottom:5.6% !important;
+    padding:12px 18px !important;
+    border-radius:18px !important;
+    gap:9px !important;
+    font-size:16px !important;
+  }
+
+  #parentHero .hero-level-icon{
+    font-size:14px !important;
+    letter-spacing:1.5px !important;
+  }
+}
+
+/* Layar laptop yang agak sempit */
+@media(min-width:721px) and (max-width:1100px){
+  #parentHero .hero-dynamic-badge{
+    top:5% !important;
+    left:5.2% !important;
+    max-width:50% !important;
+    font-size:14px !important;
+    padding:10px 15px !important;
+  }
+
+  #parentHero .hero-level-card{
+    left:5.2% !important;
+    bottom:5% !important;
+    font-size:14px !important;
+    padding:10px 14px !important;
+  }
+}
+
+/* HP: badge kecil di atas, level card kecil di bawah, tidak ganggu teks gambar */
+@media(max-width:720px){
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:235px !important;
+    background-position:center center !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    left:5% !important;
+    top:5% !important;
+    max-width:58% !important;
+    padding:6px 9px !important;
+    font-size:9.5px !important;
+    line-height:1.12 !important;
+    border-radius:999px !important;
+  }
+
+  #parentHero .hero-level-card{
+    left:5% !important;
+    bottom:5% !important;
+    padding:6px 9px !important;
+    gap:5px !important;
+    border-radius:12px !important;
+    font-size:9.5px !important;
+  }
+
+  #parentHero .hero-level-icon{
+    font-size:8.5px !important;
+    letter-spacing:.8px !important;
+  }
+}
+
+@media(max-width:420px){
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:205px !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    font-size:8.5px !important;
+    max-width:62% !important;
+    padding:5px 8px !important;
+  }
+
+  #parentHero .hero-level-card{
+    font-size:8.5px !important;
+    padding:5px 8px !important;
+  }
+}
+
+
+
+/* =========================================================
+   ADMIN EDIT FILE FIX UX
+   ========================================================= */
+#libraryModalSub b{
+  color:#4f46e5;
+}
+
+#libraryOverlay input[type="file"]{
+  background:#f8fafc;
+}
+
+#libraryOverlay label{
+  font-weight:1000;
+}
+
+
+
+/* =========================================================
+   EDIT COVER ONLY - KEEP MAIN FILE SAFE
+   ========================================================= */
+.edit-current-file-box{
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  line-height:1.45;
+}
+.edit-current-file-box b{
+  color:#4f46e5;
+}
+.edit-current-file-box span{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:900;
+}
+
+
+
+/* =========================================================
+   ADMIN LIBRARY CLEAN GRID + IMAGE SIZE FIX
+   ========================================================= */
+.library-grid,
+#libraryGrid,
+.material-grid,
+.ppt-grid{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)) !important;
+  gap:16px !important;
+  align-items:start !important;
+}
+
+.library-card,
+.material-card,
+.ppt-card,
+.admin-library-card{
+  max-width:100% !important;
+  overflow:hidden !important;
+  border-radius:24px !important;
+}
+
+.library-card img.cover,
+.material-card img.cover,
+.ppt-card img.cover,
+.admin-library-card img.cover,
+.library-card .cover,
+.material-card .cover,
+.ppt-card .cover,
+.admin-library-card .cover{
+  width:100% !important;
+  height:170px !important;
+  max-height:170px !important;
+  object-fit:cover !important;
+  border-radius:18px !important;
+  display:block !important;
+}
+
+.cover-wrap{
+  width:100% !important;
+  max-height:180px !important;
+  overflow:hidden !important;
+  border-radius:18px !important;
+}
+
+.library-card .card-actions,
+.material-card .card-actions,
+.ppt-card .card-actions,
+.admin-library-card .card-actions{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:10px !important;
+}
+
+.library-card .btn,
+.material-card .btn,
+.ppt-card .btn,
+.admin-library-card .btn{
+  min-height:42px !important;
+  padding:0 16px !important;
+  border-radius:14px !important;
+  font-size:14px !important;
+}
+
+.edit-current-file-box{
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  line-height:1.45;
+}
+.edit-current-file-box b{
+  color:#4f46e5;
+}
+.edit-current-file-box span{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:900;
+}
+
+@media(max-width:720px){
+  .library-grid,
+  #libraryGrid,
+  .material-grid,
+  .ppt-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  .library-card img.cover,
+  .material-card img.cover,
+  .ppt-card img.cover,
+  .admin-library-card img.cover,
+  .library-card .cover,
+  .material-card .cover,
+  .ppt-card .cover,
+  .admin-library-card .cover{
+    height:150px !important;
+    max-height:150px !important;
+  }
+}
+
+
+
+/* =========================================================
+   EDIT MODE REAL UPDATE BADGE
+   ========================================================= */
+.edit-current-file-box{
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  line-height:1.45;
+}
+.edit-current-file-box b{
+  color:#4f46e5;
+}
+.edit-current-file-box span{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:900;
+}
+
+
+/* final edit update marker */
+.edit-current-file-box{
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  line-height:1.45;
+}
+.edit-current-file-box b{ color:#4f46e5; }
+.edit-current-file-box span{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:900;
+}
+
+
+.edit-current-file-box{
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  line-height:1.45;
+}
+.edit-current-file-box b{ color:#4f46e5; }
+.edit-current-file-box span{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:900;
+}
+.edit-mode-on{
+  border-color:#8b5cf6;
+  box-shadow:0 0 0 3px rgba(139,92,246,.08);
+}

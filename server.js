@@ -64,6 +64,19 @@ function fileInfo(req, field) {
   return { name: f.originalname, path: "/uploads/" + f.filename, type: f.mimetype };
 }
 
+
+function deleteUploadByPublicPath(publicPath) {
+  try {
+    if (!publicPath || typeof publicPath !== "string") return;
+    if (!publicPath.startsWith("/uploads/")) return;
+    const filename = path.basename(publicPath);
+    const target = path.join(uploadDir, filename);
+    if (fs.existsSync(target)) fs.unlinkSync(target);
+  } catch (err) {
+    console.warn("Gagal hapus file lama:", err.message);
+  }
+}
+
 async function getFullStudent(id) {
   const student = await get("SELECT * FROM students WHERE id = ?", [id]);
   if (!student) return null;
@@ -233,40 +246,180 @@ app.get("/api/admin/library", requireAdmin, async (req, res) => {
 
 app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
   try {
-    const { title = "", category = "Beginner", note = "" } = req.body;
-    const materialType = req.body.material_type === "file" ? "file" : "ppt";
+    const { title = "", category = "", note = "", edit_id = "", force_update = "" } = req.body;
+    const requestedType = req.body.material_type === "file" ? "file" : "ppt";
+    const finalCategory = category || (requestedType === "file" ? "Project Files" : "Beginner");
+
     const main = fileInfo(req, "file");
     const cover = fileInfo(req, "cover");
 
-    if (!title && !main.path && !cover.path) {
-      return res.status(400).json({ error: materialType === "file" ? "Judul, file project, atau cover wajib diisi" : "Judul, PPT, atau cover wajib diisi" });
+    let mode = "insert";
+    let targetId = edit_id && String(edit_id).trim() !== "" ? Number(edit_id) : null;
+    let existing = null;
+
+    if (targetId) {
+      existing = await get("SELECT * FROM library_materials WHERE id = ?", [targetId]);
+      if (!existing) {
+        return res.status(404).json({ error: "Data edit tidak ditemukan. Refresh admin lalu klik Edit lagi." });
+      }
     }
 
-    const result = await run(
-      `INSERT INTO library_materials
-        (title, category, material_type, note, file_name, file_path, file_type, cover_name, cover_path, cover_type)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [title || main.name || (materialType === "file" ? "File Project" : "Materi"), category || (materialType === "file" ? "Project Files" : "Beginner"), materialType, note, main.name, main.path, main.type, cover.name, cover.path, cover.type]
-    );
+    // KUNCI ANTI-DUPLIKAT:
+    // Kalau edit_id hilang karena browser/cache, server tetap cari data lama dengan judul+kategori+jenis.
+    // Jadi klik edit tidak akan membuat item baru untuk materi yang sama.
+    if (!existing && title) {
+      existing = await get(
+        `SELECT * FROM library_materials
+         WHERE LOWER(TRIM(title)) = LOWER(TRIM(?))
+           AND LOWER(TRIM(category)) = LOWER(TRIM(?))
+           AND material_type = ?
+         ORDER BY id ASC
+         LIMIT 1`,
+        [title, finalCategory, requestedType]
+      );
+      if (existing) targetId = existing.id;
+    }
 
-    res.json({ ok: true, id: result.id, library: await all(`
-        SELECT
-          lm.*,
-          q.id AS quiz_id,
-          q.title AS quiz_title,
-          (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
-        FROM library_materials lm
-        LEFT JOIN quizzes q ON q.material_id = lm.id
-        ORDER BY lm.id ASC
-      `) });
+    if (!existing && force_update === "1") {
+      return res.status(400).json({ error: "Mode edit aktif, tapi data lama tidak ditemukan. Refresh admin lalu klik Edit lagi." });
+    }
+
+    if (existing) {
+      mode = "update";
+
+      const hasNewMain = !!main.path;
+      const hasNewCover = !!cover.path;
+
+      const nextFileName = hasNewMain ? main.name : existing.file_name;
+      const nextFilePath = hasNewMain ? main.path : existing.file_path;
+      const nextFileType = hasNewMain ? main.type : existing.file_type;
+
+      const nextCoverName = hasNewCover ? cover.name : existing.cover_name;
+      const nextCoverPath = hasNewCover ? cover.path : existing.cover_path;
+      const nextCoverType = hasNewCover ? cover.type : existing.cover_type;
+
+      await run(
+        `UPDATE library_materials
+         SET title = ?,
+             category = ?,
+             material_type = ?,
+             note = ?,
+             file_name = ?,
+             file_path = ?,
+             file_type = ?,
+             cover_name = ?,
+             cover_path = ?,
+             cover_type = ?
+         WHERE id = ?`,
+        [
+          title || existing.title,
+          finalCategory || existing.category,
+          existing.material_type || requestedType,
+          note,
+          nextFileName,
+          nextFilePath,
+          nextFileType,
+          nextCoverName,
+          nextCoverPath,
+          nextCoverType,
+          targetId
+        ]
+      );
+
+      if (hasNewMain && existing.file_path && existing.file_path !== nextFilePath) deleteUploadByPublicPath(existing.file_path);
+      if (hasNewCover && existing.cover_path && existing.cover_path !== nextCoverPath) deleteUploadByPublicPath(existing.cover_path);
+    } else {
+      if (!main.path && !cover.path) {
+        return res.status(400).json({ error: "Upload file atau cover terlebih dahulu" });
+      }
+
+      await run(
+        `INSERT INTO library_materials
+         (title, category, material_type, note, file_name, file_path, file_type, cover_name, cover_path, cover_type)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          title || main.name || cover.name || "Materi",
+          finalCategory,
+          requestedType,
+          note,
+          main.name,
+          main.path,
+          main.type,
+          cover.name,
+          cover.path,
+          cover.type
+        ]
+      );
+    }
+
+    const rows = await all(`
+      SELECT
+        lm.*,
+        q.id AS quiz_id,
+        q.title AS quiz_title,
+        (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
+      FROM library_materials lm
+      LEFT JOIN quizzes q ON q.material_id = lm.id
+      ORDER BY lm.id ASC
+    `);
+
+    res.json({ ok: true, mode, edited_id: targetId, library: rows });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message || "Request gagal saat menyimpan library" });
   }
 });
 
-app.delete("/api/admin/library/:id", requireAdmin, async (req, res) => {
+
+
+
+async function updateLibraryMaterialById(req, res) {
   try {
-    await run("DELETE FROM library_materials WHERE id = ?", [req.params.id]);
+    const id = Number(req.params.id);
+    const existing = await get("SELECT * FROM library_materials WHERE id = ?", [id]);
+    if (!existing) return res.status(404).json({ error: "Materi/File tidak ditemukan. Cek ID library." });
+
+    const { title = "", category = "", note = "" } = req.body;
+    const materialType = req.body.material_type === "file" ? "file" : (req.body.material_type === "ppt" ? "ppt" : (existing.material_type || "ppt"));
+
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
+
+    const nextFileName = main.path ? main.name : existing.file_name;
+    const nextFilePath = main.path ? main.path : existing.file_path;
+    const nextFileType = main.path ? main.type : existing.file_type;
+
+    const nextCoverName = cover.path ? cover.name : existing.cover_name;
+    const nextCoverPath = cover.path ? cover.path : existing.cover_path;
+    const nextCoverType = cover.path ? cover.type : existing.cover_type;
+
+    await run(
+      `UPDATE library_materials
+       SET title = ?,
+           category = ?,
+           material_type = ?,
+           note = ?,
+           file_name = ?,
+           file_path = ?,
+           file_type = ?,
+           cover_name = ?,
+           cover_path = ?,
+           cover_type = ?
+       WHERE id = ?`,
+      [
+        title || existing.title,
+        category || existing.category,
+        materialType,
+        note,
+        nextFileName,
+        nextFilePath,
+        nextFileType,
+        nextCoverName,
+        nextCoverPath,
+        nextCoverType,
+        id
+      ]
+    );
+
     res.json({ ok: true, library: await all(`
         SELECT
           lm.*,
@@ -278,27 +431,11 @@ app.delete("/api/admin/library/:id", requireAdmin, async (req, res) => {
         ORDER BY lm.id ASC
       `) });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message || "Request gagal saat edit library" });
   }
-});
+}
 
-app.put("/api/admin/students/:studentId/library/:materialId/access", requireAdmin, async (req, res) => {
-  try {
-    const unlocked = req.body.is_unlocked ? 1 : 0;
 
-    await run(
-      `INSERT INTO material_access (student_id, material_id, is_unlocked, updated_at)
-       VALUES (?, ?, ?, CURRENT_TIMESTAMP)
-       ON CONFLICT(student_id, material_id)
-       DO UPDATE SET is_unlocked = excluded.is_unlocked, updated_at = CURRENT_TIMESTAMP`,
-      [req.params.studentId, req.params.materialId, unlocked]
-    );
-
-    res.json(await getFullStudent(req.params.studentId));
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
 
 
 app.put("/api/admin/students/:id/progress", requireAdmin, async (req, res) => {
@@ -459,6 +596,161 @@ app.get("/api/parent/materials/:id/quiz", async (req, res) => {
 });
 
 
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
+
+async function updateLibraryMaterialById(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const existing = await get("SELECT * FROM library_materials WHERE id = ?", [id]);
+
+    if (!existing) {
+      return res.status(404).json({
+        error: "Materi/File tidak ditemukan di database. Refresh admin lalu coba edit lagi."
+      });
+    }
+
+    const { title = "", category = "", note = "" } = req.body;
+    const materialType =
+      req.body.material_type === "file" ? "file" :
+      req.body.material_type === "ppt" ? "ppt" :
+      (existing.material_type || "ppt");
+
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
+
+    // File baru OPSIONAL. Kalau kosong, file lama tetap dipakai.
+    const nextFileName = main.path ? main.name : existing.file_name;
+    const nextFilePath = main.path ? main.path : existing.file_path;
+    const nextFileType = main.path ? main.type : existing.file_type;
+
+    // Cover baru OPSIONAL. Kalau kosong, cover lama tetap dipakai.
+    const nextCoverName = cover.path ? cover.name : existing.cover_name;
+    const nextCoverPath = cover.path ? cover.path : existing.cover_path;
+    const nextCoverType = cover.path ? cover.type : existing.cover_type;
+
+    await run(
+      `UPDATE library_materials
+       SET title = ?,
+           category = ?,
+           material_type = ?,
+           note = ?,
+           file_name = ?,
+           file_path = ?,
+           file_type = ?,
+           cover_name = ?,
+           cover_path = ?,
+           cover_type = ?
+       WHERE id = ?`,
+      [
+        title || existing.title,
+        category || existing.category,
+        materialType,
+        note,
+        nextFileName,
+        nextFilePath,
+        nextFileType,
+        nextCoverName,
+        nextCoverPath,
+        nextCoverType,
+        id
+      ]
+    );
+
+    const rows = await all(`
+      SELECT
+        lm.*,
+        q.id AS quiz_id,
+        q.title AS quiz_title,
+        (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
+      FROM library_materials lm
+      LEFT JOIN quizzes q ON q.material_id = lm.id
+      ORDER BY lm.id ASC
+    `);
+
+    res.json({ ok: true, library: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Request gagal saat edit library" });
+  }
+}
+
+// Route edit library HARUS sebelum app.listen.
+
+
+async function updateLibraryMaterialById(req, res) {
+  try {
+    const id = Number(req.params.id);
+    const existing = await get("SELECT * FROM library_materials WHERE id = ?", [id]);
+
+    if (!existing) {
+      return res.status(404).json({
+        error: "Materi/File tidak ditemukan di database. Refresh admin lalu coba edit lagi."
+      });
+    }
+
+    const { title = "", category = "", note = "" } = req.body;
+    const materialType =
+      req.body.material_type === "file" ? "file" :
+      req.body.material_type === "ppt" ? "ppt" :
+      (existing.material_type || "ppt");
+
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
+
+    // Kalau admin tidak upload file baru, file lama tetap dipakai.
+    const nextFileName = main.path ? main.name : existing.file_name;
+    const nextFilePath = main.path ? main.path : existing.file_path;
+    const nextFileType = main.path ? main.type : existing.file_type;
+
+    // Kalau admin tidak upload cover baru, cover lama tetap dipakai.
+    const nextCoverName = cover.path ? cover.name : existing.cover_name;
+    const nextCoverPath = cover.path ? cover.path : existing.cover_path;
+    const nextCoverType = cover.path ? cover.type : existing.cover_type;
+
+    await run(
+      `UPDATE library_materials
+       SET title = ?,
+           category = ?,
+           material_type = ?,
+           note = ?,
+           file_name = ?,
+           file_path = ?,
+           file_type = ?,
+           cover_name = ?,
+           cover_path = ?,
+           cover_type = ?
+       WHERE id = ?`,
+      [
+        title || existing.title,
+        category || existing.category,
+        materialType,
+        note,
+        nextFileName,
+        nextFilePath,
+        nextFileType,
+        nextCoverName,
+        nextCoverPath,
+        nextCoverType,
+        id
+      ]
+    );
+
+    const rows = await all(`
+      SELECT
+        lm.*,
+        q.id AS quiz_id,
+        q.title AS quiz_title,
+        (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
+      FROM library_materials lm
+      LEFT JOIN quizzes q ON q.material_id = lm.id
+      ORDER BY lm.id ASC
+    `);
+
+    res.json({ ok: true, library: rows });
+  } catch (err) {
+    res.status(500).json({ error: err.message || "Request gagal saat edit library" });
+  }
+}
+
+// Edit route dibuat all + put supaya aman di localhost, Railway, dan browser cache lama.
+app.all("/api/admin/library/:id/edit", requireAdmin, multiUpload, updateLibraryMaterialById);
+app.put("/api/admin/library/:id", requireAdmin, multiUpload, updateLibraryMaterialById);
+

@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=whatsapp-1of4-final-20260607"/>
+  <link rel="stylesheet" href="/style.css?v=server-never-insert-duplicate-final-20260607"/>
 </head>
 <body class="parent-logged-out">
 
@@ -520,10 +520,13 @@ function renderParent(){
 
 
   getEl("parentHero").innerHTML = `
-    <div class="hero-main-copy">
-      <div class="eyebrow">Halo, Orang Tua ${safe(s.name)}</div>
-      <h1><span class="gradient">Progress anak</span> sudah siap.</h1>
-      <p>Level: <b>${safe(s.level || "Belum diisi")}</b><br>${safe(s.description || "Belum ada deskripsi.")}</p>
+    <div class="hero-main-copy hero-blue-bg-mode">
+      <div class="hero-dynamic-badge">Halo, Orang Tua ${safe(s.name)} 👋</div>
+      <div class="hero-level-card">
+        <span class="hero-level-icon">▮▮▮</span>
+        <span>Level:</span>
+        <b>${safe(s.level || "Belum diisi")}</b>
+      </div>
     </div>
     <aside id="parentHeroLastMaterial" class="hero-last-material"></aside>
   `;
@@ -697,32 +700,75 @@ function buildQuizFeedback(score, total, wrongItems){
   `;
 }
 
+function formatIndoDateShort(dateStr){
+  if(!dateStr) return "-";
+  const parts = String(dateStr).split("-");
+  if(parts.length !== 3) return safe(dateStr);
+  const months = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+  const y = parts[0];
+  const m = Number(parts[1]) - 1;
+  const d = Number(parts[2]);
+  return (d || parts[2]) + " " + (months[m] || parts[1]) + " " + y;
+}
+
+function getLatestAttendance(attendances){
+  const list = (attendances || []).slice();
+  if(!list.length) return null;
+
+  list.sort(function(a,b){
+    const da = String(a.date || "") + " " + String(a.time || "");
+    const db = String(b.date || "") + " " + String(b.time || "");
+    return db.localeCompare(da);
+  });
+
+  return list[0];
+}
+
 function showPackageCompletePopupIfNeeded(){
   if(packagePopupShownThisLoad || !currentStudent) return;
-  const total = (currentStudent.attendances || []).length;
-  if(total > 0 && total % 4 === 0){
-    packagePopupShownThisLoad = true;
-    const existing = document.getElementById("packageCompleteOverlay");
-    if(existing) existing.remove();
 
-    const overlay = document.createElement("div");
-    overlay.id = "packageCompleteOverlay";
-    overlay.className = "package-complete-overlay";
-    overlay.innerHTML = `
-      <div class="package-complete-card">
-        <div class="package-complete-icon">4/4</div>
-        <h2>Paket pertemuan sudah selesai</h2>
-        <p>Progress les saat ini sudah mencapai <b>4/4 pertemuan</b>. Silakan lanjutkan paket berikutnya agar pembelajaran tetap berjalan.</p>
-        <div class="package-complete-info">
-          <span>Total riwayat pertemuan</span>
-          <b>${total}x</b>
-        </div>
-        <button class="btn btn-purple package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
+  const attendances = currentStudent.attendances || [];
+  const total = attendances.length;
+  if(total <= 0) return;
+
+  packagePopupShownThisLoad = true;
+
+  const latest = getLatestAttendance(attendances);
+  const cycle = lessonCycleText(total);
+  const isPackageDone = total % 4 === 0;
+
+  const lastText = latest
+    ? `${formatIndoDateShort(latest.date)} • ${safe(latest.time || "-")} • ${safe(latest.session || "Pertemuan")}`
+    : "Belum ada detail pertemuan terakhir.";
+
+  const lastNote = latest && latest.note ? safe(latest.note) : "Tanpa catatan";
+
+  const existing = document.getElementById("packageCompleteOverlay");
+  if(existing) existing.remove();
+
+  const overlay = document.createElement("div");
+  overlay.id = "packageCompleteOverlay";
+  overlay.className = "package-complete-overlay";
+  overlay.innerHTML = `
+    <div class="package-complete-card">
+      <div class="package-complete-icon">${safe(cycle)}</div>
+      <h2>${isPackageDone ? "Paket pertemuan sudah selesai" : "Progress pertemuan terbaru"}</h2>
+      <p>
+        Progress les saat ini: <b>${safe(cycle)}</b> dari paket 4x.<br>
+        Total riwayat pertemuan tercatat: <b>${total}x</b>.
+      </p>
+
+      <div class="package-last-session">
+        <span>Pertemuan terakhir</span>
+        <b>${lastText}</b>
+        <small>${lastNote}</small>
       </div>
-    `;
-    document.body.appendChild(overlay);
-    document.body.classList.add("package-popup-open");
-  }
+
+      <button class="btn btn-purple package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+  document.body.classList.add("package-popup-open");
 }
 
 function closePackageCompletePopup(){
@@ -730,6 +776,7 @@ function closePackageCompletePopup(){
   if(overlay) overlay.remove();
   document.body.classList.remove("package-popup-open");
 }
+
 
 async function openMaterialQuiz(materialId){
   saveParentLastMaterial(materialId, "quiz");
@@ -1198,7 +1245,7 @@ function renderParentHeroLastMaterial(list){
 
   box.innerHTML = `
     <div class="hero-last-card">
-      <div class="hero-last-kicker">PPT & Quiz Terbaru</div>
+      <div class="hero-last-kicker">Terakhir dibuka</div>
       <div class="hero-last-cover">
         ${coverHTML(item, locked)}
       </div>

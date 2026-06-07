@@ -12,6 +12,7 @@ let editingId = null;
 let selectedDate = "2026-05-01";
 let activeTab = "calendar";
 let library = [];
+let editingLibraryMaterialId = null;
 let adminSectionExpanded = { access:false, library:false, projectFiles:false, certificates:false, sessions:false };
 let pptSortMode = "smart";
 let currentQuizMaterialId = null;
@@ -100,16 +101,27 @@ function toast(msg,type){
 function openOverlay(id){ forceOpenOverlay(id); }
 function closeOverlay(id){ forceCloseOverlay(id); }
 
+function cacheBustUrl(url){
+  if(!url) return "";
+  const sep = String(url).includes("?") ? "&" : "?";
+  return url + sep + "v=" + Date.now();
+}
+
+function cacheBustUrl(url){
+  if(!url) return "";
+  const sep = String(url).includes("?") ? "&" : "?";
+  return url + sep + "v=" + Date.now();
+}
+
 function coverHTML(item, locked){
   let content = "";
-  if(item.cover_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(item.cover_path)}">`;
-  else if(item.file_type && item.file_type.indexOf("image/") === 0 && item.file_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(item.file_path)}">`;
+  if(item.cover_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(cacheBustUrl(item.cover_path))}">`;
+  else if(item.file_type && item.file_type.indexOf("image/") === 0 && item.file_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(cacheBustUrl(item.file_path))}">`;
   else content = `<div class="cover-placeholder ${locked ? "locked-cover" : ""}">${svg(locked ? "lock" : "folder")}</div>`;
 
   if(!locked) return content;
   return `<div class="cover-wrap">${content}<div class="lock-layer">LOCKED</div></div>`;
 }
-
 
 function progressValue(){
   return Number((selectedStudent && selectedStudent.progress_session) || 0);
@@ -328,7 +340,7 @@ async function api(url, options = {}){
   options.headers = headers;
   const res = await fetch(API + url, options);
   const data = await res.json().catch(function(){ return {}; });
-  if(!res.ok) throw new Error(data.error || "Request gagal");
+  if(!res.ok) throw new Error(data.error || ("Request gagal (" + res.status + ") - " + url));
   return data;
 }
 
@@ -548,13 +560,60 @@ function sectionCountText(list, label){
   return (list || []).length + " " + label;
 }
 
+
+function resetLibraryFileInput(id){
+  const old = $(id);
+  if(!old) return null;
+
+  const clone = old.cloneNode(true);
+  clone.value = "";
+  clone.dataset.userPicked = "0";
+  clone.addEventListener("change", function(){
+    clone.dataset.userPicked = clone.files && clone.files.length ? "1" : "0";
+  });
+
+  old.parentNode.replaceChild(clone, old);
+  return clone;
+}
+
+function resetLibraryUploadInputs(){
+  resetLibraryFileInput("libraryFile");
+  resetLibraryFileInput("libraryCover");
+}
+
+function isLibraryFilePicked(id){
+  const input = $(id);
+  return !!(input && input.dataset.userPicked === "1" && input.files && input.files[0]);
+}
+
+
+function setLibrarySaveMode(editId){
+  const btn = $("librarySaveBtn");
+  if(!btn) return;
+  if(editId){
+    btn.dataset.mode = "edit";
+    btn.dataset.editId = String(editId);
+    btn.onclick = function(){ saveLibraryMaterial(editId); };
+  }else{
+    btn.dataset.mode = "insert";
+    btn.dataset.editId = "";
+    btn.onclick = function(){ saveLibraryMaterial(); };
+  }
+}
+
 function openLibraryModal(type){
   type = type === "file" ? "file" : "ppt";
-  ["libraryTitle","libraryNote"].forEach(function(id){ if($(id)) $(id).value = ""; });
-  $("libraryCategory").value = type === "file" ? "Project Files" : "Beginner";
-  $("libraryFile").value = "";
-  $("libraryCover").value = "";
+  editingLibraryMaterialId = null;
+  window.__editingLibraryMaterialId = null;
+  if($("libraryEditId")) $("libraryEditId").value = "";
+  if(typeof setLibrarySaveMode === "function") setLibrarySaveMode(null);
+
+  if($("libraryTitle")) $("libraryTitle").value = "";
+  if($("libraryNote")) $("libraryNote").value = "";
+  if($("libraryCategory")) $("libraryCategory").value = type === "file" ? "Project Files" : "Beginner";
   if($("libraryMaterialType")) $("libraryMaterialType").value = type;
+  if($("libraryFile")) $("libraryFile").value = "";
+  if($("libraryCover")) $("libraryCover").value = "";
 
   if($("libraryModalTitle")) $("libraryModalTitle").textContent = type === "file" ? "Upload File / Project Global" : "Upload PPT Global";
   if($("libraryModalSub")) $("libraryModalSub").textContent = type === "file"
@@ -564,33 +623,105 @@ function openLibraryModal(type){
   if($("libraryCategoryLabel")) $("libraryCategoryLabel").textContent = type === "file" ? "Kategori File" : "Kategori";
   if($("libraryFileLabel")) $("libraryFileLabel").textContent = type === "file" ? "Upload APK / ZIP / Project / File" : "Upload PPT / file";
   if($("librarySaveBtn")) $("librarySaveBtn").textContent = type === "file" ? "Simpan File Project" : "Simpan PPT";
+  openOverlay("libraryOverlay");
+}
+
+function openEditMaterialModal(id){
+  const item = (library || []).find(function(x){ return Number(x.id) === Number(id); });
+  if(!item){
+    toast("File/PPT tidak ditemukan. Refresh admin dulu.", "error");
+    return;
+  }
+
+  const type = item.material_type === "file" ? "file" : "ppt";
+  const editId = Number(item.id);
+
+  editingLibraryMaterialId = editId;
+  window.__editingLibraryMaterialId = editId;
+  if($("libraryEditId")) $("libraryEditId").value = String(editId);
+  if(typeof setLibrarySaveMode === "function") setLibrarySaveMode(editId);
+
+  if($("libraryMaterialType")) $("libraryMaterialType").value = type;
+  if($("libraryTitle")) $("libraryTitle").value = item.title || "";
+  if($("libraryCategory")) $("libraryCategory").value = item.category || (type === "file" ? "Project Files" : "Beginner");
+  if($("libraryNote")) $("libraryNote").value = item.note || "";
+  if($("libraryFile")) $("libraryFile").value = "";
+  if($("libraryCover")) $("libraryCover").value = "";
+
+  if($("libraryModalTitle")) $("libraryModalTitle").textContent = type === "file" ? "Edit File / Project" : "Edit PPT";
+  if($("libraryModalSub")){
+    $("libraryModalSub").innerHTML =
+      '<div class="edit-current-file-box edit-mode-on">' +
+      '<b>MODE EDIT AKTIF — UPDATE DATA LAMA</b><br>' +
+      'ID data: <b>' + safe(editId) + '</b><br>' +
+      'File saat ini: <b>' + safe(item.file_name || "-") + '</b><br>' +
+      'Cover saat ini: <b>' + safe(item.cover_name || "-") + '</b><br>' +
+      '<span>Kalau pilih file/cover baru, yang lama diganti. Server juga dikunci supaya tidak membuat item duplikat.</span>' +
+      '</div>';
+  }
+  if($("libraryTitleLabel")) $("libraryTitleLabel").textContent = type === "file" ? "Nama File / Project" : "Judul PPT";
+  if($("libraryCategoryLabel")) $("libraryCategoryLabel").textContent = type === "file" ? "Kategori File" : "Kategori";
+  if($("libraryFileLabel")) $("libraryFileLabel").textContent = type === "file" ? "Ganti file utama baru" : "Ganti PPT/file utama baru";
+  if($("librarySaveBtn")) $("librarySaveBtn").textContent = type === "file" ? "UPDATE FILE INI" : "UPDATE PPT INI";
 
   openOverlay("libraryOverlay");
 }
 
-async function saveLibraryMaterial(){
+async function saveLibraryMaterial(forcedEditId){
   try{
+    const hiddenEditId = $("libraryEditId") ? $("libraryEditId").value : "";
+    const buttonEditId = $("librarySaveBtn") ? $("librarySaveBtn").dataset.editId : "";
+    const globalEditId = editingLibraryMaterialId || window.__editingLibraryMaterialId || "";
+    const editId = forcedEditId || globalEditId || buttonEditId || hiddenEditId || "";
+    const isEdit = !!editId;
+
     const form = new FormData();
     form.append("title", $("libraryTitle").value.trim());
-    form.append("category", $("libraryCategory").value.trim() || "Beginner");
+    form.append("category", $("libraryCategory").value.trim() || (($("libraryMaterialType") && $("libraryMaterialType").value === "file") ? "Project Files" : "Beginner"));
     form.append("note", $("libraryNote").value.trim());
     form.append("material_type", $("libraryMaterialType") ? $("libraryMaterialType").value : "ppt");
-    if($("libraryFile").files[0]) form.append("file", $("libraryFile").files[0]);
-    if($("libraryCover").files[0]) form.append("cover", $("libraryCover").files[0]);
 
-    if(!form.get("title") && !$("libraryFile").files[0] && !$("libraryCover").files[0]){
-      toast((($("libraryMaterialType") && $("libraryMaterialType").value === "file") ? "Isi nama file/project, file, atau cover" : "Isi judul, PPT, atau cover"),"error");
+    if(isEdit){
+      form.append("edit_id", String(editId));
+      form.append("force_update", "1");
+    }
+
+    if($("libraryFile") && $("libraryFile").files[0]) form.append("file", $("libraryFile").files[0]);
+    if($("libraryCover") && $("libraryCover").files[0]) form.append("cover", $("libraryCover").files[0]);
+
+    if(!form.get("title")){
+      toast("Nama/Judul tidak boleh kosong", "error");
       return;
     }
 
-    const result = await api("/api/admin/library", { method:"POST", body:form });
+    if(!isEdit && (!$("libraryFile") || !$("libraryFile").files[0]) && (!$("libraryCover") || !$("libraryCover").files[0])){
+      toast((($("libraryMaterialType") && $("libraryMaterialType").value === "file") ? "Upload file project atau cover dulu" : "Upload PPT/file atau cover dulu"), "error");
+      return;
+    }
+
+    const result = await api("/api/admin/library", {
+      method: "POST",
+      body: form
+    });
+
     library = result.library || [];
     closeOverlay("libraryOverlay");
+
+    editingLibraryMaterialId = null;
+    window.__editingLibraryMaterialId = null;
+    if($("libraryEditId")) $("libraryEditId").value = "";
+    if(typeof setLibrarySaveMode === "function") setLibrarySaveMode(null);
+    if($("libraryFile")) $("libraryFile").value = "";
+    if($("libraryCover")) $("libraryCover").value = "";
+
     await loadStudents();
-    activeTab = "access";
+    activeTab = "library";
     renderAll();
-    toast((($("libraryMaterialType") && $("libraryMaterialType").value === "file") ? "File project berhasil disimpan" : "PPT global berhasil disimpan"));
-  }catch(e){ toast(e.message,"error"); }
+
+    toast(result.mode === "update" || isEdit ? "Berhasil UPDATE data lama. Tidak membuat item baru." : "Data baru berhasil dibuat.");
+  }catch(e){
+    toast(e.message || "Request gagal", "error");
+  }
 }
 
 async function deleteLibraryMaterial(id){
@@ -1147,9 +1278,6 @@ function quizBadgeHTML(item){
 
 
 
-function openEditMaterialModal(id){
-  openLibraryModal(id);
-}
 
 function renderAccess(){
   const allItems = selectedStudent.library || [];
