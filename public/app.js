@@ -435,12 +435,20 @@ function lessonCycleNumber(total){
   return mod === 0 ? 4 : mod;
 }
 
+function buildWAProgressText(totalMeetings){
+  return lessonCycleText(totalMeetings);
+}
+
 function sendWA(){
-  if(!selectedStudent){ toast("Pilih siswa dulu","error"); return; }
+  if(!selectedStudent){
+    toast("Pilih siswa dulu","error");
+    return;
+  }
+
   const totalMeetings = sessionCount(selectedStudent);
   const cycle = lessonCycleText(totalMeetings);
-  const cycleNum = lessonCycleNumber(totalMeetings);
   const parentUrl = "https://websitekolimntcode-production.up.railway.app/parent.html";
+
   const msg =
     "Halo Orang Tua " + selectedStudent.name + "%0A%0A" +
     "Progress pertemuan les coding saat ini: " + cycle + ".%0A" +
@@ -448,6 +456,7 @@ function sendWA(){
     "Silakan lihat PPT/Materi, Quiz, kalender, dan sertifikat melalui Parent Portal:%0A" +
     parentUrl + "%0A%0A" +
     "Kode akses parent: " + selectedStudent.parent_code;
+
   window.open("https://wa.me/" + digits(selectedStudent.phone) + "?text=" + msg, "_blank");
 }
 function changeMonth(step){
