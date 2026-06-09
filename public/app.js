@@ -384,6 +384,63 @@ async function loadSelectedStudent(id, rerender){
 
 function clearSearch(){ $("searchInput").value = ""; renderAll(); }
 
+
+function isPaymentPaid(s){
+  return Number((s && s.payment_paid) || 0) === 1;
+}
+
+function paymentStatusHTML(s){
+  const paid = isPaymentPaid(s);
+  const unpaidChecked = !paid;
+
+  return `
+    <div class="payment-admin-card ${paid ? "paid" : "unpaid"}">
+      <div>
+        <strong>${paid ? "Pembayaran sudah dikonfirmasi" : "Menunggu konfirmasi pembayaran"}</strong>
+        <small>${paid ? "Parent sudah melihat status normal hijau muda." : "Parent akan melihat peringatan merah muda saat progress berada di 1/4."}</small>
+      </div>
+      <label class="payment-toggle ${paid ? "paid" : "unpaid"}">
+        <input type="checkbox" ${unpaidChecked ? "checked" : ""} onchange="togglePaymentUnpaid(this.checked)">
+        <span>${paid ? "Sudah bayar" : "Belum bayar"}</span>
+      </label>
+    </div>
+  `;
+}
+
+async function togglePaymentUnpaid(isUnpaid){
+  if(!selectedStudent) return;
+
+  try{
+    const paymentPaid = !isUnpaid;
+
+    // Pakai route edit siswa yang sudah ada supaya tidak kena 404 /payment.
+    selectedStudent = await api("/api/admin/students/" + selectedStudent.id, {
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        name:selectedStudent.name || "",
+        phone:selectedStudent.phone || "",
+        level:selectedStudent.level || "",
+        description:selectedStudent.description || "",
+        parent_code:selectedStudent.parent_code || "",
+        payment_paid: paymentPaid
+      })
+    });
+
+    await loadStudents();
+    renderDetail();
+    toast(paymentPaid ? "Pembayaran sudah dikonfirmasi" : "Status dikembalikan ke belum bayar", paymentPaid ? "success" : "error");
+  }catch(e){
+    toast(e.message, "error");
+  }
+}
+
+// Kompatibilitas kalau masih ada onclick lama di browser/cache.
+async function togglePaymentPaid(checked){
+  return togglePaymentUnpaid(!checked);
+}
+
+
 function openStudentModal(id){
   editingId = id || null;
   if(id){
@@ -394,9 +451,11 @@ function openStudentModal(id){
     $("studentLevel").value = s.level || "";
     $("studentDesc").value = s.description || "";
     $("studentCode").value = s.parent_code || "";
+    if($("studentPaymentPaid")) $("studentPaymentPaid").checked = !isPaymentPaid(s);
   }else{
     $("studentTitle").textContent = "Tambah Siswa";
     ["studentName","studentPhone","studentLevel","studentDesc","studentCode"].forEach(function(id){ $(id).value = ""; });
+    if($("studentPaymentPaid")) $("studentPaymentPaid").checked = false;
   }
   openOverlay("studentOverlay");
 }
@@ -408,7 +467,8 @@ async function saveStudent(){
       phone:$("studentPhone").value.trim(),
       level:$("studentLevel").value.trim(),
       description:$("studentDesc").value.trim(),
-      parent_code:$("studentCode").value.trim()
+      parent_code:$("studentCode").value.trim(),
+      payment_paid:$("studentPaymentPaid") ? !$("studentPaymentPaid").checked : false
     };
 
     if(!body.name || !body.phone){ toast("Nama dan nomor wajib diisi","error"); return; }
@@ -892,6 +952,7 @@ function renderDetail(){
         <button class="btn btn-red" onclick="deleteSelectedStudent()">Hapus</button>
       </div>
     </div>
+    ${paymentStatusHTML(s)}
     ${renderProgressBox()}
     <div class="tabs">
       <button class="tab ${activeTab === "calendar" ? "active" : ""}" onclick="activeTab='calendar';renderDetail()">Kalender</button>

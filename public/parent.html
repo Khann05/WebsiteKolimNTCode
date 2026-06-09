@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=server-never-insert-duplicate-final-20260607"/>
+  <link rel="stylesheet" href="/style.css?v=progress-chip-lower-final-20260609"/>
 </head>
 <body class="parent-logged-out">
 
@@ -28,8 +28,9 @@
       <label>Kode Akses</label>
       <div class="remember-note">Akun parent akan tersimpan di device ini sampai kamu klik Logout.</div>
         <input id="parentCode" class="field" placeholder="Contoh: ANDI123"/>
+<div id="parentLoginError" class="parent-login-error"></div>
     </div>
-    <div class="modal-actions"><button class="btn btn-primary" onclick="loginParent()">Masuk</button></div>
+    <div class="modal-actions"><button class="btn btn-primary" onclick="loginParent(event)">Masuk</button></div>
   
 <div class="parent-right-logo-wrap">
   <img src="/logo.png" class="parent-right-logo">
@@ -499,7 +500,21 @@ function forceParentScrollTop(){
   }, 60);
 }
 
-function renderParent(){
+async function refreshParentStudentFromServer(){
+  try{
+    if(!currentStudent || !currentStudent.parent_code) return currentStudent;
+    const res = await fetch("/api/parent/student/" + encodeURIComponent(currentStudent.parent_code), { cache:"no-store" });
+    if(!res.ok) return currentStudent;
+    currentStudent = await res.json();
+    localStorage.setItem(PARENT_KEY, JSON.stringify(currentStudent));
+    return currentStudent;
+  }catch(e){
+    return currentStudent;
+  }
+}
+
+async function renderParent(){
+  await refreshParentStudentFromServer();
   forceParentScrollTop();
   preloadAllParentImages(currentStudent);
   forceRenderParentVisibleImages();
@@ -735,6 +750,9 @@ function showPackageCompletePopupIfNeeded(){
 
   const latest = getLatestAttendance(attendances);
   const cycle = lessonCycleText(total);
+  const cycleNo = lessonCycleNumber(total);
+  const paymentPaid = Number(currentStudent.payment_paid || 0) === 1;
+  const needsPayment = cycleNo === 1 && !paymentPaid;
   const isPackageDone = total % 4 === 0;
 
   const lastText = latest
@@ -750,23 +768,17 @@ function showPackageCompletePopupIfNeeded(){
   overlay.id = "packageCompleteOverlay";
   overlay.className = "package-complete-overlay";
   overlay.innerHTML = `
-    <div class="package-complete-card">
+    <div class="package-complete-card ${needsPayment ? "payment-warning" : "payment-safe"}">
       <div class="package-complete-icon">${safe(cycle)}</div>
-      <h2>${isPackageDone ? "Paket pertemuan sudah selesai" : "Progress pertemuan terbaru"}</h2>
-      <p>
-        Progress les saat ini: <b>${safe(cycle)}</b> dari paket 4x.<br>
-        Total riwayat pertemuan tercatat: <b>${total}x</b>.
-      </p>
-
-      <div class="package-last-session">
-        <span>Pertemuan terakhir</span>
-        <b>${lastText}</b>
-        <small>${lastNote}</small>
+      <h2>${needsPayment ? "Konfirmasi pembayaran diperlukan" : (isPackageDone ? "Paket pertemuan sudah selesai" : "Progress pertemuan terbaru")}</h2>
+      <p>Progress les saat ini: <b>${safe(cycle)}</b> dari paket 4x.<br>Total riwayat pertemuan tercatat: <b>${total}x</b>.</p>
+      <div class="payment-parent-message ${needsPayment ? "warning" : "safe"}">
+        <strong>${needsPayment ? "Silakan melakukan pembayaran paket les." : "Status pembayaran sudah terkonfirmasi."}</strong>
+        <span>${needsPayment ? "Untuk memastikan kegiatan belajar tetap berjalan lancar, mohon lakukan pembayaran paket pertemuan aktif. Setelah pembayaran dikonfirmasi oleh admin, peringatan ini akan berubah menjadi status normal." : "Terima kasih, pembayaran paket aktif sudah tercatat oleh admin."}</span>
       </div>
-
-      <button class="btn btn-purple package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
-    </div>
-  `;
+      <div class="package-last-session"><span>Pertemuan terakhir</span><b>${lastText}</b><small>${lastNote}</small></div>
+      <button class="btn ${needsPayment ? "btn-pink" : "btn-green"} package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
+    </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("package-popup-open");
 }
@@ -776,6 +788,10 @@ function closePackageCompletePopup(){
   if(overlay) overlay.remove();
   document.body.classList.remove("package-popup-open");
 }
+
+
+
+
 
 
 async function openMaterialQuiz(materialId){
@@ -1753,6 +1769,169 @@ document.addEventListener("click", function(e){
 
 // parent-scroll-top-load-final
 window.addEventListener("load", forceParentScrollTop);
+
+/* ===== CLEAN OVERRIDE: parent login pakai endpoint asli GET /api/parent/:code ===== */
+function parentLoginInputFinal(){
+  return (
+    document.getElementById("parentCode") ||
+    document.getElementById("parentLoginCode") ||
+    document.getElementById("loginCode") ||
+    document.querySelector('input[name="parent_code"]') ||
+    document.querySelector('input[name="code"]') ||
+    document.querySelector(".parent-code-input") ||
+    document.querySelector('#loginView input')
+  );
+}
+
+function parentLoginErrorFinal(message){
+  const input = parentLoginInputFinal();
+  let box = document.getElementById("parentLoginError");
+  if(!box){
+    box = document.createElement("div");
+    box.id = "parentLoginError";
+    box.className = "parent-login-error";
+    const anchor = input ? input.parentElement : document.getElementById("loginView");
+    if(anchor) anchor.appendChild(box);
+  }
+
+  box.textContent = message || "Kode orang tua salah atau tidak ditemukan.";
+  box.classList.add("show");
+
+  if(input){
+    input.classList.add("parent-login-input-error");
+    input.focus();
+    input.select();
+  }
+}
+
+function parentLoginClearFinal(){
+  const box = document.getElementById("parentLoginError");
+  if(box){
+    box.textContent = "";
+    box.classList.remove("show");
+  }
+  const input = parentLoginInputFinal();
+  if(input) input.classList.remove("parent-login-input-error");
+}
+
+function stayAtParentLoginFinal(){
+  try{ localStorage.removeItem("parentCode"); }catch(e){}
+  try{ if(typeof PARENT_KEY !== "undefined") localStorage.removeItem(PARENT_KEY); }catch(e){}
+  currentStudent = null;
+
+  const loginView = document.getElementById("loginView");
+  const parentApp = document.getElementById("parentApp");
+
+  if(loginView){
+    loginView.classList.remove("hidden");
+    loginView.style.display = "";
+  }
+
+  if(parentApp){
+    parentApp.classList.add("hidden");
+    parentApp.style.display = "none";
+  }
+
+  document.body.classList.add("parent-logged-out");
+  document.body.classList.remove("parent-logged-in");
+
+  if(typeof setParentLoggedInUI === "function") setParentLoggedInUI(false);
+}
+
+function normalizeParentPayloadFinal(raw){
+  if(!raw) return null;
+  if(raw.student) return raw.student;
+  if(raw.data) return raw.data;
+  if(raw.parent) return raw.parent;
+  return raw;
+}
+
+async function loginParent(event){
+  if(event && event.preventDefault) event.preventDefault();
+
+  const input = parentLoginInputFinal();
+  const code = input ? String(input.value || "").trim().toUpperCase() : "";
+
+  parentLoginClearFinal();
+
+  if(!code){
+    stayAtParentLoginFinal();
+    parentLoginErrorFinal("Kode orang tua wajib diisi.");
+    return false;
+  }
+
+  try{
+    const res = await fetch("/api/parent/" + encodeURIComponent(code), { cache:"no-store" });
+    const raw = await res.json().catch(function(){ return {}; });
+    const data = normalizeParentPayloadFinal(raw);
+
+    if(!res.ok || raw.error || !data || data.error || !data.id){
+      stayAtParentLoginFinal();
+      parentLoginErrorFinal((raw && raw.error) || (data && data.error) || "Kode orang tua salah atau tidak ditemukan. Periksa kembali kode dari admin.");
+      return false;
+    }
+
+    currentStudent = data;
+    localStorage.setItem("parentCode", code);
+    try{ if(typeof PARENT_KEY !== "undefined") localStorage.setItem(PARENT_KEY, JSON.stringify(currentStudent)); }catch(e){}
+
+    parentLoginClearFinal();
+
+    const loginView = document.getElementById("loginView");
+    const parentApp = document.getElementById("parentApp");
+
+    if(loginView){
+      loginView.classList.add("hidden");
+      loginView.style.display = "none";
+    }
+
+    if(parentApp){
+      parentApp.classList.remove("hidden");
+      parentApp.style.display = "";
+    }
+
+    document.body.classList.add("parent-logged-in");
+    document.body.classList.remove("parent-logged-out");
+
+    if(typeof setParentLoggedInUI === "function") setParentLoggedInUI(true);
+    if(typeof preloadAllParentImages === "function") preloadAllParentImages(currentStudent);
+    if(typeof renderParent === "function") await renderParent();
+    if(typeof showParentAppAfterLogin === "function") showParentAppAfterLogin();
+
+    return false;
+  }catch(e){
+    stayAtParentLoginFinal();
+    parentLoginErrorFinal("Gagal login. Pastikan server aktif, lalu coba lagi.");
+    return false;
+  }
+}
+
+async function parentLogin(event){ return loginParent(event); }
+async function doParentLogin(event){ return loginParent(event); }
+async function safeParentCodeLogin(event){ return loginParent(event); }
+
+document.addEventListener("DOMContentLoaded", function(){
+  const input = parentLoginInputFinal();
+
+  if(input){
+    input.addEventListener("input", parentLoginClearFinal);
+    input.addEventListener("keydown", function(e){
+      if(e.key === "Enter"){
+        e.preventDefault();
+        loginParent(e);
+      }
+    });
+  }
+
+  const loginView = document.getElementById("loginView");
+  if(loginView){
+    const btn = loginView.querySelector("button");
+    if(btn){
+      btn.onclick = function(e){ return loginParent(e); };
+    }
+  }
+});
+
 </script>
 
 <div class="overlay" id="parentQuizOverlay">

@@ -7723,3 +7723,1456 @@ body::before{
   border-color:#8b5cf6;
   box-shadow:0 0 0 3px rgba(139,92,246,.08);
 }
+
+
+
+/* Admin library card/image cleanup */
+.file-grid.compact-grid{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)) !important;
+  gap:16px !important;
+  align-items:start !important;
+}
+.file-card{
+  overflow:hidden !important;
+}
+.file-card img.cover,
+.file-card .cover{
+  width:100% !important;
+  height:160px !important;
+  max-height:160px !important;
+  object-fit:cover !important;
+  border-radius:18px !important;
+}
+.edit-current-file-box{
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  line-height:1.45;
+}
+.edit-current-file-box b{ color:#4f46e5; }
+.edit-current-file-box span{
+  display:block;
+  margin-top:6px;
+  color:#64748b;
+  font-weight:900;
+}
+
+
+
+/* =========================================================
+   PAYMENT WARNING / PAID STATUS
+   ========================================================= */
+.payment-admin-card{
+  margin:14px 0 16px;
+  padding:16px;
+  border-radius:22px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  border:1px solid #e5e7eb;
+  box-shadow:0 12px 32px rgba(15,23,42,.06);
+}
+.payment-admin-card strong{
+  display:block;
+  color:#0f172a;
+  font-weight:1000;
+  margin-bottom:4px;
+}
+.payment-admin-card small{
+  display:block;
+  color:#64748b;
+  font-weight:800;
+  line-height:1.35;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fff1f2,#fdf2f8);
+  border-color:#fecdd3;
+}
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#ecfdf5,#f0fdf4);
+  border-color:#bbf7d0;
+}
+.payment-toggle{
+  flex:0 0 auto;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:10px 12px;
+  border-radius:999px;
+  background:#fff;
+  border:1px solid #e5e7eb;
+  font-weight:1000;
+  color:#0f172a;
+  cursor:pointer;
+}
+.payment-toggle input{
+  width:18px;
+  height:18px;
+  accent-color:#22c55e;
+}
+.payment-checkline{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:#f8fafc;
+  border:1px solid #e5e7eb;
+  font-weight:900;
+  color:#334155;
+}
+.payment-checkline input{
+  width:18px;
+  height:18px;
+  accent-color:#22c55e;
+}
+
+.package-complete-card.payment-warning{
+  background:linear-gradient(180deg,#fff1f2,#fdf2f8) !important;
+  border-color:#fecdd3 !important;
+}
+.package-complete-card.payment-warning .package-complete-icon{
+  background:linear-gradient(135deg,#ec4899,#be185d) !important;
+  box-shadow:0 18px 42px rgba(236,72,153,.28) !important;
+}
+.package-complete-card.payment-safe{
+  background:linear-gradient(180deg,#ecfdf5,#f7fee7) !important;
+  border-color:#bbf7d0 !important;
+}
+.package-complete-card.payment-safe .package-complete-icon{
+  background:linear-gradient(135deg,#22c55e,#16a34a) !important;
+  box-shadow:0 18px 42px rgba(34,197,94,.24) !important;
+}
+.payment-parent-message{
+  margin:18px 0 0;
+  padding:15px;
+  border-radius:20px;
+  text-align:left;
+  border:1px solid #e5e7eb;
+}
+.payment-parent-message strong{
+  display:block;
+  font-weight:1000;
+  margin-bottom:6px;
+  color:#0f172a;
+}
+.payment-parent-message span{
+  display:block;
+  color:#64748b;
+  line-height:1.45;
+  font-weight:800;
+}
+.payment-parent-message.warning{
+  background:#fff;
+  border-color:#fbcfe8;
+}
+.payment-parent-message.warning strong{
+  color:#be185d;
+}
+.payment-parent-message.safe{
+  background:#ffffff;
+  border-color:#bbf7d0;
+}
+.payment-parent-message.safe strong{
+  color:#15803d;
+}
+.btn-pink{
+  background:linear-gradient(135deg,#ec4899,#be185d) !important;
+  color:#fff !important;
+  border:0 !important;
+}
+
+@media(max-width:720px){
+  .payment-admin-card{
+    display:block;
+  }
+  .payment-toggle{
+    margin-top:12px;
+    width:100%;
+    justify-content:center;
+  }
+}
+
+
+
+/* PAYMENT CHECKBOX INVERTED:
+   Checked = Belum bayar, Unchecked = Sudah bayar */
+.payment-toggle.unpaid input{
+  accent-color:#ef4444;
+}
+.payment-toggle.paid input{
+  accent-color:#22c55e;
+}
+.payment-toggle.unpaid span{
+  color:#991b1b;
+}
+.payment-toggle.paid span{
+  color:#15803d;
+}
+
+
+
+/* Payment checkbox hard fix */
+.payment-toggle.unpaid input{ accent-color:#ef4444; }
+.payment-toggle.paid input{ accent-color:#22c55e; }
+.payment-toggle.unpaid span{ color:#991b1b; }
+.payment-toggle.paid span{ color:#15803d; }
+
+
+
+/* PAYMENT ONLY 1/4 */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff);
+  border-color:#e5e7eb;
+}
+.payment-admin-card.neutral strong{
+  color:#334155;
+}
+.payment-admin-card.neutral small{
+  color:#64748b;
+}
+.payment-toggle.unpaid input{ accent-color:#ef4444; }
+.payment-toggle.paid input{ accent-color:#22c55e; }
+.payment-toggle.unpaid span{ color:#991b1b; }
+.payment-toggle.paid span{ color:#15803d; }
+
+
+
+/* PAYMENT STATE SYNC FIX */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff);
+  border-color:#e5e7eb;
+}
+.payment-toggle.unpaid input{ accent-color:#ef4444; }
+.payment-toggle.paid input{ accent-color:#22c55e; }
+.payment-toggle.unpaid span{ color:#991b1b; }
+.payment-toggle.paid span{ color:#15803d; }
+.package-complete-card.payment-safe{
+  background:linear-gradient(180deg,#ecfdf5,#f7fee7) !important;
+  border-color:#bbf7d0 !important;
+}
+.payment-parent-message.safe strong{
+  color:#15803d !important;
+}
+
+
+/* payment parent refresh final */
+.package-complete-card.payment-safe{
+  background:linear-gradient(180deg,#ecfdf5,#f7fee7) !important;
+  border-color:#bbf7d0 !important;
+}
+.package-complete-card.payment-safe .package-complete-icon{
+  background:linear-gradient(135deg,#22c55e,#16a34a) !important;
+}
+.payment-parent-message.safe strong{ color:#15803d !important; }
+.payment-toggle.unpaid input{ accent-color:#ef4444; }
+.payment-toggle.paid input{ accent-color:#22c55e; }
+.payment-toggle.unpaid span{ color:#991b1b; }
+.payment-toggle.paid span{ color:#15803d; }
+
+/* payment request fail final */
+.payment-toggle.unpaid input{accent-color:#ef4444}.payment-toggle.paid input{accent-color:#22c55e}.payment-toggle.unpaid span{color:#991b1b}.payment-toggle.paid span{color:#15803d}.payment-admin-card.neutral{background:#fff;border-color:#e5e7eb}.package-complete-card.payment-safe{background:linear-gradient(180deg,#ecfdf5,#f7fee7)!important;border-color:#bbf7d0!important}
+
+
+/* payment force state fresh rebuild */
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#ecfdf5,#f0fdf4)!important;
+  border-color:#bbf7d0!important;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fff1f2,#fdf2f8)!important;
+  border-color:#fecdd3!important;
+}
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff)!important;
+  border-color:#e5e7eb!important;
+}
+.payment-toggle.unpaid input{accent-color:#ef4444}
+.payment-toggle.paid input{accent-color:#22c55e}
+.payment-toggle.unpaid span{color:#991b1b}
+.payment-toggle.paid span{color:#15803d}
+.package-complete-card.payment-safe{
+  background:linear-gradient(180deg,#ecfdf5,#f7fee7)!important;
+  border-color:#bbf7d0!important;
+}
+.package-complete-card.payment-safe .package-complete-icon{
+  background:linear-gradient(135deg,#22c55e,#16a34a)!important;
+}
+.payment-parent-message.safe strong{color:#15803d!important}
+
+
+
+
+
+/* Container 2 kolom bagian atas parent */
+.parent-hero-grid,
+.hero-grid,
+.parent-top-grid,
+.dashboard-hero-grid,
+.parent-hero-row,
+.parent-hero-layout,
+.hero-section-grid{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.45fr) minmax(380px, 1fr) !important;
+  gap:18px !important;
+  align-items:stretch !important;
+  min-height:0 !important;
+}
+
+/* Samakan tinggi kedua card */
+.parent-hero-grid > *,
+.hero-grid > *,
+.parent-top-grid > *,
+.dashboard-hero-grid > *,
+.parent-hero-row > *,
+.parent-hero-layout > *,
+.hero-section-grid > *{
+  height:100% !important;
+  min-height:0 !important;
+}
+
+/* Hero kiri */
+.parent-hero-card,
+.hero-card,
+.parent-hero,
+.hero-panel,
+.hero-banner,
+.parent-main-hero{
+  height:100% !important;
+  min-height:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border-radius:28px !important;
+  display:flex !important;
+}
+
+/* Jangan crop bagian penting hero terlalu parah */
+.parent-hero-card img,
+.hero-card img,
+.parent-hero img,
+.hero-panel img,
+.hero-banner img,
+.parent-main-hero img,
+.parent-hero-card .hero-bg,
+.hero-card .hero-bg,
+.parent-hero .hero-bg,
+.hero-panel .hero-bg{
+  width:100% !important;
+  height:100% !important;
+  min-height:360px !important;
+  max-height:440px !important;
+  object-fit:cover !important;
+  object-position:center center !important;
+  display:block !important;
+  border-radius:inherit !important;
+}
+
+/* Card kanan terakhir dibuka */
+.last-opened-card,
+.last-card,
+.recent-card,
+.parent-last-card,
+.latest-card,
+.last-opened-panel,
+.recent-material-card,
+.last-material-card{
+  height:100% !important;
+  min-height:0 !important;
+  max-height:440px !important;
+  overflow:hidden !important;
+  border-radius:28px !important;
+  padding:24px !important;
+  display:grid !important;
+  grid-template-rows:auto minmax(0, 1fr) auto auto auto !important;
+  align-content:start !important;
+  box-sizing:border-box !important;
+}
+
+/* Gambar di card kanan dibuat proporsional, tidak terlalu pendek, tidak keluar jalur */
+.last-opened-card img,
+.last-card img,
+.recent-card img,
+.parent-last-card img,
+.latest-card img,
+.last-opened-panel img,
+.recent-material-card img,
+.last-material-card img,
+.last-opened-card .cover,
+.last-card .cover,
+.recent-card .cover,
+.parent-last-card .cover,
+.latest-card .cover,
+.last-opened-panel .cover,
+.recent-material-card .cover,
+.last-material-card .cover{
+  width:100% !important;
+  height:auto !important;
+  max-height:none !important;
+  aspect-ratio:16/7.2 !important;
+  object-fit:cover !important;
+  object-position:center center !important;
+  display:block !important;
+  border-radius:22px !important;
+  margin:14px 0 14px !important;
+}
+
+/* Judul dan deskripsi card kanan */
+.last-opened-card h1,
+.last-opened-card h2,
+.last-opened-card h3,
+.last-card h1,
+.last-card h2,
+.last-card h3,
+.recent-card h1,
+.recent-card h2,
+.recent-card h3,
+.parent-last-card h1,
+.parent-last-card h2,
+.parent-last-card h3,
+.latest-card h1,
+.latest-card h2,
+.latest-card h3,
+.last-opened-panel h1,
+.last-opened-panel h2,
+.last-opened-panel h3{
+  margin:0 0 8px !important;
+  line-height:1.05 !important;
+  font-size:clamp(24px, 2vw, 34px) !important;
+}
+
+.last-opened-card p,
+.last-card p,
+.recent-card p,
+.parent-last-card p,
+.latest-card p,
+.last-opened-panel p{
+  margin:0 0 14px !important;
+  line-height:1.28 !important;
+}
+
+/* Tombol card kanan selalu berada bawah tapi tidak nabrak */
+.last-opened-card .actions,
+.last-card .actions,
+.recent-card .actions,
+.parent-last-card .actions,
+.latest-card .actions,
+.last-opened-panel .actions,
+.last-opened-card .material-actions,
+.last-card .material-actions,
+.recent-card .material-actions,
+.parent-last-card .material-actions,
+.latest-card .material-actions,
+.last-opened-panel .material-actions,
+.recent-material-card .actions,
+.last-material-card .actions{
+  margin-top:auto !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:12px !important;
+  align-items:center !important;
+  width:100% !important;
+}
+
+.last-opened-card .btn,
+.last-card .btn,
+.recent-card .btn,
+.parent-last-card .btn,
+.latest-card .btn,
+.last-opened-panel .btn,
+.recent-material-card .btn,
+.last-material-card .btn{
+  width:100% !important;
+  min-width:0 !important;
+  white-space:nowrap !important;
+}
+
+/* Desktop: potong area bawah supaya sejajar */
+@media(min-width:901px){
+  .parent-hero-grid,
+  .hero-grid,
+  .parent-top-grid,
+  .dashboard-hero-grid,
+  .parent-hero-row,
+  .parent-hero-layout,
+  .hero-section-grid{
+    height:clamp(360px, 31vw, 440px) !important;
+  }
+
+  .parent-hero-card,
+  .hero-card,
+  .parent-hero,
+  .hero-panel,
+  .hero-banner,
+  .parent-main-hero,
+  .last-opened-card,
+  .last-card,
+  .recent-card,
+  .parent-last-card,
+  .latest-card,
+  .last-opened-panel,
+  .recent-material-card,
+  .last-material-card{
+    height:100% !important;
+  }
+}
+
+/* Mobile fix: semua full, tidak kepotong */
+@media(max-width:900px){
+  html, body{
+    overflow-x:hidden !important;
+  }
+
+  body{
+    padding-bottom:calc(112px + env(safe-area-inset-bottom)) !important;
+  }
+
+  .parent-hero-grid,
+  .hero-grid,
+  .parent-top-grid,
+  .dashboard-hero-grid,
+  .parent-hero-row,
+  .parent-hero-layout,
+  .hero-section-grid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    height:auto !important;
+    gap:14px !important;
+    align-items:start !important;
+  }
+
+  .parent-hero-grid > *,
+  .hero-grid > *,
+  .parent-top-grid > *,
+  .dashboard-hero-grid > *,
+  .parent-hero-row > *,
+  .parent-hero-layout > *,
+  .hero-section-grid > *{
+    height:auto !important;
+    max-height:none !important;
+  }
+
+  .parent-hero-card,
+  .hero-card,
+  .parent-hero,
+  .hero-panel,
+  .hero-banner,
+  .parent-main-hero{
+    height:auto !important;
+    max-height:none !important;
+    padding:0 !important;
+    border-radius:22px !important;
+    overflow:hidden !important;
+  }
+
+  .parent-hero-card img,
+  .hero-card img,
+  .parent-hero img,
+  .hero-panel img,
+  .hero-banner img,
+  .parent-main-hero img,
+  .parent-hero-card .hero-bg,
+  .hero-card .hero-bg,
+  .parent-hero .hero-bg,
+  .hero-panel .hero-bg{
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    aspect-ratio:16/9 !important;
+    object-fit:cover !important;
+    object-position:center center !important;
+    display:block !important;
+    border-radius:22px !important;
+  }
+
+  .last-opened-card,
+  .last-card,
+  .recent-card,
+  .parent-last-card,
+  .latest-card,
+  .last-opened-panel,
+  .recent-material-card,
+  .last-material-card{
+    height:auto !important;
+    max-height:none !important;
+    overflow:visible !important;
+    padding:16px !important;
+    border-radius:24px !important;
+    display:block !important;
+  }
+
+  .last-opened-card img,
+  .last-card img,
+  .recent-card img,
+  .parent-last-card img,
+  .latest-card img,
+  .last-opened-panel img,
+  .recent-material-card img,
+  .last-material-card img,
+  .last-opened-card .cover,
+  .last-card .cover,
+  .recent-card .cover,
+  .parent-last-card .cover,
+  .latest-card .cover,
+  .last-opened-panel .cover,
+  .recent-material-card .cover,
+  .last-material-card .cover{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:16/9 !important;
+    max-height:none !important;
+    object-fit:cover !important;
+    object-position:center center !important;
+    border-radius:18px !important;
+    margin:12px 0 !important;
+  }
+
+  .last-opened-card h1,
+  .last-opened-card h2,
+  .last-opened-card h3,
+  .last-card h1,
+  .last-card h2,
+  .last-card h3,
+  .recent-card h1,
+  .recent-card h2,
+  .recent-card h3,
+  .parent-last-card h1,
+  .parent-last-card h2,
+  .parent-last-card h3,
+  .latest-card h1,
+  .latest-card h2,
+  .latest-card h3,
+  .last-opened-panel h1,
+  .last-opened-panel h2,
+  .last-opened-panel h3{
+    font-size:clamp(22px, 6vw, 30px) !important;
+    line-height:1.07 !important;
+    margin:10px 0 6px !important;
+  }
+
+  .last-opened-card .actions,
+  .last-card .actions,
+  .recent-card .actions,
+  .parent-last-card .actions,
+  .latest-card .actions,
+  .last-opened-panel .actions,
+  .last-opened-card .material-actions,
+  .last-card .material-actions,
+  .recent-card .material-actions,
+  .parent-last-card .material-actions,
+  .latest-card .material-actions,
+  .last-opened-panel .material-actions,
+  .recent-material-card .actions,
+  .last-material-card .actions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:10px !important;
+    margin-top:14px !important;
+  }
+}
+
+/* Navbar bawah jangan nutup card */
+@media(max-width:520px){
+  .bottom-nav,
+  .parent-bottom-nav,
+  .mobile-nav,
+  .tabbar,
+  .parent-tabbar{
+    max-width:calc(100vw - 16px) !important;
+    left:50% !important;
+    transform:translateX(-50%) !important;
+  }
+}
+
+
+/* FROM MINIMAL ZIP - FINAL HERO CUT + ALIGN FIX */
+.parent-hero-grid,.hero-grid,.parent-top-grid,.dashboard-hero-grid,.parent-hero-row,.parent-hero-layout,.hero-section-grid{
+  display:grid!important;grid-template-columns:minmax(0,1.52fr) minmax(390px,1fr)!important;gap:18px!important;align-items:stretch!important;height:clamp(348px,29vw,405px)!important;min-height:0!important;margin-bottom:8px!important;
+}
+.parent-hero-grid>*,.hero-grid>*,.parent-top-grid>*,.dashboard-hero-grid>*,.parent-hero-row>*,.parent-hero-layout>*,.hero-section-grid>*{height:100%!important;min-height:0!important;align-self:stretch!important;}
+.parent-hero-card,.hero-card,.parent-hero,.hero-panel,.hero-banner,.parent-main-hero{height:100%!important;max-height:405px!important;min-height:0!important;padding:0!important;overflow:hidden!important;border-radius:28px!important;display:flex!important;position:relative!important;}
+.parent-hero-card img,.hero-card img,.parent-hero img,.hero-panel img,.hero-banner img,.parent-main-hero img,.parent-hero-card .hero-bg,.hero-card .hero-bg,.parent-hero .hero-bg,.hero-panel .hero-bg{width:100%!important;height:100%!important;min-height:0!important;max-height:none!important;object-fit:cover!important;object-position:center center!important;display:block!important;border-radius:inherit!important;}
+.parent-hero-card .pill,.hero-card .pill,.parent-hero .pill,.hero-panel .pill,.hero-banner .pill,.parent-main-hero .pill,.parent-hero-card .hero-pill,.hero-card .hero-pill,.parent-hero .hero-pill,.hero-panel .hero-pill,.parent-hero-card .welcome-badge,.hero-card .welcome-badge,.parent-hero .welcome-badge,.hero-panel .welcome-badge{transform:translateY(-10px) scale(.84)!important;transform-origin:left center!important;margin-top:0!important;padding:7px 16px!important;font-size:clamp(12px,1vw,17px)!important;line-height:1!important;}
+.last-opened-card,.last-card,.recent-card,.parent-last-card,.latest-card,.last-opened-panel,.recent-material-card,.last-material-card{height:100%!important;max-height:405px!important;min-height:0!important;padding:20px!important;overflow:hidden!important;border-radius:28px!important;display:flex!important;flex-direction:column!important;box-sizing:border-box!important;}
+.last-opened-card .tag,.last-card .tag,.recent-card .tag,.parent-last-card .tag,.latest-card .tag,.last-opened-panel .tag,.last-opened-card .badge,.last-card .badge,.recent-card .badge,.parent-last-card .badge,.latest-card .badge,.last-opened-panel .badge{margin:0 0 12px!important;padding:7px 14px!important;line-height:1!important;font-size:14px!important;width:max-content!important;flex:0 0 auto!important;}
+.last-opened-card img,.last-card img,.recent-card img,.parent-last-card img,.latest-card img,.last-opened-panel img,.recent-material-card img,.last-material-card img,.last-opened-card .cover,.last-card .cover,.recent-card .cover,.parent-last-card .cover,.latest-card .cover,.last-opened-panel .cover,.recent-material-card .cover,.last-material-card .cover{width:100%!important;height:clamp(132px,12.2vw,176px)!important;max-height:176px!important;object-fit:cover!important;object-position:center center!important;display:block!important;border-radius:20px!important;margin:0 0 12px!important;flex:0 0 auto!important;}
+.last-opened-card h1,.last-opened-card h2,.last-opened-card h3,.last-card h1,.last-card h2,.last-card h3,.recent-card h1,.recent-card h2,.recent-card h3,.parent-last-card h1,.parent-last-card h2,.parent-last-card h3,.latest-card h1,.latest-card h2,.latest-card h3,.last-opened-panel h1,.last-opened-panel h2,.last-opened-panel h3{margin:0 0 6px!important;font-size:clamp(21px,1.75vw,29px)!important;line-height:1.04!important;flex:0 0 auto!important;}
+.last-opened-card p,.last-card p,.recent-card p,.parent-last-card p,.latest-card p,.last-opened-panel p{margin:0 0 10px!important;line-height:1.2!important;font-size:clamp(13px,.95vw,16px)!important;flex:0 0 auto!important;}
+.last-opened-card .actions,.last-card .actions,.recent-card .actions,.parent-last-card .actions,.latest-card .actions,.last-opened-panel .actions,.last-opened-card .material-actions,.last-card .material-actions,.recent-card .material-actions,.parent-last-card .material-actions,.latest-card .material-actions,.last-opened-panel .material-actions,.recent-material-card .actions,.last-material-card .actions{margin-top:auto!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;width:100%!important;align-items:center!important;}
+.last-opened-card .btn,.last-card .btn,.recent-card .btn,.parent-last-card .btn,.latest-card .btn,.last-opened-panel .btn,.recent-material-card .btn,.last-material-card .btn{width:100%!important;min-width:0!important;height:46px!important;min-height:46px!important;padding:0 14px!important;white-space:nowrap!important;}
+.progress-chip,.parent-progress-chip,.status-chip,.hero-status-chip{margin-top:6px!important;}
+@media(max-width:900px){
+  html,body{overflow-x:hidden!important;} body{padding-bottom:calc(112px + env(safe-area-inset-bottom))!important;}
+  .parent-hero-grid,.hero-grid,.parent-top-grid,.dashboard-hero-grid,.parent-hero-row,.parent-hero-layout,.hero-section-grid{grid-template-columns:1fr!important;height:auto!important;gap:12px!important;margin-bottom:8px!important;}
+  .parent-hero-grid>*,.hero-grid>*,.parent-top-grid>*,.dashboard-hero-grid>*,.parent-hero-row>*,.parent-hero-layout>*,.hero-section-grid>*{height:auto!important;max-height:none!important;}
+  .parent-hero-card,.hero-card,.parent-hero,.hero-panel,.hero-banner,.parent-main-hero{height:auto!important;max-height:none!important;padding:0!important;border-radius:22px!important;}
+  .parent-hero-card img,.hero-card img,.parent-hero img,.hero-panel img,.hero-banner img,.parent-main-hero img,.parent-hero-card .hero-bg,.hero-card .hero-bg,.parent-hero .hero-bg,.hero-panel .hero-bg{width:100%!important;height:auto!important;aspect-ratio:16/9!important;object-fit:cover!important;object-position:center center!important;border-radius:22px!important;}
+  .parent-hero-card .pill,.hero-card .pill,.parent-hero .pill,.hero-panel .pill,.hero-banner .pill,.parent-main-hero .pill,.parent-hero-card .hero-pill,.hero-card .hero-pill,.parent-hero .hero-pill,.hero-panel .hero-pill,.parent-hero-card .welcome-badge,.hero-card .welcome-badge,.parent-hero .welcome-badge,.hero-panel .welcome-badge{transform:translateY(-5px) scale(.78)!important;padding:6px 11px!important;font-size:12px!important;}
+  .last-opened-card,.last-card,.recent-card,.parent-last-card,.latest-card,.last-opened-panel,.recent-material-card,.last-material-card{height:auto!important;max-height:none!important;padding:14px!important;overflow:visible!important;border-radius:22px!important;}
+  .last-opened-card img,.last-card img,.recent-card img,.parent-last-card img,.latest-card img,.last-opened-panel img,.recent-material-card img,.last-material-card img,.last-opened-card .cover,.last-card .cover,.recent-card .cover,.parent-last-card .cover,.latest-card .cover,.last-opened-panel .cover,.recent-material-card .cover,.last-material-card .cover{height:auto!important;max-height:none!important;aspect-ratio:16/9!important;margin:8px 0 10px!important;border-radius:18px!important;}
+  .last-opened-card .actions,.last-card .actions,.recent-card .actions,.parent-last-card .actions,.latest-card .actions,.last-opened-panel .actions,.last-opened-card .material-actions,.last-card .material-actions,.recent-card .material-actions,.parent-last-card .material-actions,.latest-card .material-actions,.last-opened-panel .material-actions,.recent-material-card .actions,.last-material-card .actions{grid-template-columns:1fr!important;gap:9px!important;}
+}
+
+
+/* =========================================================
+   REAL FINAL: CUT WHITE SPACE + FIX HERO TEXT OVERLAP
+   Base: ZIP fix minimal terbaru.
+   ========================================================= */
+
+/* ===== DESKTOP TOP GRID ===== */
+.parent-hero-grid,
+.hero-grid,
+.parent-top-grid,
+.dashboard-hero-grid,
+.parent-hero-row,
+.parent-hero-layout,
+.hero-section-grid{
+  display:grid !important;
+  grid-template-columns:minmax(0, 1.52fr) minmax(390px, 1fr) !important;
+  gap:18px !important;
+  align-items:stretch !important;
+  height:clamp(330px, 28vw, 385px) !important;
+  min-height:0 !important;
+  margin-bottom:4px !important;
+}
+
+.parent-hero-grid > *,
+.hero-grid > *,
+.parent-top-grid > *,
+.dashboard-hero-grid > *,
+.parent-hero-row > *,
+.parent-hero-layout > *,
+.hero-section-grid > *{
+  height:100% !important;
+  min-height:0 !important;
+  align-self:stretch !important;
+}
+
+/* ===== HERO KIRI ===== */
+.parent-hero-card,
+.hero-card,
+.parent-hero,
+.hero-panel,
+.hero-banner,
+.parent-main-hero{
+  height:100% !important;
+  max-height:385px !important;
+  min-height:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  border-radius:26px !important;
+  display:flex !important;
+  position:relative !important;
+}
+
+/* Naikkan crop hero sedikit supaya area badge tidak terasa numpuk ke title.
+   Karena "Halo..." berada di asset gambar, yang bisa dibenerin adalah posisi crop gambar. */
+.parent-hero-card img,
+.hero-card img,
+.parent-hero img,
+.hero-panel img,
+.hero-banner img,
+.parent-main-hero img,
+.parent-hero-card .hero-bg,
+.hero-card .hero-bg,
+.parent-hero .hero-bg,
+.hero-panel .hero-bg{
+  width:100% !important;
+  height:100% !important;
+  min-height:0 !important;
+  max-height:none !important;
+  object-fit:cover !important;
+  object-position:center 38% !important;
+  display:block !important;
+  border-radius:inherit !important;
+}
+
+/* Kalau ternyata badge Halo bukan bagian gambar, selector ini akan merapikan badge DOM */
+.parent-hero-card .pill,
+.hero-card .pill,
+.parent-hero .pill,
+.hero-panel .pill,
+.hero-banner .pill,
+.parent-main-hero .pill,
+.parent-hero-card .hero-pill,
+.hero-card .hero-pill,
+.parent-hero .hero-pill,
+.hero-panel .hero-pill,
+.parent-hero-card .welcome-badge,
+.hero-card .welcome-badge,
+.parent-hero .welcome-badge,
+.hero-panel .welcome-badge{
+  transform:translateY(-14px) scale(.78) !important;
+  transform-origin:left center !important;
+  margin-top:0 !important;
+  padding:6px 13px !important;
+  font-size:clamp(11px, .9vw, 15px) !important;
+  line-height:1 !important;
+  z-index:3 !important;
+}
+
+/* ===== CARD KANAN: TERAKHIR DIBUKA ===== */
+.last-opened-card,
+.last-card,
+.recent-card,
+.parent-last-card,
+.latest-card,
+.last-opened-panel,
+.recent-material-card,
+.last-material-card{
+  height:100% !important;
+  max-height:385px !important;
+  min-height:0 !important;
+  padding:18px 20px 14px !important;
+  overflow:hidden !important;
+  border-radius:26px !important;
+  display:flex !important;
+  flex-direction:column !important;
+  box-sizing:border-box !important;
+}
+
+/* label compact */
+.last-opened-card .tag,
+.last-card .tag,
+.recent-card .tag,
+.parent-last-card .tag,
+.latest-card .tag,
+.last-opened-panel .tag,
+.last-opened-card .badge,
+.last-card .badge,
+.recent-card .badge,
+.parent-last-card .badge,
+.latest-card .badge,
+.last-opened-panel .badge{
+  margin:0 0 10px !important;
+  padding:6px 13px !important;
+  line-height:1 !important;
+  font-size:13px !important;
+  width:max-content !important;
+  flex:0 0 auto !important;
+}
+
+/* cover dibuat lebih pendek supaya card tidak punya putih kosong bawah */
+.last-opened-card img,
+.last-card img,
+.recent-card img,
+.parent-last-card img,
+.latest-card img,
+.last-opened-panel img,
+.recent-material-card img,
+.last-material-card img,
+.last-opened-card .cover,
+.last-card .cover,
+.recent-card .cover,
+.parent-last-card .cover,
+.latest-card .cover,
+.last-opened-panel .cover,
+.recent-material-card .cover,
+.last-material-card .cover{
+  width:100% !important;
+  height:clamp(118px, 10.8vw, 158px) !important;
+  max-height:158px !important;
+  object-fit:cover !important;
+  object-position:center center !important;
+  display:block !important;
+  border-radius:18px !important;
+  margin:0 0 10px !important;
+  flex:0 0 auto !important;
+}
+
+/* teks compact */
+.last-opened-card h1,
+.last-opened-card h2,
+.last-opened-card h3,
+.last-card h1,
+.last-card h2,
+.last-card h3,
+.recent-card h1,
+.recent-card h2,
+.recent-card h3,
+.parent-last-card h1,
+.parent-last-card h2,
+.parent-last-card h3,
+.latest-card h1,
+.latest-card h2,
+.latest-card h3,
+.last-opened-panel h1,
+.last-opened-panel h2,
+.last-opened-panel h3{
+  margin:0 0 5px !important;
+  font-size:clamp(20px, 1.6vw, 27px) !important;
+  line-height:1.02 !important;
+  flex:0 0 auto !important;
+}
+
+.last-opened-card p,
+.last-card p,
+.recent-card p,
+.parent-last-card p,
+.latest-card p,
+.last-opened-panel p{
+  margin:0 0 8px !important;
+  line-height:1.16 !important;
+  font-size:clamp(12px, .88vw, 15px) !important;
+  flex:0 0 auto !important;
+}
+
+/* tombol bawah compact */
+.last-opened-card .actions,
+.last-card .actions,
+.recent-card .actions,
+.parent-last-card .actions,
+.latest-card .actions,
+.last-opened-panel .actions,
+.last-opened-card .material-actions,
+.last-card .material-actions,
+.recent-card .material-actions,
+.parent-last-card .material-actions,
+.latest-card .material-actions,
+.last-opened-panel .material-actions,
+.recent-material-card .actions,
+.last-material-card .actions{
+  margin-top:auto !important;
+  display:grid !important;
+  grid-template-columns:1fr 1fr !important;
+  gap:11px !important;
+  width:100% !important;
+  align-items:center !important;
+}
+
+.last-opened-card .btn,
+.last-card .btn,
+.recent-card .btn,
+.parent-last-card .btn,
+.latest-card .btn,
+.last-opened-panel .btn,
+.recent-material-card .btn,
+.last-material-card .btn{
+  width:100% !important;
+  min-width:0 !important;
+  height:42px !important;
+  min-height:42px !important;
+  padding:0 12px !important;
+  white-space:nowrap !important;
+}
+
+/* chip progress jangan numpuk / terlalu naik */
+.progress-chip,
+.parent-progress-chip,
+.status-chip,
+.hero-status-chip{
+  margin-top:4px !important;
+  margin-bottom:0 !important;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:900px){
+  html,body{overflow-x:hidden !important;}
+  body{padding-bottom:calc(112px + env(safe-area-inset-bottom)) !important;}
+
+  .parent-hero-grid,
+  .hero-grid,
+  .parent-top-grid,
+  .dashboard-hero-grid,
+  .parent-hero-row,
+  .parent-hero-layout,
+  .hero-section-grid{
+    grid-template-columns:1fr !important;
+    height:auto !important;
+    gap:10px !important;
+    margin-bottom:6px !important;
+  }
+
+  .parent-hero-grid > *,
+  .hero-grid > *,
+  .parent-top-grid > *,
+  .dashboard-hero-grid > *,
+  .parent-hero-row > *,
+  .parent-hero-layout > *,
+  .hero-section-grid > *{
+    height:auto !important;
+    max-height:none !important;
+  }
+
+  .parent-hero-card,
+  .hero-card,
+  .parent-hero,
+  .hero-panel,
+  .hero-banner,
+  .parent-main-hero{
+    height:auto !important;
+    max-height:none !important;
+    padding:0 !important;
+    border-radius:20px !important;
+  }
+
+  .parent-hero-card img,
+  .hero-card img,
+  .parent-hero img,
+  .hero-panel img,
+  .hero-banner img,
+  .parent-main-hero img,
+  .parent-hero-card .hero-bg,
+  .hero-card .hero-bg,
+  .parent-hero .hero-bg,
+  .hero-panel .hero-bg{
+    width:100% !important;
+    height:auto !important;
+    aspect-ratio:16/9 !important;
+    object-fit:cover !important;
+    object-position:center 40% !important;
+    border-radius:20px !important;
+  }
+
+  .parent-hero-card .pill,
+  .hero-card .pill,
+  .parent-hero .pill,
+  .hero-panel .pill,
+  .hero-banner .pill,
+  .parent-main-hero .pill,
+  .parent-hero-card .hero-pill,
+  .hero-card .hero-pill,
+  .parent-hero .hero-pill,
+  .hero-panel .hero-pill,
+  .parent-hero-card .welcome-badge,
+  .hero-card .welcome-badge,
+  .parent-hero .welcome-badge,
+  .hero-panel .welcome-badge{
+    transform:translateY(-7px) scale(.72) !important;
+    padding:5px 9px !important;
+    font-size:11px !important;
+  }
+
+  .last-opened-card,
+  .last-card,
+  .recent-card,
+  .parent-last-card,
+  .latest-card,
+  .last-opened-panel,
+  .recent-material-card,
+  .last-material-card{
+    height:auto !important;
+    max-height:none !important;
+    padding:12px !important;
+    overflow:visible !important;
+    border-radius:20px !important;
+  }
+
+  .last-opened-card img,
+  .last-card img,
+  .recent-card img,
+  .parent-last-card img,
+  .latest-card img,
+  .last-opened-panel img,
+  .recent-material-card img,
+  .last-material-card img,
+  .last-opened-card .cover,
+  .last-card .cover,
+  .recent-card .cover,
+  .parent-last-card .cover,
+  .latest-card .cover,
+  .last-opened-panel .cover,
+  .recent-material-card .cover,
+  .last-material-card .cover{
+    height:auto !important;
+    max-height:none !important;
+    aspect-ratio:16/9 !important;
+    margin:7px 0 9px !important;
+    border-radius:16px !important;
+  }
+
+  .last-opened-card .actions,
+  .last-card .actions,
+  .recent-card .actions,
+  .parent-last-card .actions,
+  .latest-card .actions,
+  .last-opened-panel .actions,
+  .last-opened-card .material-actions,
+  .last-card .material-actions,
+  .recent-card .material-actions,
+  .parent-last-card .material-actions,
+  .latest-card .material-actions,
+  .last-opened-panel .material-actions,
+  .recent-material-card .actions,
+  .last-material-card .actions{
+    grid-template-columns:1fr !important;
+    gap:8px !important;
+  }
+}
+
+/* HP kecil: lebih compact */
+@media(max-width:520px){
+  .last-opened-card,
+  .last-card,
+  .recent-card,
+  .parent-last-card,
+  .latest-card,
+  .last-opened-panel,
+  .recent-material-card,
+  .last-material-card{
+    padding:10px !important;
+  }
+
+  .last-opened-card .btn,
+  .last-card .btn,
+  .recent-card .btn,
+  .parent-last-card .btn,
+  .latest-card .btn,
+  .last-opened-panel .btn{
+    height:40px !important;
+    min-height:40px !important;
+  }
+}
+
+
+/* =========================================================
+   CLEAN FINAL: MOBILE LEVEL + PARENT LOGIN ERROR
+   ========================================================= */
+
+/* Level rapi: desktop kecil, HP pindah kanan atas supaya tidak nutup teks Python */
+#parentHero .hero-level-card{
+  display:flex !important;
+  align-items:center !important;
+  gap:7px !important;
+  padding:8px 13px !important;
+  border-radius:16px !important;
+  font-size:12px !important;
+  line-height:1 !important;
+  max-width:max-content !important;
+}
+
+#parentHero .hero-level-icon{
+  font-size:10px !important;
+  letter-spacing:1px !important;
+}
+
+@media(max-width:720px){
+  #parentHero .hero-level-card{
+    display:flex !important;
+    left:auto !important;
+    right:4.8% !important;
+    top:4.2% !important;
+    bottom:auto !important;
+    max-width:38% !important;
+    padding:4px 7px !important;
+    font-size:7.8px !important;
+    gap:3px !important;
+    border-radius:10px !important;
+    line-height:1 !important;
+    z-index:8 !important;
+    white-space:nowrap !important;
+  }
+
+  #parentHero .hero-level-icon{
+    font-size:7px !important;
+    letter-spacing:.4px !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    top:4.2% !important;
+    left:4.8% !important;
+    max-width:57% !important;
+    padding:4px 8px !important;
+    font-size:8.8px !important;
+    line-height:1.05 !important;
+    z-index:9 !important;
+  }
+
+  #parentHero .hero-main-copy.hero-blue-bg-mode{
+    min-height:248px !important;
+    height:248px !important;
+    background-position:center top !important;
+  }
+}
+
+@media(max-width:430px){
+  #parentHero .hero-level-card{
+    right:4.4% !important;
+    top:4% !important;
+    max-width:39% !important;
+    padding:3px 6px !important;
+    font-size:7.2px !important;
+  }
+
+  #parentHero .hero-dynamic-badge{
+    max-width:56% !important;
+    font-size:8.2px !important;
+    padding:3px 7px !important;
+  }
+}
+
+/* Pesan error login */
+.parent-login-error,
+#parentLoginError{
+  display:none;
+  margin-top:12px !important;
+  padding:12px 14px !important;
+  border-radius:16px !important;
+  background:#fff1f2 !important;
+  border:1px solid #fb7185 !important;
+  color:#be123c !important;
+  font-weight:900 !important;
+  line-height:1.35 !important;
+  text-align:left !important;
+}
+.parent-login-error.show,
+#parentLoginError.show{
+  display:block !important;
+}
+.parent-login-input-error{
+  border-color:#fb7185 !important;
+  box-shadow:0 0 0 4px rgba(244,63,94,.16) !important;
+}
+
+
+/* =========================================================
+   MOBILE LEVEL UNDER HALO FIX
+   Request: di HP level berada tepat di bawah badge "Halo, Orang Tua..."
+   ========================================================= */
+
+@media(max-width:720px){
+  #parentHero .hero-dynamic-badge{
+    top:4.2% !important;
+    left:4.8% !important;
+    max-width:74% !important;
+    padding:4px 8px !important;
+    font-size:8.8px !important;
+    line-height:1.05 !important;
+    z-index:9 !important;
+  }
+
+  #parentHero .hero-level-card{
+    display:flex !important;
+    position:absolute !important;
+    left:4.8% !important;
+    right:auto !important;
+    top:11.8% !important;
+    bottom:auto !important;
+    max-width:58% !important;
+    width:max-content !important;
+    padding:4px 8px !important;
+    font-size:8px !important;
+    gap:4px !important;
+    border-radius:10px !important;
+    line-height:1 !important;
+    z-index:8 !important;
+    white-space:nowrap !important;
+    transform:none !important;
+  }
+
+  #parentHero .hero-level-icon{
+    font-size:7px !important;
+    letter-spacing:.4px !important;
+  }
+
+  #parentHero .hero-level-card b{
+    font-size:8px !important;
+  }
+}
+
+@media(max-width:430px){
+  #parentHero .hero-dynamic-badge{
+    top:3.8% !important;
+    left:4.6% !important;
+    max-width:75% !important;
+    font-size:8px !important;
+    padding:3px 7px !important;
+  }
+
+  #parentHero .hero-level-card{
+    top:11.2% !important;
+    left:4.6% !important;
+    max-width:60% !important;
+    padding:3px 7px !important;
+    font-size:7.4px !important;
+    gap:3px !important;
+  }
+
+  #parentHero .hero-level-card b{
+    font-size:7.4px !important;
+  }
+
+  #parentHero .hero-level-icon{
+    font-size:6.6px !important;
+  }
+}
+
+
+/* =========================================================
+   MOBILE LEVEL LOWER FIX
+   Level diturunkan lebih jauh di bawah badge Halo.
+   ========================================================= */
+
+@media(max-width:720px){
+  #parentHero .hero-level-card{
+    top:15.8% !important;
+    left:4.8% !important;
+    right:auto !important;
+    bottom:auto !important;
+    max-width:58% !important;
+    width:max-content !important;
+    transform:none !important;
+  }
+}
+
+@media(max-width:430px){
+  #parentHero .hero-level-card{
+    top:15.4% !important;
+    left:4.6% !important;
+    max-width:60% !important;
+  }
+}
+
+
+/* =========================================================
+   PROGRESS CHIP CLEAN FIX
+   Rapihin chip "Progress anak sudah siap." supaya tidak terlalu tinggi,
+   tidak nabrak hero, dan tidak terlihat kepotong/jelek.
+   ========================================================= */
+
+.ready-text.standalone-ready,
+.progress-chip,
+.parent-progress-chip,
+.status-chip,
+.hero-status-chip{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  width:max-content !important;
+  max-width:calc(100vw - 32px) !important;
+  min-height:0 !important;
+  height:auto !important;
+  padding:9px 18px !important;
+  margin:12px 0 18px 0 !important;
+  border-radius:999px !important;
+  line-height:1.15 !important;
+  position:relative !important;
+  z-index:5 !important;
+  transform:none !important;
+  top:auto !important;
+  bottom:auto !important;
+  overflow:visible !important;
+  box-sizing:border-box !important;
+}
+
+.ready-text.standalone-ready span,
+.progress-chip span,
+.parent-progress-chip span,
+.status-chip span,
+.hero-status-chip span{
+  display:inline !important;
+  line-height:1.15 !important;
+  font-size:clamp(15px, 1.25vw, 20px) !important;
+  font-weight:900 !important;
+  white-space:normal !important;
+}
+
+/* Hilangkan jarak putih aneh setelah hero */
+#parentHero{
+  margin-bottom:8px !important;
+}
+
+#parentHero + .ready-text.standalone-ready,
+#parentHero + .progress-chip,
+#parentHero + .parent-progress-chip,
+#parentHero + .status-chip,
+#parentHero + .hero-status-chip{
+  margin-top:12px !important;
+}
+
+/* Mobile lebih compact */
+@media(max-width:720px){
+  .ready-text.standalone-ready,
+  .progress-chip,
+  .parent-progress-chip,
+  .status-chip,
+  .hero-status-chip{
+    padding:8px 14px !important;
+    margin:10px 0 16px 0 !important;
+    max-width:calc(100vw - 28px) !important;
+  }
+
+  .ready-text.standalone-ready span,
+  .progress-chip span,
+  .parent-progress-chip span,
+  .status-chip span,
+  .hero-status-chip span{
+    font-size:14px !important;
+    line-height:1.12 !important;
+  }
+}
+
+@media(max-width:430px){
+  .ready-text.standalone-ready,
+  .progress-chip,
+  .parent-progress-chip,
+  .status-chip,
+  .hero-status-chip{
+    padding:7px 13px !important;
+    margin:9px 0 15px 0 !important;
+  }
+
+  .ready-text.standalone-ready span,
+  .progress-chip span,
+  .parent-progress-chip span,
+  .status-chip span,
+  .hero-status-chip span{
+    font-size:13.5px !important;
+  }
+}
+
+
+/* =========================================================
+   PROGRESS CHIP LOWER POSITION FIX
+   Chip "Progress anak sudah siap." diturunkan lagi agar tidak terlalu dekat/ketimpa hero.
+   ========================================================= */
+
+.ready-text.standalone-ready,
+.progress-chip,
+.parent-progress-chip,
+.status-chip,
+.hero-status-chip{
+  margin-top:32px !important;
+  margin-bottom:22px !important;
+}
+
+#parentHero + .ready-text.standalone-ready,
+#parentHero + .progress-chip,
+#parentHero + .parent-progress-chip,
+#parentHero + .status-chip,
+#parentHero + .hero-status-chip{
+  margin-top:34px !important;
+}
+
+@media(max-width:720px){
+  .ready-text.standalone-ready,
+  .progress-chip,
+  .parent-progress-chip,
+  .status-chip,
+  .hero-status-chip{
+    margin-top:30px !important;
+    margin-bottom:20px !important;
+  }
+
+  #parentHero + .ready-text.standalone-ready,
+  #parentHero + .progress-chip,
+  #parentHero + .parent-progress-chip,
+  #parentHero + .status-chip,
+  #parentHero + .hero-status-chip{
+    margin-top:32px !important;
+  }
+}
+
+@media(max-width:430px){
+  .ready-text.standalone-ready,
+  .progress-chip,
+  .parent-progress-chip,
+  .status-chip,
+  .hero-status-chip{
+    margin-top:28px !important;
+    margin-bottom:18px !important;
+  }
+}

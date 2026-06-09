@@ -116,6 +116,14 @@ async function updateProgress(studentId, nextProgress) {
 }
 
 
+
+function lessonCycleNumberServer(total) {
+  const n = Number(total || 0);
+  if (n <= 0) return 0;
+  const mod = n % 4;
+  return mod === 0 ? 4 : mod;
+}
+
 app.get("/", (req, res) => res.redirect("/admin.html"));
 
 app.post("/api/admin/login", (req, res) => {
@@ -147,13 +155,14 @@ app.post("/api/admin/students", requireAdmin, async (req, res) => {
   try {
     const { name, phone, level = "", description = "" } = req.body;
     let parentCode = req.body.parent_code;
+    const paymentPaid = req.body.payment_paid ? 1 : 0;
 
     if (!name || !phone) return res.status(400).json({ error: "Nama dan nomor wajib diisi" });
     if (!parentCode || !parentCode.trim()) parentCode = makeCode(name);
 
     const result = await run(
-      "INSERT INTO students (name, phone, level, description, parent_code) VALUES (?, ?, ?, ?, ?)",
-      [name.trim(), normalizePhone(phone), level, description, String(parentCode).trim().toUpperCase()]
+      "INSERT INTO students (name, phone, level, description, parent_code, payment_paid) VALUES (?, ?, ?, ?, ?, ?)",
+      [name.trim(), normalizePhone(phone), level, description, String(parentCode).trim().toUpperCase(), paymentPaid]
     );
 
     res.json(await getFullStudent(result.id));
@@ -176,15 +185,27 @@ app.put("/api/admin/students/:id", requireAdmin, async (req, res) => {
   try {
     const { name, phone, level = "", description = "" } = req.body;
     let parentCode = String(req.body.parent_code || "").trim().toUpperCase();
+    const paymentPaid = req.body.payment_paid ? 1 : 0;
 
     if (!name || !phone) return res.status(400).json({ error: "Nama dan nomor wajib diisi" });
     if (!parentCode) parentCode = makeCode(name);
 
     await run(
-      "UPDATE students SET name = ?, phone = ?, level = ?, description = ?, parent_code = ? WHERE id = ?",
-      [name.trim(), normalizePhone(phone), level, description, parentCode, req.params.id]
+      "UPDATE students SET name = ?, phone = ?, level = ?, description = ?, parent_code = ?, payment_paid = ? WHERE id = ?",
+      [name.trim(), normalizePhone(phone), level, description, parentCode, paymentPaid, req.params.id]
     );
 
+    res.json(await getFullStudent(req.params.id));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+app.put("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
+  try {
+    const paymentPaid = req.body.payment_paid ? 1 : 0;
+    await run("UPDATE students SET payment_paid = ? WHERE id = ?", [paymentPaid, req.params.id]);
     res.json(await getFullStudent(req.params.id));
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -209,6 +230,14 @@ app.post("/api/admin/students/:id/attendance", requireAdmin, async (req, res) =>
       "INSERT INTO attendances (student_id, date, time, session, note) VALUES (?, ?, ?, ?, ?)",
       [req.params.id, date, time, session, note]
     );
+
+    const countRow = await get("SELECT COUNT(*) AS total FROM attendances WHERE student_id = ?", [req.params.id]);
+    const total = Number(countRow && countRow.total ? countRow.total : 0);
+
+    // Setiap paket baru mulai di 1/4, status pembayaran otomatis kembali belum dibayar.
+    if (lessonCycleNumberServer(total) === 1) {
+      await run("UPDATE students SET payment_paid = 0 WHERE id = ?", [req.params.id]);
+    }
 
     res.json(await getFullStudent(req.params.id));
   } catch (err) {
@@ -244,6 +273,56 @@ app.get("/api/admin/library", requireAdmin, async (req, res) => {
   }
 });
 
+
+async function cleanupDuplicateLibraryMaterials(preferredId = null) {
+  const rows = await all("SELECT * FROM library_materials ORDER BY id ASC");
+  const groups = new Map();
+
+  rows.forEach((row) => {
+    const key = [
+      String(row.title || "").trim().toLowerCase(),
+      String(row.category || "").trim().toLowerCase(),
+      String(row.material_type || "ppt").trim().toLowerCase()
+    ].join("||");
+
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  });
+
+  for (const group of groups.values()) {
+    if (group.length <= 1) continue;
+
+    let keep = null;
+
+    if (preferredId) {
+      keep = group.find((row) => Number(row.id) === Number(preferredId));
+    }
+
+    if (!keep) {
+      // Kalau tidak ada preferredId, simpan data paling lama agar link/akses siswa tidak berubah.
+      keep = group[0];
+    }
+
+    for (const row of group) {
+      if (Number(row.id) === Number(keep.id)) continue;
+
+      // Jangan hapus file fisik kalau path-nya sama dengan data yang disimpan.
+      if (row.file_path && row.file_path !== keep.file_path) {
+        deleteUploadByPublicPath(row.file_path);
+      }
+      if (row.cover_path && row.cover_path !== keep.cover_path) {
+        deleteUploadByPublicPath(row.cover_path);
+      }
+
+      // Bersihkan relasi agar tidak ada sisa data yatim.
+      await run("DELETE FROM material_access WHERE material_id = ?", [row.id]);
+      await run("DELETE FROM quiz_questions WHERE quiz_id IN (SELECT id FROM quizzes WHERE material_id = ?)", [row.id]);
+      await run("DELETE FROM quizzes WHERE material_id = ?", [row.id]);
+      await run("DELETE FROM library_materials WHERE id = ?", [row.id]);
+    }
+  }
+}
+
 app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
   try {
     const { title = "", category = "", note = "", edit_id = "", force_update = "" } = req.body;
@@ -264,9 +343,7 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
       }
     }
 
-    // KUNCI ANTI-DUPLIKAT:
-    // Kalau edit_id hilang karena browser/cache, server tetap cari data lama dengan judul+kategori+jenis.
-    // Jadi klik edit tidak akan membuat item baru untuk materi yang sama.
+    // Anti-duplikat: kalau edit_id hilang, cari data lama berdasarkan title + category + type.
     if (!existing && title) {
       existing = await get(
         `SELECT * FROM library_materials
@@ -326,8 +403,15 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
         ]
       );
 
-      if (hasNewMain && existing.file_path && existing.file_path !== nextFilePath) deleteUploadByPublicPath(existing.file_path);
-      if (hasNewCover && existing.cover_path && existing.cover_path !== nextCoverPath) deleteUploadByPublicPath(existing.cover_path);
+      if (hasNewMain && existing.file_path && existing.file_path !== nextFilePath) {
+        deleteUploadByPublicPath(existing.file_path);
+      }
+      if (hasNewCover && existing.cover_path && existing.cover_path !== nextCoverPath) {
+        deleteUploadByPublicPath(existing.cover_path);
+      }
+
+      // Bersihkan duplikat hasil bug lama atau request dobel.
+      await cleanupDuplicateLibraryMaterials(targetId);
     } else {
       if (!main.path && !cover.path) {
         return res.status(400).json({ error: "Upload file atau cover terlebih dahulu" });
@@ -350,6 +434,9 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
           cover.type
         ]
       );
+
+      // Kalau ternyata insert menciptakan duplikat dengan data lama, langsung bersihkan.
+      await cleanupDuplicateLibraryMaterials(null);
     }
 
     const rows = await all(`
@@ -754,3 +841,9 @@ async function updateLibraryMaterialById(req, res) {
 app.all("/api/admin/library/:id/edit", requireAdmin, multiUpload, updateLibraryMaterialById);
 app.put("/api/admin/library/:id", requireAdmin, multiUpload, updateLibraryMaterialById);
 
+
+
+// Start server
+app.listen(PORT, () => {
+  console.log("Server running on http://localhost:" + PORT);
+});

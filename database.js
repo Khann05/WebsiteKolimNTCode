@@ -31,6 +31,7 @@ db.serialize(() => {
       description TEXT DEFAULT '',
       progress_session INTEGER DEFAULT 0,
       parent_code TEXT UNIQUE NOT NULL,
+      payment_paid INTEGER DEFAULT 0,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP
     )
   `);
@@ -163,3 +164,5 @@ function all(sql, params = []) {
 }
 
 module.exports = { db, run, get, all };
+
+addColumnIfMissing("students", "payment_paid", "INTEGER DEFAULT 0");
