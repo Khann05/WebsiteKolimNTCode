@@ -9178,68 +9178,540 @@ body::before{
 }
 
 
+/* =========================================================
+   KOLIMNT RESPONSIVE CLEANUP SYSTEM
+   Tujuan:
+   - Rapih otomatis di laptop, tablet, dan HP.
+   - Card tidak keluar jalur.
+   - Tombol tidak nabrak.
+   - Gambar stabil pakai aspect-ratio.
+   - Bottom nav tidak nutup konten.
+   - Desain lama tetap dipakai, ini hanya merapihkan sistem responsive.
+   ========================================================= */
 
+:root{
+  --knt-page-max: 1220px;
+  --knt-gap: clamp(12px, 2vw, 22px);
+  --knt-card-radius: clamp(18px, 2vw, 28px);
+  --knt-card-pad: clamp(14px, 2vw, 24px);
+  --knt-title: clamp(22px, 3vw, 42px);
+  --knt-subtitle: clamp(13px, 1.4vw, 17px);
+  --knt-btn-h: 46px;
+}
 
+/* Global safety */
+*,
+*::before,
+*::after{
+  box-sizing:border-box;
+}
 
+html,
+body{
+  max-width:100%;
+  overflow-x:hidden;
+}
 
+body{
+  min-height:100dvh;
+}
 
-/* SINGLE LAST CARD: terakhir dibuka / terakhir di-unlock */
+/* Semua media tidak boleh merusak layout */
+img,
+video,
+canvas,
+svg{
+  max-width:100%;
+}
+
+img{
+  height:auto;
+}
+
+/* Wrapper utama agar tidak terlalu melebar di desktop dan tetap aman di HP */
+.container,
+.page,
+.main,
+.admin-page,
+.parent-page,
+.dashboard,
+.admin-shell,
+.parent-shell,
+.parent-main,
+.admin-main,
+.app-shell{
+  width:min(100%, var(--knt-page-max));
+  margin-inline:auto;
+}
+
+/* Padding aman di layar kecil */
+.parent-page,
+.admin-page,
+.parent-main,
+.admin-main,
+.dashboard,
+.admin-shell,
+.parent-shell{
+  padding-inline:clamp(10px, 2vw, 24px);
+}
+
+/* Panel/card konsisten */
+.panel,
+.card,
+.stat,
+.file-card,
+.student-card,
+.user-question-card,
+.question-card,
+.session-card,
+.parent-card,
+.admin-card,
+.login-card,
+.modal-card,
+.library-card,
+.certificate-card,
+.hero-last-card,
+.hero-last-material,
+.notif-dropdown{
+  border-radius:var(--knt-card-radius);
+  max-width:100%;
+}
+
+/* Grid universal: otomatis turun di layar kecil */
+.grid,
+.stats,
+.file-grid,
+.compact-grid,
+.student-grid,
+.library-grid,
+.question-grid,
+.session-grid,
+.cards-grid,
+.parent-grid,
+.admin-grid{
+  display:grid;
+  gap:var(--knt-gap);
+  max-width:100%;
+}
+
+/* Kalau class-grid lama masih fixed, paksa fleksibel */
+.file-grid,
+.compact-grid,
+.library-grid,
+.question-grid,
+.session-grid,
+.cards-grid{
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 245px), 1fr)) !important;
+}
+
+/* Stats lebih fleksibel */
+.stats{
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 160px), 1fr)) !important;
+}
+
+/* Hero parent: desktop dua kolom, HP satu kolom */
+.hero,
+.parent-hero-grid,
+.hero-grid,
+.parent-top-grid,
+.dashboard-hero-grid,
+.parent-hero-row,
+.parent-hero-layout,
+.hero-section-grid{
+  max-width:100%;
+}
+
+.hero{
+  display:grid;
+  grid-template-columns:minmax(0, 1.35fr) minmax(320px, .85fr);
+  gap:var(--knt-gap);
+  align-items:stretch;
+}
+
+/* Hero content tidak boleh keluar */
+.hero-main-copy,
+.hero-blue-bg-mode,
+.hero-last-material,
 .hero-last-card{
-  height:100% !important;
-  display:flex !important;
-  flex-direction:column !important;
-  justify-content:flex-start !important;
-  overflow:hidden !important;
+  min-width:0;
+  max-width:100%;
 }
 
-.hero-last-card .hero-last-cover{
-  margin:14px 0 14px !important;
+/* Halo dan level rapi */
+.hero-dynamic-badge{
+  font-size:clamp(15px, 1.8vw, 22px) !important;
+  line-height:1.1 !important;
+  max-width:max-content;
+  transform:translateY(-4px);
 }
 
-.hero-last-card .hero-last-cover .cover-wrap,
-.hero-last-card .hero-last-cover img,
-.hero-last-card .hero-last-cover .file-cover-placeholder{
-  width:100% !important;
-  height:clamp(165px, 15vw, 240px) !important;
-  max-height:240px !important;
-  object-fit:cover !important;
-  border-radius:22px !important;
+.hero-level-card{
+  margin-top:-4px !important;
+  transform:translateY(-4px) !important;
+  width:max-content;
+  max-width:100%;
 }
 
-.hero-last-card .hero-last-content strong{
+/* Card terakhir dibuka aman */
+.hero-last-card,
+.hero-last-empty{
+  height:100%;
+  min-height:0;
+  overflow:hidden;
+}
+
+.hero-last-cover,
+.cover-wrap{
+  max-width:100%;
+  overflow:hidden;
+}
+
+.cover-wrap img,
+.hero-last-cover img,
+.file-card img,
+.library-card img,
+.certificate-card img,
+.card-cover,
+.cover-img{
+  width:100%;
+  aspect-ratio:16 / 9;
+  object-fit:cover;
+  object-position:center;
   display:block;
-  font-size:clamp(24px, 2vw, 34px) !important;
-  line-height:1.05 !important;
-  margin-bottom:8px !important;
+  border-radius:clamp(14px, 1.6vw, 22px);
 }
 
-.hero-last-card .hero-last-content small{
-  display:block;
-  line-height:1.3 !important;
+/* Tombol tidak keluar jalur */
+.btn,
+button,
+a.btn{
+  max-width:100%;
+  min-width:0;
 }
 
-.hero-last-card .hero-last-actions{
-  margin-top:auto !important;
-  display:grid !important;
-  grid-template-columns:1fr 1fr !important;
-  gap:12px !important;
+.row-actions,
+.detail-actions,
+.hero-last-actions,
+.material-actions,
+.card-actions,
+.actions,
+.modal-actions,
+.form-actions,
+.library-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
 }
 
-@media(max-width:900px){
-  .hero-last-card{
-    height:auto !important;
-    overflow:visible !important;
+.row-actions > *,
+.detail-actions > *,
+.hero-last-actions > *,
+.material-actions > *,
+.card-actions > *,
+.actions > *,
+.modal-actions > *,
+.form-actions > *,
+.library-actions > *{
+  min-width:0;
+}
+
+/* Input/form rapi */
+input,
+select,
+textarea,
+.field{
+  max-width:100%;
+}
+
+.form-grid,
+.admin-form-grid,
+.modal-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap:14px;
+}
+
+/* Table/list lebar tidak bikin horizontal scroll seluruh halaman */
+.table-wrap,
+.data-table-wrap,
+.history-wrap,
+.calendar-wrap{
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Kalender aman */
+.calendar,
+.parent-calendar,
+.calendar-grid{
+  max-width:100%;
+}
+
+.calendar-grid{
+  display:grid;
+  grid-template-columns:repeat(7, minmax(0, 1fr));
+  gap:clamp(4px, 1vw, 8px);
+}
+
+.calendar-grid > *,
+.calendar-day{
+  min-width:0;
+  overflow:hidden;
+}
+
+/* Bottom nav tidak menutup konten */
+body{
+  padding-bottom:calc(92px + env(safe-area-inset-bottom));
+}
+
+.bottom-nav,
+.parent-bottom-nav,
+.mobile-nav,
+.tabbar,
+.parent-tabbar{
+  max-width:min(680px, calc(100vw - 16px)) !important;
+  left:50% !important;
+  right:auto !important;
+  transform:translateX(-50%) !important;
+}
+
+/* Modal overlay aman di HP */
+.overlay,
+.modal-overlay,
+.popup-overlay{
+  padding:clamp(10px, 3vw, 28px);
+}
+
+.modal-card,
+.popup-card{
+  width:min(100%, 720px);
+  max-height:calc(100dvh - 28px);
+  overflow:auto;
+}
+
+/* Typography responsive */
+h1{
+  font-size:clamp(28px, 5vw, 56px);
+  line-height:1.02;
+}
+
+h2{
+  font-size:clamp(22px, 3.4vw, 38px);
+  line-height:1.08;
+}
+
+h3{
+  font-size:clamp(18px, 2.4vw, 28px);
+  line-height:1.12;
+}
+
+p,
+small,
+.stat-label,
+.card small{
+  overflow-wrap:anywhere;
+}
+
+/* Tablet */
+@media(max-width:1024px){
+  :root{
+    --knt-page-max: 940px;
   }
 
-  .hero-last-card .hero-last-cover .cover-wrap,
-  .hero-last-card .hero-last-cover img,
-  .hero-last-card .hero-last-cover .file-cover-placeholder{
-    height:auto !important;
-    max-height:none !important;
-    aspect-ratio:16/9 !important;
+  .hero{
+    grid-template-columns:1fr;
   }
 
-  .hero-last-card .hero-last-actions{
+  .hero-last-material{
+    width:100%;
+  }
+
+  .detail-actions,
+  .row-actions,
+  .hero-last-actions{
+    display:grid !important;
+    grid-template-columns:repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  }
+}
+
+/* HP */
+@media(max-width:760px){
+  :root{
+    --knt-gap: 12px;
+    --knt-card-pad: 14px;
+    --knt-btn-h: 44px;
+  }
+
+  body{
+    padding-bottom:calc(104px + env(safe-area-inset-bottom));
+  }
+
+  .parent-page,
+  .admin-page,
+  .parent-main,
+  .admin-main,
+  .dashboard,
+  .admin-shell,
+  .parent-shell{
+    padding-inline:10px !important;
+  }
+
+  .hero{
     grid-template-columns:1fr !important;
+    gap:12px !important;
+  }
+
+  .hero-dynamic-badge{
+    font-size:14px !important;
+    padding:7px 12px !important;
+    transform:translateY(-6px) scale(.94);
+    transform-origin:left center;
+  }
+
+  .hero-level-card{
+    margin-top:-8px !important;
+    transform:translateY(-7px) scale(.94) !important;
+    transform-origin:left center;
+  }
+
+  .stats{
+    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
+    gap:10px !important;
+  }
+
+  .stat{
+    padding:12px !important;
+    min-width:0 !important;
+  }
+
+  .stat-num{
+    font-size:clamp(18px, 7vw, 28px) !important;
+  }
+
+  .file-grid,
+  .compact-grid,
+  .library-grid,
+  .question-grid,
+  .session-grid,
+  .cards-grid{
+    grid-template-columns:1fr !important;
+  }
+
+  .row-actions,
+  .detail-actions,
+  .hero-last-actions,
+  .material-actions,
+  .card-actions,
+  .actions,
+  .modal-actions,
+  .form-actions,
+  .library-actions{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    width:100%;
+  }
+
+  .row-actions .btn,
+  .detail-actions .btn,
+  .hero-last-actions .btn,
+  .material-actions .btn,
+  .card-actions .btn,
+  .actions .btn,
+  .modal-actions .btn,
+  .form-actions .btn,
+  .library-actions .btn{
+    width:100% !important;
+  }
+
+  .btn,
+  button.btn,
+  a.btn{
+    min-height:var(--knt-btn-h);
+    padding-inline:12px !important;
+    font-size:14px !important;
+    white-space:normal !important;
+  }
+
+  .panel,
+  .card,
+  .file-card,
+  .student-card,
+  .hero-last-card,
+  .hero-last-empty{
+    padding:14px !important;
+  }
+
+  .cover-wrap img,
+  .hero-last-cover img,
+  .file-card img,
+  .library-card img,
+  .certificate-card img,
+  .card-cover,
+  .cover-img{
+    aspect-ratio:16 / 9;
+  }
+
+  .notif-dropdown{
+    width:calc(100vw - 20px) !important;
+    max-width:calc(100vw - 20px) !important;
+    right:10px !important;
+    left:10px !important;
+  }
+
+  /* Kurangi efek berat di HP */
+  .panel,
+  .card,
+  .file-card,
+  .student-card,
+  .hero-last-card,
+  .hero-last-material,
+  .notif-dropdown,
+  .stat{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:0 10px 26px rgba(15,23,42,.08) !important;
+  }
+}
+
+/* HP kecil */
+@media(max-width:430px){
+  .stats{
+    grid-template-columns:1fr 1fr !important;
+  }
+
+  .stat-label{
+    font-size:12px !important;
+  }
+
+  .calendar-grid{
+    gap:3px !important;
+  }
+
+  .calendar-day{
+    font-size:11px !important;
+    padding:4px !important;
+  }
+
+  h1{
+    font-size:clamp(26px, 10vw, 38px);
+  }
+}
+
+/* Desktop besar */
+@media(min-width:1280px){
+  .container,
+  .page,
+  .main,
+  .admin-page,
+  .parent-page,
+  .dashboard,
+  .admin-shell,
+  .parent-shell,
+  .parent-main,
+  .admin-main,
+  .app-shell{
+    max-width:var(--knt-page-max);
   }
 }
