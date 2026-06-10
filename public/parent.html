@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=single-last-card-opened-unlocked-20260610"/>
+  <link rel="stylesheet" href="/style.css?v=performance-image-batch-8x-20260610"/>
 </head>
 <body class="parent-logged-out">
 
@@ -109,6 +109,7 @@ let currentStudent = null;
     preloadAllParentImages(currentStudent);
 let parentPPTSortMode = "smart";
 let parentMaterialSearch = "";
+let parentMaterialRenderLimit = 8;
 let parentMaterialFilter = "all";
 let parentCalendarTouchStartX = 0;
 let parentCalendarTouchStartY = 0;
@@ -248,13 +249,51 @@ function sortParentMaterials(items){
   });
 }
 
+
+function setupParentLazyImages(){
+  const imgs = Array.from(document.querySelectorAll("img[data-src]"));
+  if(!imgs.length) return;
+
+  if(!("IntersectionObserver" in window)){
+    imgs.forEach(function(img){
+      img.src = img.dataset.src;
+      img.removeAttribute("data-src");
+    });
+    return;
+  }
+
+  const io = new IntersectionObserver(function(entries){
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting) return;
+      const img = entry.target;
+      if(img.dataset.src){
+        img.src = img.dataset.src;
+        img.removeAttribute("data-src");
+      }
+      io.unobserve(img);
+    });
+  }, { rootMargin:"450px 0px" });
+
+  imgs.forEach(function(img){ io.observe(img); });
+}
+
 function coverHTML(item, locked){
-  let content = "";
-  if(item.cover_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(item.cover_path)}">`;
-  else if(item.file_type && item.file_type.indexOf("image/") === 0 && item.file_path) content = `<img class="cover ${locked ? "locked-cover" : ""}" src="${safe(item.file_path)}">`;
-  else content = `<div class="cover-placeholder ${locked ? "locked-cover" : ""}">${svg(locked ? "lock" : "folder")}</div>`;
-  if(!locked) return content;
-  return `<div class="cover-wrap">${content}<div class="lock-layer">LOCKED</div></div>`;
+  const cover = item.cover_path || "";
+  const title = item.title || item.file_name || "Materi";
+  const shouldEager = window.__parentEagerImageIds && window.__parentEagerImageIds.has(Number(item.id));
+  const placeholder = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="800" height="450"><rect width="100%" height="100%" fill="#eef2ff"/></svg>');
+
+  if(cover){
+    return `<div class="cover-wrap ${locked ? "locked" : ""}">
+      <img ${shouldEager ? `src="${safe(cover)}"` : `src="${placeholder}" data-src="${safe(cover)}"`} loading="${shouldEager ? "eager" : "lazy"}" decoding="async" alt="${safe(title)}">
+      ${locked ? '<div class="lock-layer">Locked</div>' : ''}
+    </div>`;
+  }
+
+  return `<div class="file-cover-placeholder ${locked ? "locked" : ""}">
+    <div class="file-icon-big">${locked ? svg("lock") : svg("folder")}</div>
+    <span>${safe(title)}</span>
+  </div>`;
 }
 
 
@@ -390,6 +429,7 @@ function groupByCategory(items){
 
 
 function setParentPPTSortMode(mode){
+  resetParentMaterialRenderLimit();
   parentPPTSortMode = mode === "all" ? "all" : "smart";
   if(currentStudent){
     renderParent(currentStudent);
@@ -1129,6 +1169,7 @@ function parentStatAction(type){
 }
 
 function setParentMaterialSearch(value){
+  resetParentMaterialRenderLimit();
   parentMaterialSearch = String(value || "").toLowerCase().trim();
   parentSectionExpanded.materials = true;
   parentSectionExpanded.projectFiles = true;
@@ -1136,6 +1177,7 @@ function setParentMaterialSearch(value){
 }
 
 function setParentMaterialFilter(filter){
+  resetParentMaterialRenderLimit();
   parentMaterialFilter = filter || "all";
   parentSectionExpanded.materials = true;
   renderMaterials(currentStudent ? currentStudent.library || [] : []);
@@ -1209,67 +1251,31 @@ function saveParentLastMaterial(materialId, type){
   renderParentHeroLastMaterial(currentStudent.library || []);
 }
 
-function getParentSavedLastOpened(list){
+function getParentLastMaterialId(list){
   try{
     const raw = localStorage.getItem(parentLastMaterialKey());
-    if(!raw) return null;
+    if(raw){
+      const saved = JSON.parse(raw);
+      if(saved && saved.materialId && (list || []).some(x => Number(x.id) === Number(saved.materialId) && x.is_unlocked)){
+        return Number(saved.materialId);
+      }
+    }
+  }catch(e){}
 
-    const saved = JSON.parse(raw);
-    if(!saved || !saved.materialId) return null;
-
-    const item = (list || []).find(function(x){
-      return Number(x.id) === Number(saved.materialId) && x.is_unlocked;
-    });
-
-    if(!item) return null;
-
-    return {
-      item:item,
-      label:"Terakhir dibuka",
-      time:Number(saved.time || 0),
-      source:"opened"
-    };
-  }catch(e){
-    return null;
-  }
-}
-
-function getParentLatestUnlocked(list){
-  const unlocked = (list || []).filter(function(x){
-    return x && x.is_unlocked && parentIsPPTMaterial(x);
+  const unlockedWithQuiz = (list || []).filter(function(x){
+    return x.is_unlocked && parentIsPPTMaterial(x) && x.quiz_id && Number(x.quiz_question_count || 0) > 0;
   });
+  if(unlockedWithQuiz.length) return Number(unlockedWithQuiz[unlockedWithQuiz.length - 1].id);
 
-  if(!unlocked.length) return null;
+  const unlockedPPT = (list || []).filter(function(x){
+    return x.is_unlocked && parentIsPPTMaterial(x);
+  });
+  if(unlockedPPT.length) return Number(unlockedPPT[unlockedPPT.length - 1].id);
 
-  const item = unlocked.slice().sort(function(a,b){
-    const ta = a.unlocked_at ? new Date(a.unlocked_at).getTime() : 0;
-    const tb = b.unlocked_at ? new Date(b.unlocked_at).getTime() : 0;
+  const unlockedAny = (list || []).filter(function(x){ return x.is_unlocked; });
+  if(unlockedAny.length) return Number(unlockedAny[unlockedAny.length - 1].id);
 
-    if(tb !== ta) return tb - ta;
-    return Number(b.id || 0) - Number(a.id || 0);
-  })[0];
-
-  return {
-    item:item,
-    label:"Terakhir di-unlock",
-    time:item.unlocked_at ? new Date(item.unlocked_at).getTime() : 0,
-    source:"unlocked"
-  };
-}
-
-function getParentHeroLastMaterialState(list){
-  const opened = getParentSavedLastOpened(list);
-  const unlocked = getParentLatestUnlocked(list);
-
-  if(opened && unlocked){
-    // Kalau admin unlock PPT terbaru setelah parent terakhir buka/download/quiz,
-    // tampilkan "Terakhir di-unlock".
-    // Kalau parent setelah itu download/quiz materi apa pun,
-    // tampilkan "Terakhir dibuka".
-    return unlocked.time > opened.time ? unlocked : opened;
-  }
-
-  return opened || unlocked || null;
+  return null;
 }
 
 function renderParentHeroLastMaterial(list){
@@ -1277,27 +1283,27 @@ function renderParentHeroLastMaterial(list){
   if(!box) return;
 
   const materials = list || [];
-  const state = getParentHeroLastMaterialState(materials);
+  const id = getParentLastMaterialId(materials);
+  const item = materials.find(function(x){ return Number(x.id) === Number(id); });
 
-  if(!state || !state.item){
+  if(!item){
     box.innerHTML = `
       <div class="hero-last-empty">
         <div class="hero-last-kicker">Aktivitas terakhir</div>
         <strong>Belum ada PPT terbuka</strong>
-        <small>PPT terbaru yang dibuka admin atau terakhir dibuka parent akan tampil di sini.</small>
+        <small>PPT dan quiz terakhir akan tampil di sini setelah admin membuka materi.</small>
       </div>
     `;
     return;
   }
 
-  const item = state.item;
   const locked = !item.is_unlocked;
   const hasQuiz = item.quiz_id && Number(item.quiz_question_count || 0) > 0;
   const title = item.title || item.file_name || "Materi";
 
   box.innerHTML = `
     <div class="hero-last-card">
-      <div class="hero-last-kicker">${safe(state.label)}</div>
+      <div class="hero-last-kicker">Terakhir dibuka</div>
       <div class="hero-last-cover">
         ${coverHTML(item, locked)}
       </div>
@@ -1314,12 +1320,26 @@ function renderParentHeroLastMaterial(list){
 }
 
 
+function resetParentMaterialRenderLimit(){
+  parentMaterialRenderLimit = 8;
+}
+
+function showMoreParentMaterials(){
+  parentMaterialRenderLimit += 8;
+  renderMaterials(currentStudent && currentStudent.library ? currentStudent.library : []);
+  setTimeout(setupParentLazyImages, 80);
+}
+
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
   const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
   const allItems = (materials || []).filter(parentItemMatchesSearch).filter(parentItemMatchesFilter);
-  const pptSorted = sortParentMaterials(allItems.filter(parentIsPPTMaterial));
-  const fileSorted = sortParentMaterials(allItems.filter(parentIsProjectFile));
+  
+  const parentVisibleItemsLimited = allItems.slice(0, parentMaterialRenderLimit);
+  const parentHasMoreMaterials = allItems.length > parentMaterialRenderLimit;
+  window.__parentEagerImageIds = new Set(parentVisibleItemsLimited.slice(0, 8).map(function(x){ return Number(x.id); }));
+const pptSorted = sortParentMaterials(parentVisibleItemsLimited.filter(parentIsPPTMaterial));
+  const fileSorted = sortParentMaterials(parentVisibleItemsLimited.filter(parentIsProjectFile));
 
   function filterBtn(label, value){
     return '<button class="btn ' + (parentMaterialFilter === value ? 'btn-primary' : 'btn-light') + '" onclick="setParentMaterialFilter(&quot;' + value + '&quot;)">' + label + '</button>';

@@ -9179,67 +9179,48 @@ body::before{
 
 
 
-
-
-
-
-/* SINGLE LAST CARD: terakhir dibuka / terakhir di-unlock */
-.hero-last-card{
-  height:100% !important;
-  display:flex !important;
-  flex-direction:column !important;
-  justify-content:flex-start !important;
-  overflow:hidden !important;
+/* PERFORMANCE FIX: lazy images + batch render */
+.cover-wrap img[data-src]{
+  opacity:.88;
+  filter:blur(2px);
 }
 
-.hero-last-card .hero-last-cover{
-  margin:14px 0 14px !important;
+.cover-wrap img{
+  transition:opacity .18s ease, filter .18s ease;
 }
 
-.hero-last-card .hero-last-cover .cover-wrap,
-.hero-last-card .hero-last-cover img,
-.hero-last-card .hero-last-cover .file-cover-placeholder{
-  width:100% !important;
-  height:clamp(165px, 15vw, 240px) !important;
-  max-height:240px !important;
-  object-fit:cover !important;
-  border-radius:22px !important;
+.parent-load-more-wrap{
+  display:flex;
+  justify-content:center;
+  padding:18px 0 6px;
 }
 
-.hero-last-card .hero-last-content strong{
-  display:block;
-  font-size:clamp(24px, 2vw, 34px) !important;
-  line-height:1.05 !important;
-  margin-bottom:8px !important;
+.parent-load-more-btn{
+  min-width:220px;
 }
 
-.hero-last-card .hero-last-content small{
-  display:block;
-  line-height:1.3 !important;
-}
-
-.hero-last-card .hero-last-actions{
-  margin-top:auto !important;
-  display:grid !important;
-  grid-template-columns:1fr 1fr !important;
-  gap:12px !important;
+/* Hero level text naik sedikit mendekati Halo badge */
+.hero-level-card{
+  margin-top:-8px !important;
+  transform:translateY(-6px) !important;
 }
 
 @media(max-width:900px){
-  .hero-last-card{
-    height:auto !important;
-    overflow:visible !important;
+  .hero-level-card{
+    margin-top:-10px !important;
+    transform:translateY(-8px) scale(.96) !important;
+    transform-origin:left center;
   }
 
-  .hero-last-card .hero-last-cover .cover-wrap,
-  .hero-last-card .hero-last-cover img,
-  .hero-last-card .hero-last-cover .file-cover-placeholder{
-    height:auto !important;
-    max-height:none !important;
-    aspect-ratio:16/9 !important;
-  }
-
-  .hero-last-card .hero-last-actions{
-    grid-template-columns:1fr !important;
+  /* Kurangi efek berat di HP */
+  .panel,
+  .stat,
+  .hero-last-material,
+  .hero-last-card,
+  .file-card,
+  .notif-dropdown{
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+    box-shadow:0 10px 28px rgba(15,23,42,.08) !important;
   }
 }

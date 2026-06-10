@@ -5,6 +5,7 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const sharp = require("sharp");
 const { run, get, all } = require("./database");
 
 const app = express();
@@ -32,6 +33,130 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 300 * 1024 * 1024 } });
 const multiUpload = upload.fields([{ name: "file", maxCount: 1 }, { name: "cover", maxCount: 1 }]);
+
+
+// ================= IMAGE COMPRESSION PERFORMANCE FIX =================
+const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
+const COMPRESSED_MARK_FILE = path.join(dataDirSafe, "compressed-images-v1.json");
+
+function isImageFileName(name) {
+  return IMAGE_EXTS.has(path.extname(String(name || "")).toLowerCase());
+}
+
+function publicUploadPath(filePath) {
+  return "/uploads/" + path.basename(filePath);
+}
+
+async function compressImageFileToWebp(filePath, options = {}) {
+  try {
+    if (!filePath || !fs.existsSync(filePath)) return null;
+
+    const ext = path.extname(filePath).toLowerCase();
+    if (!IMAGE_EXTS.has(ext)) return null;
+
+    // Hindari convert GIF animasi agar tidak rusak.
+    if (ext === ".gif") return publicUploadPath(filePath);
+
+    const parsed = path.parse(filePath);
+    const outputPath = path.join(parsed.dir, parsed.name + ".webp");
+
+    // Kalau sudah webp dan kecil, tetap pakai.
+    const stat = fs.statSync(filePath);
+    if (ext === ".webp" && stat.size <= 260 * 1024) {
+      return publicUploadPath(filePath);
+    }
+
+    const width = options.width || 800;
+    const height = options.height || 450;
+    const quality = options.quality || 78;
+
+    const tempOutput = path.join(parsed.dir, parsed.name + "-tmp-compress.webp");
+
+    await sharp(filePath, { animated: false })
+      .rotate()
+      .resize(width, height, {
+        fit: "cover",
+        position: "center",
+        withoutEnlargement: true
+      })
+      .webp({ quality, effort: 4 })
+      .toFile(tempOutput);
+
+    // Kalau output berhasil, replace aman.
+    if (fs.existsSync(tempOutput)) {
+      if (fs.existsSync(outputPath)) {
+        try { fs.unlinkSync(outputPath); } catch(e) {}
+      }
+      fs.renameSync(tempOutput, outputPath);
+
+      // Hapus file original kalau beda file.
+      if (path.resolve(outputPath) !== path.resolve(filePath)) {
+        try { fs.unlinkSync(filePath); } catch(e) {}
+      }
+
+      return publicUploadPath(outputPath);
+    }
+
+    return publicUploadPath(filePath);
+  } catch (err) {
+    console.warn("Compress image gagal:", filePath, err.message);
+    return publicUploadPath(filePath);
+  }
+}
+
+function uploadAbsPathFromPublic(publicPath) {
+  if (!publicPath || typeof publicPath !== "string") return null;
+  if (!publicPath.startsWith("/uploads/")) return null;
+  return path.join(uploadDirSafe, path.basename(publicPath));
+}
+
+async function compressExistingUploadImagesOnStartup() {
+  try {
+    const files = fs.existsSync(uploadDirSafe) ? fs.readdirSync(uploadDirSafe) : [];
+    let changed = 0;
+
+    for (const file of files) {
+      const full = path.join(uploadDirSafe, file);
+      if (!fs.existsSync(full) || !fs.statSync(full).isFile()) continue;
+      if (!isImageFileName(file)) continue;
+
+      const ext = path.extname(file).toLowerCase();
+      const stat = fs.statSync(full);
+
+      // Skip webp kecil.
+      if (ext === ".webp" && stat.size <= 260 * 1024) continue;
+
+      const newPublic = await compressImageFileToWebp(full, {
+        width: 800,
+        height: 450,
+        quality: 78
+      });
+
+      if (newPublic && newPublic !== publicUploadPath(full)) {
+        changed++;
+
+        const oldPublic = "/uploads/" + file;
+
+        // Update semua cover_path di DB yang masih menunjuk file lama.
+        try {
+          await run("UPDATE library_materials SET cover_path = ? WHERE cover_path = ?", [newPublic, oldPublic]);
+        } catch(e) {}
+
+        try {
+          await run("UPDATE certificates SET cover_path = ? WHERE cover_path = ?", [newPublic, oldPublic]);
+        } catch(e) {}
+      }
+    }
+
+    if (changed) {
+      console.log("Compressed existing upload images:", changed);
+    }
+  } catch (err) {
+    console.warn("Mass image compression skipped:", err.message);
+  }
+}
+// ================= END IMAGE COMPRESSION PERFORMANCE FIX =================
+
 
 app.use(cors());
 app.use(express.json());
@@ -135,10 +260,31 @@ function makeCode(name) {
   return base + Math.floor(100 + Math.random() * 900);
 }
 
-function fileInfo(req, field) {
+async function fileInfo(req, field) {
   const f = req.files && req.files[field] && req.files[field][0];
-  if (!f) return { name: "", path: "", type: "" };
-  return { name: f.originalname, path: "/uploads/" + f.filename, type: f.mimetype };
+  if (!f) return { path: "", name: "" };
+
+  let publicPath = "/uploads/" + f.filename;
+  let fileName = f.originalname;
+
+  // Semua cover/image otomatis dikompres jadi webp kecil.
+  if (field === "cover" || (f.mimetype && f.mimetype.startsWith("image/"))) {
+    const compressed = await compressImageFileToWebp(f.path, {
+      width: 800,
+      height: 450,
+      quality: 78
+    });
+
+    if (compressed) {
+      publicPath = compressed;
+      fileName = path.basename(compressed);
+    }
+  }
+
+  return {
+    path: publicPath,
+    name: fileName
+  };
 }
 
 
@@ -415,8 +561,8 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
     const requestedType = req.body.material_type === "file" ? "file" : "ppt";
     const finalCategory = category || (requestedType === "file" ? "Project Files" : "Beginner");
 
-    const main = fileInfo(req, "file");
-    const cover = fileInfo(req, "cover");
+    const main = await fileInfo(req, "file");
+    const cover = await fileInfo(req, "cover");
 
     let mode = "insert";
     let targetId = edit_id && String(edit_id).trim() !== "" ? Number(edit_id) : null;
@@ -554,8 +700,8 @@ async function updateLibraryMaterialById(req, res) {
     const { title = "", category = "", note = "" } = req.body;
     const materialType = req.body.material_type === "file" ? "file" : (req.body.material_type === "ppt" ? "ppt" : (existing.material_type || "ppt"));
 
-    const main = fileInfo(req, "file");
-    const cover = fileInfo(req, "cover");
+    const main = await fileInfo(req, "file");
+    const cover = await fileInfo(req, "cover");
 
     const nextFileName = main.path ? main.name : existing.file_name;
     const nextFilePath = main.path ? main.path : existing.file_path;
@@ -633,8 +779,8 @@ app.post("/api/admin/students/:id/certificates", requireAdmin, multiUpload, asyn
   try {
     const { title = "" } = req.body;
     const isLocked = req.body.is_locked === "0" ? 0 : 1;
-    const main = fileInfo(req, "file");
-    const cover = fileInfo(req, "cover");
+    const main = await fileInfo(req, "file");
+    const cover = await fileInfo(req, "cover");
 
     if (!title && !main.path && !cover.path) {
       return res.status(400).json({ error: "Nama sertifikat, file, atau gambar wajib diisi" });
@@ -787,8 +933,8 @@ async function updateLibraryMaterialById(req, res) {
       req.body.material_type === "ppt" ? "ppt" :
       (existing.material_type || "ppt");
 
-    const main = fileInfo(req, "file");
-    const cover = fileInfo(req, "cover");
+    const main = await fileInfo(req, "file");
+    const cover = await fileInfo(req, "cover");
 
     // File baru OPSIONAL. Kalau kosong, file lama tetap dipakai.
     const nextFileName = main.path ? main.name : existing.file_name;
@@ -865,8 +1011,8 @@ async function updateLibraryMaterialById(req, res) {
       req.body.material_type === "ppt" ? "ppt" :
       (existing.material_type || "ppt");
 
-    const main = fileInfo(req, "file");
-    const cover = fileInfo(req, "cover");
+    const main = await fileInfo(req, "file");
+    const cover = await fileInfo(req, "cover");
 
     // Kalau admin tidak upload file baru, file lama tetap dipakai.
     const nextFileName = main.path ? main.name : existing.file_name;
@@ -932,5 +1078,5 @@ app.put("/api/admin/library/:id", requireAdmin, multiUpload, updateLibraryMateri
 // Start server
 app.listen(PORT, () => {
   console.log("Server running on http://localhost:" + PORT);
-  console.log("KOLIMNT_SERVER_UNLOCK_ROUTE_ACTIVE: unlock-debug-no-uploads-20260610");
+  compressExistingUploadImagesOnStartup();
 });
