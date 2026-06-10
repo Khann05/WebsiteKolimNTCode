@@ -36,6 +36,83 @@ const multiUpload = upload.fields([{ name: "file", maxCount: 1 }, { name: "cover
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// ================= ABSOLUTE UNLOCK MATERIAL ACCESS FIX =================
+// Test route: buka http://localhost:3000/api/admin/material-access-test
+// Kalau masih 404, server.js ini belum terganti atau npm start menjalankan folder lain.
+app.get("/api/admin/material-access-test", (req, res) => {
+  res.json({ ok: true, route: "material-access aktif" });
+});
+
+async function absoluteUpdateMaterialAccess(req, res) {
+  try {
+    if (typeof ADMIN_PASSWORD !== "undefined") {
+      const sentPassword = req.headers["x-admin-password"];
+      if (sentPassword !== ADMIN_PASSWORD) {
+        return res.status(401).json({ error: "Admin password salah" });
+      }
+    }
+
+    const body = req.body || {};
+    const studentId = Number(body.student_id || req.params.id);
+    const materialId = Number(body.material_id || req.params.materialId);
+
+    if (!studentId || !materialId) {
+      return res.status(400).json({ error: "ID siswa atau PPT tidak valid" });
+    }
+
+    const raw = body.is_unlocked;
+    const isUnlocked = (
+      raw === true ||
+      raw === 1 ||
+      raw === "1" ||
+      raw === "true"
+    ) ? 1 : 0;
+
+    const student = await get("SELECT id FROM students WHERE id = ?", [studentId]);
+    if (!student) return res.status(404).json({ error: "Siswa tidak ditemukan" });
+
+    const material = await get("SELECT id FROM library_materials WHERE id = ?", [materialId]);
+    if (!material) return res.status(404).json({ error: "PPT/Materi tidak ditemukan" });
+
+    const existing = await get(
+      "SELECT id FROM material_access WHERE student_id = ? AND material_id = ?",
+      [studentId, materialId]
+    );
+
+    if (existing) {
+      await run(
+        "UPDATE material_access SET is_unlocked = ?, updated_at = CURRENT_TIMESTAMP WHERE student_id = ? AND material_id = ?",
+        [isUnlocked, studentId, materialId]
+      );
+    } else {
+      await run(
+        "INSERT INTO material_access (student_id, material_id, is_unlocked, updated_at) VALUES (?, ?, ?, CURRENT_TIMESTAMP)",
+        [studentId, materialId, isUnlocked]
+      );
+    }
+
+    return res.json(await getFullStudent(studentId));
+  } catch (err) {
+    return res.status(500).json({ error: err.message || "Gagal update unlock PPT" });
+  }
+}
+
+app.post("/api/admin/material-access", absoluteUpdateMaterialAccess);
+app.put("/api/admin/material-access", absoluteUpdateMaterialAccess);
+app.all("/api/admin/material-access", absoluteUpdateMaterialAccess);
+
+// Alias lama supaya kalau browser/cache masih manggil route lama, tetap tidak 404.
+app.post("/api/admin/students/:id/library/:materialId/access", absoluteUpdateMaterialAccess);
+app.put("/api/admin/students/:id/library/:materialId/access", absoluteUpdateMaterialAccess);
+app.all("/api/admin/students/:id/library/:materialId/access", absoluteUpdateMaterialAccess);
+
+app.post("/api/admin/students/:id/materials/:materialId/access", absoluteUpdateMaterialAccess);
+app.put("/api/admin/students/:id/materials/:materialId/access", absoluteUpdateMaterialAccess);
+app.all("/api/admin/students/:id/materials/:materialId/access", absoluteUpdateMaterialAccess);
+// ================= END ABSOLUTE UNLOCK MATERIAL ACCESS FIX =================
+
+
 app.use("/uploads", express.static(uploadDir));
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -89,6 +166,7 @@ async function getFullStudent(id) {
     SELECT 
       lm.*,
       COALESCE(ma.is_unlocked, 0) AS is_unlocked,
+      ma.updated_at AS unlocked_at,
       q.id AS quiz_id,
       q.title AS quiz_title,
       (SELECT COUNT(*) FROM quiz_questions qq WHERE qq.quiz_id = q.id) AS quiz_question_count
@@ -185,7 +263,11 @@ app.put("/api/admin/students/:id", requireAdmin, async (req, res) => {
   try {
     const { name, phone, level = "", description = "" } = req.body;
     let parentCode = String(req.body.parent_code || "").trim().toUpperCase();
-    const paymentPaid = req.body.payment_paid ? 1 : 0;
+
+    // payment_paid harus eksplisit:
+    // true  = sudah bayar
+    // false = belum bayar
+    const paymentPaid = req.body.payment_paid === true || req.body.payment_paid === 1 || req.body.payment_paid === "1" ? 1 : 0;
 
     if (!name || !phone) return res.status(400).json({ error: "Nama dan nomor wajib diisi" });
     if (!parentCode) parentCode = makeCode(name);
@@ -202,13 +284,17 @@ app.put("/api/admin/students/:id", requireAdmin, async (req, res) => {
 });
 
 
-app.put("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
+
+
+
+
+app.all("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
   try {
-    const paymentPaid = req.body.payment_paid ? 1 : 0;
+    const paymentPaid = req.body.payment_paid === true || req.body.payment_paid === 1 || req.body.payment_paid === "1" ? 1 : 0;
     await run("UPDATE students SET payment_paid = ? WHERE id = ?", [paymentPaid, req.params.id]);
     res.json(await getFullStudent(req.params.id));
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: err.message || "Gagal update status pembayaran" });
   }
 });
 
@@ -846,4 +932,5 @@ app.put("/api/admin/library/:id", requireAdmin, multiUpload, updateLibraryMateri
 // Start server
 app.listen(PORT, () => {
   console.log("Server running on http://localhost:" + PORT);
+  console.log("KOLIMNT_SERVER_UNLOCK_ROUTE_ACTIVE: unlock-debug-no-uploads-20260610");
 });

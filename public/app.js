@@ -1,3 +1,4 @@
+console.log("KOLIMNT_APP_VERSION_UNLOCK_DEBUG: unlock-debug-no-uploads-20260610");
 const API = "";
 const START_YEAR = 2026;
 const START_MONTH = 3; // April, karena index JS mulai dari 0
@@ -389,7 +390,27 @@ function isPaymentPaid(s){
   return Number((s && s.payment_paid) || 0) === 1;
 }
 
+function adminLessonCycleNumber(s){
+  const total = (s && s.attendances ? s.attendances.length : 0);
+  if(total <= 0) return 0;
+  const mod = total % 4;
+  return mod === 0 ? 4 : mod;
+}
+
 function paymentStatusHTML(s){
+  const cycleNo = adminLessonCycleNumber(s);
+
+  if(cycleNo !== 1){
+    return `
+      <div class="payment-admin-card neutral">
+        <div>
+          <strong>Status pembayaran tidak perlu dicek saat ini</strong>
+          <small>Checklist pembayaran hanya muncul saat progress paket berada di 1/4.</small>
+        </div>
+      </div>
+    `;
+  }
+
   const paid = isPaymentPaid(s);
   const unpaidChecked = !paid;
 
@@ -397,7 +418,7 @@ function paymentStatusHTML(s){
     <div class="payment-admin-card ${paid ? "paid" : "unpaid"}">
       <div>
         <strong>${paid ? "Pembayaran sudah dikonfirmasi" : "Menunggu konfirmasi pembayaran"}</strong>
-        <small>${paid ? "Parent sudah melihat status normal hijau muda." : "Parent akan melihat peringatan merah muda saat progress berada di 1/4."}</small>
+        <small>${paid ? "Parent sudah melihat status normal hijau muda." : "Parent akan melihat peringatan merah muda karena progress berada di 1/4."}</small>
       </div>
       <label class="payment-toggle ${paid ? "paid" : "unpaid"}">
         <input type="checkbox" ${unpaidChecked ? "checked" : ""} onchange="togglePaymentUnpaid(this.checked)">
@@ -411,31 +432,43 @@ async function togglePaymentUnpaid(isUnpaid){
   if(!selectedStudent) return;
 
   try{
+    const cycleNo = adminLessonCycleNumber(selectedStudent);
+    if(cycleNo !== 1){
+      toast("Checklist pembayaran hanya aktif saat progress 1/4", "error");
+      renderDetail();
+      return;
+    }
+
     const paymentPaid = !isUnpaid;
 
-    // Pakai route edit siswa yang sudah ada supaya tidak kena 404 /payment.
-    selectedStudent = await api("/api/admin/students/" + selectedStudent.id, {
-      method:"PUT",
+    // Update UI lokal dulu supaya centang langsung mati/nyala.
+    selectedStudent.payment_paid = paymentPaid ? 1 : 0;
+    renderDetail();
+
+    // Route ini sudah ada di server dan khusus untuk status pembayaran.
+    selectedStudent = await api("/api/admin/students/" + selectedStudent.id + "/payment", {
+      method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({
-        name:selectedStudent.name || "",
-        phone:selectedStudent.phone || "",
-        level:selectedStudent.level || "",
-        description:selectedStudent.description || "",
-        parent_code:selectedStudent.parent_code || "",
-        payment_paid: paymentPaid
-      })
+      body:JSON.stringify({ payment_paid: paymentPaid })
     });
 
-    await loadStudents();
+    // Sinkronkan juga data list di memory.
+    students = students.map(function(s){
+      return Number(s.id) === Number(selectedStudent.id) ? selectedStudent : s;
+    });
+
     renderDetail();
     toast(paymentPaid ? "Pembayaran sudah dikonfirmasi" : "Status dikembalikan ke belum bayar", paymentPaid ? "success" : "error");
   }catch(e){
-    toast(e.message, "error");
+    // Kalau gagal, reload detail supaya state tidak salah.
+    await loadStudents();
+    const fresh = (students || []).find(function(s){ return Number(s.id) === Number(selectedStudent && selectedStudent.id); });
+    if(fresh) selectedStudent = fresh;
+    renderDetail();
+    toast(e.message || "Request gagal", "error");
   }
 }
 
-// Kompatibilitas kalau masih ada onclick lama di browser/cache.
 async function togglePaymentPaid(checked){
   return togglePaymentUnpaid(!checked);
 }
@@ -795,17 +828,35 @@ async function deleteLibraryMaterial(id){
 }
 
 async function toggleMaterialAccess(materialId, isUnlocked){
+  if(!selectedStudent){
+    toast("Pilih siswa dulu", "error");
+    return;
+  }
+
   try{
-    if(!selectedStudent) return;
-    selectedStudent = await api("/api/admin/students/" + selectedStudent.id + "/library/" + materialId + "/access", {
-      method:"PUT",
+    const nextUnlocked = isUnlocked ? 0 : 1;
+
+    selectedStudent = await api("/api/admin/material-access", {
+      method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({is_unlocked:isUnlocked ? 0 : 1})
+      body:JSON.stringify({
+        student_id:selectedStudent.id,
+        material_id:materialId,
+        is_unlocked:nextUnlocked
+      })
     });
+
     await loadStudents();
+    const fresh = (students || []).find(function(s){
+      return Number(s.id) === Number(selectedStudent.id);
+    });
+    if(fresh) selectedStudent = fresh;
+
     renderAll();
     toast(isUnlocked ? "PPT dikunci untuk siswa ini" : "PPT dibuka untuk siswa ini");
-  }catch(e){ toast(e.message,"error"); }
+  }catch(e){
+    toast((e && e.message) ? e.message : "Gagal unlock PPT. Coba buka /api/admin/material-access-test", "error");
+  }
 }
 
 function openCertificateModal(){

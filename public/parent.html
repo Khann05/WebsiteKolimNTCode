@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=progress-chip-lower-final-20260609"/>
+  <link rel="stylesheet" href="/style.css?v=single-last-card-opened-unlocked-20260610"/>
 </head>
 <body class="parent-logged-out">
 
@@ -1209,31 +1209,67 @@ function saveParentLastMaterial(materialId, type){
   renderParentHeroLastMaterial(currentStudent.library || []);
 }
 
-function getParentLastMaterialId(list){
+function getParentSavedLastOpened(list){
   try{
     const raw = localStorage.getItem(parentLastMaterialKey());
-    if(raw){
-      const saved = JSON.parse(raw);
-      if(saved && saved.materialId && (list || []).some(x => Number(x.id) === Number(saved.materialId) && x.is_unlocked)){
-        return Number(saved.materialId);
-      }
-    }
-  }catch(e){}
+    if(!raw) return null;
 
-  const unlockedWithQuiz = (list || []).filter(function(x){
-    return x.is_unlocked && parentIsPPTMaterial(x) && x.quiz_id && Number(x.quiz_question_count || 0) > 0;
+    const saved = JSON.parse(raw);
+    if(!saved || !saved.materialId) return null;
+
+    const item = (list || []).find(function(x){
+      return Number(x.id) === Number(saved.materialId) && x.is_unlocked;
+    });
+
+    if(!item) return null;
+
+    return {
+      item:item,
+      label:"Terakhir dibuka",
+      time:Number(saved.time || 0),
+      source:"opened"
+    };
+  }catch(e){
+    return null;
+  }
+}
+
+function getParentLatestUnlocked(list){
+  const unlocked = (list || []).filter(function(x){
+    return x && x.is_unlocked && parentIsPPTMaterial(x);
   });
-  if(unlockedWithQuiz.length) return Number(unlockedWithQuiz[unlockedWithQuiz.length - 1].id);
 
-  const unlockedPPT = (list || []).filter(function(x){
-    return x.is_unlocked && parentIsPPTMaterial(x);
-  });
-  if(unlockedPPT.length) return Number(unlockedPPT[unlockedPPT.length - 1].id);
+  if(!unlocked.length) return null;
 
-  const unlockedAny = (list || []).filter(function(x){ return x.is_unlocked; });
-  if(unlockedAny.length) return Number(unlockedAny[unlockedAny.length - 1].id);
+  const item = unlocked.slice().sort(function(a,b){
+    const ta = a.unlocked_at ? new Date(a.unlocked_at).getTime() : 0;
+    const tb = b.unlocked_at ? new Date(b.unlocked_at).getTime() : 0;
 
-  return null;
+    if(tb !== ta) return tb - ta;
+    return Number(b.id || 0) - Number(a.id || 0);
+  })[0];
+
+  return {
+    item:item,
+    label:"Terakhir di-unlock",
+    time:item.unlocked_at ? new Date(item.unlocked_at).getTime() : 0,
+    source:"unlocked"
+  };
+}
+
+function getParentHeroLastMaterialState(list){
+  const opened = getParentSavedLastOpened(list);
+  const unlocked = getParentLatestUnlocked(list);
+
+  if(opened && unlocked){
+    // Kalau admin unlock PPT terbaru setelah parent terakhir buka/download/quiz,
+    // tampilkan "Terakhir di-unlock".
+    // Kalau parent setelah itu download/quiz materi apa pun,
+    // tampilkan "Terakhir dibuka".
+    return unlocked.time > opened.time ? unlocked : opened;
+  }
+
+  return opened || unlocked || null;
 }
 
 function renderParentHeroLastMaterial(list){
@@ -1241,27 +1277,27 @@ function renderParentHeroLastMaterial(list){
   if(!box) return;
 
   const materials = list || [];
-  const id = getParentLastMaterialId(materials);
-  const item = materials.find(function(x){ return Number(x.id) === Number(id); });
+  const state = getParentHeroLastMaterialState(materials);
 
-  if(!item){
+  if(!state || !state.item){
     box.innerHTML = `
       <div class="hero-last-empty">
         <div class="hero-last-kicker">Aktivitas terakhir</div>
         <strong>Belum ada PPT terbuka</strong>
-        <small>PPT dan quiz terakhir akan tampil di sini setelah admin membuka materi.</small>
+        <small>PPT terbaru yang dibuka admin atau terakhir dibuka parent akan tampil di sini.</small>
       </div>
     `;
     return;
   }
 
+  const item = state.item;
   const locked = !item.is_unlocked;
   const hasQuiz = item.quiz_id && Number(item.quiz_question_count || 0) > 0;
   const title = item.title || item.file_name || "Materi";
 
   box.innerHTML = `
     <div class="hero-last-card">
-      <div class="hero-last-kicker">Terakhir dibuka</div>
+      <div class="hero-last-kicker">${safe(state.label)}</div>
       <div class="hero-last-cover">
         ${coverHTML(item, locked)}
       </div>
@@ -1276,6 +1312,7 @@ function renderParentHeroLastMaterial(list){
     </div>
   `;
 }
+
 
 function renderMaterials(materials){
   const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
