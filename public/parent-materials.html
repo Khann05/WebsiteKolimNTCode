@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PPT & Quiz Parent - KolimNT Code</title>
+  <link rel="stylesheet" href="/style.css?v=payment-onoff-absolute-override-20260621"/>
+</head>
+<body class="parent-materials-page">
+  <div class="app pptquiz-page-app">
+    <section class="pptquiz-page-hero">
+      <div class="pptquiz-page-copy">
+        <div class="eyebrow">Parent Portal</div>
+        <h1>PPT & Quiz</h1>
+        <p id="pageSub">Halaman khusus untuk melihat PPT, cover materi, dan quiz anak.</p>
+        <div class="pptquiz-page-actions">
+          <a class="btn btn-light" href="/parent.html">Dashboard</a>
+        </div>
+      </div>
+      <div class="pptquiz-page-carousel" id="bigCoverCarousel">
+        <div class="pptquiz-page-slide active empty">
+          <div class="cover-placeholder">PPT</div>
+          <div class="pptquiz-page-slide-caption">
+            <span>Memuat cover...</span>
+            <strong>KolimNT Code</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel parent-materials-tools">
+      <input id="materialSearch" class="field" placeholder="Cari PPT, quiz, file..." oninput="renderMaterialsPage()"/>
+      <select id="materialFilter" class="field" onchange="renderMaterialsPage()">
+        <option value="all">Semua</option>
+        <option value="ppt-open">PPT Terbuka</option>
+        <option value="ppt-locked">PPT Locked</option>
+        <option value="quiz-open">Quiz Terbuka</option>
+        <option value="quiz-locked">Quiz Locked</option>
+        <option value="file-open">File Terbuka</option>
+        <option value="file-locked">File Locked</option>
+      </select>
+    </section>
+
+    <section class="panel parent-materials-page-panel">
+      <div class="section-toolbar">
+        <div>
+          <div class="title">Daftar PPT & Quiz</div>
+          <div class="subtitle">Cover lebih besar, tombol ada di bawah card.</div>
+        </div>
+      </div>
+      <div id="materialsPageList" class="parent-materials-list">
+        <div class="empty">Memuat data...</div>
+      </div>
+    </section>
+  </div>
+
+  <div id="quizOverlay" class="overlay" style="display:none">
+    <div class="modal-card quiz-modal-card">
+      <div class="modal-head">
+        <div>
+          <div class="eyebrow">Quiz</div>
+          <h2 id="quizTitle">Quiz</h2>
+        </div>
+        <button class="btn btn-light" onclick="closeQuiz()">Tutup</button>
+      </div>
+      <div id="quizBody"></div>
+      <div class="modal-actions">
+        <button class="btn btn-purple" onclick="submitQuiz()">Cek Jawaban</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let currentStudent = null;
+let quizAnswers = {};
+let currentQuizQuestions = [];
+let currentQuizTitle = "";
+let bigCarouselTimer = null;
+
+function getEl(id){ return document.getElementById(id); }
+function safe(v){ return String(v || "").replace(/[&<>"]/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
+
+function svg(name){
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
+}
+
+function parentLastMaterialKey(){
+  const code = (currentStudent && currentStudent.parent_code) ? currentStudent.parent_code : "guest";
+  return "kolimnt_parent_last_material_" + code;
+}
+
+function saveParentLastMaterial(materialId, type){
+  if(!currentStudent || !materialId) return;
+  try{
+    localStorage.setItem(parentLastMaterialKey(), JSON.stringify({
+      materialId:Number(materialId),
+      type:type || "material",
+      time:Date.now()
+    }));
+  }catch(e){}
+}
+
+function materialKind(item){ return item && item.material_type === "file" ? "file" : "ppt"; }
+function parentIsProjectFile(item){ return materialKind(item) === "file"; }
+function parentIsPPTMaterial(item){ return !parentIsProjectFile(item); }
+
+function coverHTML(item, locked){
+  if(item.cover_path){
+    return `<div class="pptquiz-big-cover-wrap">
+      <img class="pptquiz-big-cover ${locked ? "locked-cover" : ""}" src="${safe(item.cover_path)}" loading="lazy" decoding="async">
+      ${locked ? '<div class="lock-layer">LOCKED</div>' : ''}
+    </div>`;
+  }
+
+  return `<div class="pptquiz-big-cover-placeholder ${locked ? "locked-cover" : ""}">
+    ${svg("folder")}
+    <span>${safe(item.title || item.file_name || "Materi")}</span>
+    ${locked ? '<div class="lock-layer">LOCKED</div>' : ''}
+  </div>`;
+}
+
+function getParentCode(){
+  try{ return localStorage.getItem("parentCode") || ""; }catch(e){ return ""; }
+}
+
+async function reloadParentMaterials(){
+  const code = getParentCode();
+  if(!code){
+    getEl("materialsPageList").innerHTML = '<div class="empty">Belum login. Masuk dulu dari Parent Dashboard.</div><a class="btn btn-primary" href="/parent.html">Login Parent</a>';
+    return;
+  }
+
+  const res = await fetch("/api/parent/" + encodeURIComponent(code), { cache:"no-store" });
+  const data = await res.json().catch(function(){ return {}; });
+  if(!res.ok || !data || data.error){
+    getEl("materialsPageList").innerHTML = '<div class="empty">Kode parent tidak valid. Login ulang dari dashboard.</div><a class="btn btn-primary" href="/parent.html">Login Parent</a>';
+    return;
+  }
+
+  currentStudent = data;
+  getEl("pageSub").textContent = "Siswa: " + (currentStudent.name || "-") + " • Level: " + (currentStudent.level || "Belum diisi");
+  renderBigCarousel();
+  renderMaterialsPage();
+  scrollToLastOpenedMaterial();
+}
+
+function renderBigCarousel(){
+  const wrap = getEl("bigCoverCarousel");
+  if(!wrap || !currentStudent) return;
+
+  const covers = (currentStudent.library || []).filter(function(x){ return x && x.cover_path; }).slice(0, 10);
+
+  if(!covers.length){
+    wrap.innerHTML = '<div class="pptquiz-page-slide active empty"><div class="cover-placeholder">PPT</div><div class="pptquiz-page-slide-caption"><span>Belum ada cover</span><strong>PPT & Quiz</strong></div></div>';
+    return;
+  }
+
+  wrap.innerHTML = covers.map(function(item, index){
+    return `
+      <div class="pptquiz-page-slide ${index === 0 ? "active" : ""}">
+        <img src="${safe(item.cover_path)}" loading="${index === 0 ? "eager" : "lazy"}" decoding="async">
+        <div class="pptquiz-page-slide-caption">
+          <span>${item.is_unlocked ? "Unlocked" : "Locked"}</span>
+          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  startBigCarousel();
+}
+
+function startBigCarousel(){
+  const slides = Array.from(document.querySelectorAll("#bigCoverCarousel .pptquiz-page-slide"));
+  if(slides.length <= 1) return;
+
+  if(bigCarouselTimer) clearInterval(bigCarouselTimer);
+
+  let index = slides.findIndex(function(s){ return s.classList.contains("active"); });
+  if(index < 0) index = 0;
+
+  bigCarouselTimer = setInterval(function(){
+    slides[index].classList.remove("active");
+    index = (index + 1) % slides.length;
+    slides[index].classList.add("active");
+  }, 2000);
+}
+
+function initFilterFromQuery(){
+  const q = new URLSearchParams(location.search);
+  const f = q.get("filter");
+  if(f && getEl("materialFilter")) getEl("materialFilter").value = f;
+}
+
+function itemMatch(item){
+  const q = String(getEl("materialSearch").value || "").toLowerCase().trim();
+  const f = getEl("materialFilter").value || "all";
+  const locked = !item.is_unlocked;
+  const hasQuiz = item.quiz_id && Number(item.quiz_question_count || 0) > 0;
+  const isFile = parentIsProjectFile(item);
+
+  if(q){
+    const hay = [item.title, item.file_name, item.category, item.quiz_title].join(" ").toLowerCase();
+    if(!hay.includes(q)) return false;
+  }
+
+  if(f === "ppt-open") return !isFile && !locked;
+  if(f === "ppt-locked") return !isFile && locked;
+  if(f === "quiz-open") return !isFile && hasQuiz && !locked;
+  if(f === "quiz-locked") return !isFile && hasQuiz && locked;
+  if(f === "file-open") return isFile && !locked;
+  if(f === "file-locked") return isFile && locked;
+  return true;
+}
+
+function renderMaterialsPage(){
+  if(!currentStudent){
+    getEl("materialsPageList").innerHTML = '<div class="empty">Memuat data...</div>';
+    return;
+  }
+
+  const list = (currentStudent.library || []).filter(itemMatch).slice().sort(function(a,b){
+    const al = a.is_unlocked ? 0 : 1;
+    const bl = b.is_unlocked ? 0 : 1;
+    if(al !== bl) return al - bl;
+    return Number(a.id || 0) - Number(b.id || 0);
+  });
+
+  if(!list.length){
+    getEl("materialsPageList").innerHTML = '<div class="empty">Tidak ada PPT/file yang cocok.</div>';
+    return;
+  }
+
+  getEl("materialsPageList").innerHTML = '<div class="pptquiz-big-grid">' + list.map(function(item){
+    const locked = !item.is_unlocked;
+    const hasQuiz = item.quiz_id && Number(item.quiz_question_count || 0) > 0;
+    const isFile = parentIsProjectFile(item);
+    const title = item.title || item.file_name || (isFile ? "File Project" : "PPT");
+
+    return `
+      <article id="material-card-${item.id}" data-material-id="${item.id}" class="pptquiz-big-card ${isFile ? "project-file-card" : ""}">
+        ${coverHTML(item, locked)}
+        <div class="pptquiz-big-body">
+          <span class="pptquiz-status ${locked ? "locked" : "open"}">${locked ? "Locked" : "Unlocked"}</span>
+          <h3>${safe(title)}</h3>
+          <p>Kategori: ${safe(item.category || "-")}<br>File: ${safe(item.file_name || "-")}</p>
+          <div class="pptquiz-big-actions">
+            ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download onclick="saveParentLastMaterial(${item.id}, 'download')">Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
+            ${!isFile && hasQuiz && !locked ? `<button class="btn btn-purple" onclick="openQuiz(${item.id})">Kerjakan Quiz</button>` : (!isFile ? `<button class="btn btn-light" disabled>${hasQuiz ? "Quiz Locked" : "Quiz belum ada"}</button>` : "")}
+          </div>
+        </div>
+      </article>
+    `;
+  }).join("") + '</div>';
+}
+
+async function openQuiz(materialId){
+  saveParentLastMaterial(materialId, "quiz");
+  quizAnswers = {};
+  const quiz = await fetch("/api/parent/materials/" + materialId + "/quiz", { cache:"no-store" }).then(r => r.json());
+  currentQuizQuestions = quiz.questions || [];
+  currentQuizTitle = quiz.title || "Quiz";
+  getEl("quizTitle").textContent = currentQuizTitle;
+
+  if(!currentQuizQuestions.length){
+    getEl("quizBody").innerHTML = '<div class="empty">Quiz belum tersedia untuk materi ini.</div>';
+    getEl("quizOverlay").style.display = "flex";
+    return;
+  }
+
+  getEl("quizBody").innerHTML = currentQuizQuestions.map(function(q, i){
+    return `
+      <div class="quiz-question-card">
+        <strong>${i + 1}. ${safe(q.question)}</strong>
+        ${["A","B","C","D"].map(function(letter){
+          const text = q["option_" + letter.toLowerCase()] || "";
+          return `<label class="quiz-choice"><input type="radio" name="q${i}" value="${letter}" onchange="quizAnswers[${i}]='${letter}'"> ${letter}. ${safe(text)}</label>`;
+        }).join("")}
+      </div>
+    `;
+  }).join("");
+
+  getEl("quizOverlay").style.display = "flex";
+}
+
+function closeQuiz(){
+  getEl("quizOverlay").style.display = "none";
+}
+
+function submitQuiz(){
+  const total = currentQuizQuestions.length;
+  let score = 0;
+  const wrong = [];
+
+  currentQuizQuestions.forEach(function(q, i){
+    const ans = quizAnswers[i] || "";
+    const correct = String(q.correct_answer || "").toUpperCase();
+    if(ans === correct) score++;
+    else wrong.push({ no:i + 1, correct:correct, question:q.question });
+  });
+
+  const percent = total ? Math.round(score / total * 100) : 0;
+  const wrongHTML = wrong.length
+    ? wrong.slice(0,5).map(function(w){ return `<li>No. ${w.no} benar: <b>${safe(w.correct)}</b> — ${safe(w.question)}</li>`; }).join("")
+    : "<li>Semua benar. Keren!</li>";
+
+  getEl("quizBody").innerHTML += `
+    <div class="quiz-feedback-card quiz-feedback-${percent >= 70 ? "good" : "warn"}">
+      <div class="quiz-feedback-top">
+        <div><div class="quiz-feedback-kicker">Hasil Quiz</div><h3>Skor ${score}/${total}</h3><p>Nilai: ${percent}%</p></div>
+        <div class="quiz-feedback-score">${percent}%</div>
+      </div>
+      <div class="quiz-feedback-box"><strong>Catatan</strong><ul>${wrongHTML}</ul></div>
+    </div>
+  `;
+}
+
+
+function getLastOpenedMaterialIdFromStorage(){
+  try{
+    if(!currentStudent) return null;
+    const raw = localStorage.getItem(parentLastMaterialKey());
+    if(!raw) return null;
+    const saved = JSON.parse(raw);
+    return saved && saved.materialId ? Number(saved.materialId) : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function getAutoScrollTargetMaterialId(){
+  if(!currentStudent) return null;
+
+  const list = currentStudent.library || [];
+  const savedId = getLastOpenedMaterialIdFromStorage();
+
+  if(savedId && list.some(function(x){ return Number(x.id) === Number(savedId); })){
+    return savedId;
+  }
+
+  const unlocked = list.filter(function(x){ return x && x.is_unlocked; });
+  if(unlocked.length){
+    return Number(unlocked[unlocked.length - 1].id);
+  }
+
+  if(list.length){
+    return Number(list[list.length - 1].id);
+  }
+
+  return null;
+}
+
+function scrollToLastOpenedMaterial(){
+  const targetId = getAutoScrollTargetMaterialId();
+  if(!targetId) return;
+
+  setTimeout(function(){
+    const el = document.getElementById("material-card-" + targetId);
+    if(!el) return;
+
+    el.classList.add("focus-material-card");
+    el.scrollIntoView({ behavior:"smooth", block:"center" });
+
+    setTimeout(function(){
+      el.classList.remove("focus-material-card");
+    }, 2600);
+  }, 450);
+}
+
+document.addEventListener("DOMContentLoaded", function(){
+  initFilterFromQuery();
+  reloadParentMaterials();
+});
+</script>
+</body>
+</html>

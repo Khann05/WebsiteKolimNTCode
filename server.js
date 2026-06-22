@@ -5,7 +5,6 @@ const cors = require("cors");
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const sharp = require("sharp");
 const { run, get, all } = require("./database");
 
 const app = express();
@@ -33,130 +32,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, limits: { fileSize: 300 * 1024 * 1024 } });
 const multiUpload = upload.fields([{ name: "file", maxCount: 1 }, { name: "cover", maxCount: 1 }]);
-
-
-// ================= IMAGE COMPRESSION PERFORMANCE FIX =================
-const IMAGE_EXTS = new Set([".jpg", ".jpeg", ".png", ".webp", ".gif"]);
-const COMPRESSED_MARK_FILE = path.join(dataDirSafe, "compressed-images-v1.json");
-
-function isImageFileName(name) {
-  return IMAGE_EXTS.has(path.extname(String(name || "")).toLowerCase());
-}
-
-function publicUploadPath(filePath) {
-  return "/uploads/" + path.basename(filePath);
-}
-
-async function compressImageFileToWebp(filePath, options = {}) {
-  try {
-    if (!filePath || !fs.existsSync(filePath)) return null;
-
-    const ext = path.extname(filePath).toLowerCase();
-    if (!IMAGE_EXTS.has(ext)) return null;
-
-    // Hindari convert GIF animasi agar tidak rusak.
-    if (ext === ".gif") return publicUploadPath(filePath);
-
-    const parsed = path.parse(filePath);
-    const outputPath = path.join(parsed.dir, parsed.name + ".webp");
-
-    // Kalau sudah webp dan kecil, tetap pakai.
-    const stat = fs.statSync(filePath);
-    if (ext === ".webp" && stat.size <= 260 * 1024) {
-      return publicUploadPath(filePath);
-    }
-
-    const width = options.width || 800;
-    const height = options.height || 450;
-    const quality = options.quality || 78;
-
-    const tempOutput = path.join(parsed.dir, parsed.name + "-tmp-compress.webp");
-
-    await sharp(filePath, { animated: false })
-      .rotate()
-      .resize(width, height, {
-        fit: "cover",
-        position: "center",
-        withoutEnlargement: true
-      })
-      .webp({ quality, effort: 4 })
-      .toFile(tempOutput);
-
-    // Kalau output berhasil, replace aman.
-    if (fs.existsSync(tempOutput)) {
-      if (fs.existsSync(outputPath)) {
-        try { fs.unlinkSync(outputPath); } catch(e) {}
-      }
-      fs.renameSync(tempOutput, outputPath);
-
-      // Hapus file original kalau beda file.
-      if (path.resolve(outputPath) !== path.resolve(filePath)) {
-        try { fs.unlinkSync(filePath); } catch(e) {}
-      }
-
-      return publicUploadPath(outputPath);
-    }
-
-    return publicUploadPath(filePath);
-  } catch (err) {
-    console.warn("Compress image gagal:", filePath, err.message);
-    return publicUploadPath(filePath);
-  }
-}
-
-function uploadAbsPathFromPublic(publicPath) {
-  if (!publicPath || typeof publicPath !== "string") return null;
-  if (!publicPath.startsWith("/uploads/")) return null;
-  return path.join(uploadDirSafe, path.basename(publicPath));
-}
-
-async function compressExistingUploadImagesOnStartup() {
-  try {
-    const files = fs.existsSync(uploadDirSafe) ? fs.readdirSync(uploadDirSafe) : [];
-    let changed = 0;
-
-    for (const file of files) {
-      const full = path.join(uploadDirSafe, file);
-      if (!fs.existsSync(full) || !fs.statSync(full).isFile()) continue;
-      if (!isImageFileName(file)) continue;
-
-      const ext = path.extname(file).toLowerCase();
-      const stat = fs.statSync(full);
-
-      // Skip webp kecil.
-      if (ext === ".webp" && stat.size <= 260 * 1024) continue;
-
-      const newPublic = await compressImageFileToWebp(full, {
-        width: 800,
-        height: 450,
-        quality: 78
-      });
-
-      if (newPublic && newPublic !== publicUploadPath(full)) {
-        changed++;
-
-        const oldPublic = "/uploads/" + file;
-
-        // Update semua cover_path di DB yang masih menunjuk file lama.
-        try {
-          await run("UPDATE library_materials SET cover_path = ? WHERE cover_path = ?", [newPublic, oldPublic]);
-        } catch(e) {}
-
-        try {
-          await run("UPDATE certificates SET cover_path = ? WHERE cover_path = ?", [newPublic, oldPublic]);
-        } catch(e) {}
-      }
-    }
-
-    if (changed) {
-      console.log("Compressed existing upload images:", changed);
-    }
-  } catch (err) {
-    console.warn("Mass image compression skipped:", err.message);
-  }
-}
-// ================= END IMAGE COMPRESSION PERFORMANCE FIX =================
-
 
 app.use(cors());
 app.use(express.json());
@@ -241,6 +116,11 @@ app.all("/api/admin/students/:id/materials/:materialId/access", absoluteUpdateMa
 app.use("/uploads", express.static(uploadDir));
 app.use(express.static(path.join(__dirname, "public")));
 
+
+async function ensurePaymentColumnsRuntime() {
+  try { await run("ALTER TABLE students ADD COLUMN payment_warning_disabled INTEGER DEFAULT 0"); } catch(e) {}
+}
+
 function requireAdmin(req, res, next) {
   if (req.headers["x-admin-password"] !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: "Admin password salah" });
@@ -260,31 +140,10 @@ function makeCode(name) {
   return base + Math.floor(100 + Math.random() * 900);
 }
 
-async function fileInfo(req, field) {
+function fileInfo(req, field) {
   const f = req.files && req.files[field] && req.files[field][0];
-  if (!f) return { path: "", name: "" };
-
-  let publicPath = "/uploads/" + f.filename;
-  let fileName = f.originalname;
-
-  // Semua cover/image otomatis dikompres jadi webp kecil.
-  if (field === "cover" || (f.mimetype && f.mimetype.startsWith("image/"))) {
-    const compressed = await compressImageFileToWebp(f.path, {
-      width: 800,
-      height: 450,
-      quality: 78
-    });
-
-    if (compressed) {
-      publicPath = compressed;
-      fileName = path.basename(compressed);
-    }
-  }
-
-  return {
-    path: publicPath,
-    name: fileName
-  };
+  if (!f) return { name: "", path: "", type: "" };
+  return { name: f.originalname, path: "/uploads/" + f.filename, type: f.mimetype };
 }
 
 
@@ -300,12 +159,46 @@ function deleteUploadByPublicPath(publicPath) {
   }
 }
 
+
+
+
+
+
+
+
+
+
+function computePaymentState(student, attendances) {
+  const total = Array.isArray(attendances) ? attendances.length : Number((student && student.attendance_count) || 0);
+  const cycleNo = total <= 0 ? 0 : (total % 4 === 0 ? 4 : total % 4);
+  const disabled = Number((student && student.payment_warning_disabled) || 0) === 1;
+
+  // LOGIKA FINAL:
+  // 4/4 + disabled=0 => ON / merah
+  // 4/4 + disabled=1 => OFF / aman
+  // selain 4/4 => belum aktif
+  const on = cycleNo === 4 && !disabled;
+  const off = cycleNo === 4 && disabled;
+
+  return {
+    lesson_total: total,
+    lesson_cycle_number: cycleNo,
+    lesson_cycle_text: cycleNo ? (cycleNo + " / 4 sesi") : "0 / 4 sesi",
+    payment_warning_disabled: disabled ? 1 : 0,
+    payment_warning_on: on ? 1 : 0,
+    payment_should_warn: on ? 1 : 0,
+    payment_status: on ? "on" : (off ? "off" : "inactive"),
+    payment_status_label: on ? "NYALA" : (off ? "MATI" : "BELUM AKTIF")
+  };
+}
+
 async function getFullStudent(id) {
+  await ensurePaymentColumnsRuntime();
+
   const student = await get("SELECT * FROM students WHERE id = ?", [id]);
   if (!student) return null;
 
   const attendances = await all("SELECT * FROM attendances WHERE student_id = ? ORDER BY date DESC, time DESC", [id]);
-
   const certificates = await all("SELECT * FROM certificates WHERE student_id = ? ORDER BY created_at DESC", [id]);
 
   const library = await all(`
@@ -322,7 +215,8 @@ async function getFullStudent(id) {
     ORDER BY lm.id ASC
   `, [id]);
 
-  return { ...student, attendances, certificates, library };
+  const paymentState = computePaymentState(student, attendances);
+  return { ...student, ...paymentState, attendances, certificates, library };
 }
 
 
@@ -357,6 +251,8 @@ app.post("/api/admin/login", (req, res) => {
 
 app.get("/api/admin/students", requireAdmin, async (req, res) => {
   try {
+    await ensurePaymentColumnsRuntime();
+
     const rows = await all(`
       SELECT
         s.*,
@@ -369,7 +265,14 @@ app.get("/api/admin/students", requireAdmin, async (req, res) => {
       GROUP BY s.id
       ORDER BY s.id DESC
     `);
-    res.json(rows);
+
+    const normalized = rows.map((row) => ({
+      ...row,
+      ...computePaymentState(row, { length: Number(row.attendance_count || 0) })
+    }));
+
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.json(normalized);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -385,7 +288,7 @@ app.post("/api/admin/students", requireAdmin, async (req, res) => {
     if (!parentCode || !parentCode.trim()) parentCode = makeCode(name);
 
     const result = await run(
-      "INSERT INTO students (name, phone, level, description, parent_code, payment_paid) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO students (name, phone, level, description, parent_code, payment_paid, payment_warning_disabled, payment_paid_package) VALUES (?, ?, ?, ?, ?, ?, 0, 0)",
       [name.trim(), normalizePhone(phone), level, description, String(parentCode).trim().toUpperCase(), paymentPaid]
     );
 
@@ -422,8 +325,7 @@ app.put("/api/admin/students/:id", requireAdmin, async (req, res) => {
       "UPDATE students SET name = ?, phone = ?, level = ?, description = ?, parent_code = ?, payment_paid = ? WHERE id = ?",
       [name.trim(), normalizePhone(phone), level, description, parentCode, paymentPaid, req.params.id]
     );
-
-    res.json(await getFullStudent(req.params.id));
+res.json(await getFullStudent(req.params.id));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -434,15 +336,43 @@ app.put("/api/admin/students/:id", requireAdmin, async (req, res) => {
 
 
 
+
+
+
+
 app.all("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
   try {
-    const paymentPaid = req.body.payment_paid === true || req.body.payment_paid === 1 || req.body.payment_paid === "1" ? 1 : 0;
-    await run("UPDATE students SET payment_paid = ? WHERE id = ?", [paymentPaid, req.params.id]);
-    res.json(await getFullStudent(req.params.id));
+    await ensurePaymentColumnsRuntime();
+
+    const studentId = Number(req.params.id);
+    const body = req.body || {};
+
+    if (!Object.prototype.hasOwnProperty.call(body, "warning_enabled")) {
+      const current = await getFullStudent(studentId);
+      res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  return res.json(current);
+    }
+
+    const warningEnabled = body.warning_enabled === true || body.warning_enabled === 1 || body.warning_enabled === "1";
+    const disabledValue = warningEnabled ? 0 : 1;
+
+    const result = await run(
+      "UPDATE students SET payment_warning_disabled = ? WHERE id = ?",
+      [disabledValue, studentId]
+    );
+
+    const fresh = await getFullStudent(studentId);
+    fresh.__payment_update_changes = result && result.changes ? result.changes : 0;
+    fresh.__requested_warning_enabled = warningEnabled ? 1 : 0;
+    fresh.__saved_payment_warning_disabled = disabledValue;
+
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.json(fresh);
   } catch (err) {
-    res.status(500).json({ error: err.message || "Gagal update status pembayaran" });
+    res.status(500).json({ error: err.message || "Gagal update tombol pembayaran" });
   }
 });
+
 
 app.delete("/api/admin/students/:id", requireAdmin, async (req, res) => {
   try {
@@ -468,7 +398,12 @@ app.post("/api/admin/students/:id/attendance", requireAdmin, async (req, res) =>
 
     // Setiap paket baru mulai di 1/4, status pembayaran otomatis kembali belum dibayar.
     if (lessonCycleNumberServer(total) === 1) {
-      await run("UPDATE students SET payment_paid = 0 WHERE id = ?", [req.params.id]);
+      // Pembayaran tidak direset otomatis; status merah 4/4 dikontrol tombol admin.
+    }
+
+const paymentAutoStateFinal = await getFullStudent(req.params.id);
+    if (Number(paymentAutoStateFinal.lesson_cycle_number || 0) === 4) {
+      await run("UPDATE students SET payment_warning_disabled = 0 WHERE id = ?", [req.params.id]);
     }
 
     res.json(await getFullStudent(req.params.id));
@@ -561,8 +496,8 @@ app.post("/api/admin/library", requireAdmin, multiUpload, async (req, res) => {
     const requestedType = req.body.material_type === "file" ? "file" : "ppt";
     const finalCategory = category || (requestedType === "file" ? "Project Files" : "Beginner");
 
-    const main = await fileInfo(req, "file");
-    const cover = await fileInfo(req, "cover");
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
 
     let mode = "insert";
     let targetId = edit_id && String(edit_id).trim() !== "" ? Number(edit_id) : null;
@@ -700,8 +635,8 @@ async function updateLibraryMaterialById(req, res) {
     const { title = "", category = "", note = "" } = req.body;
     const materialType = req.body.material_type === "file" ? "file" : (req.body.material_type === "ppt" ? "ppt" : (existing.material_type || "ppt"));
 
-    const main = await fileInfo(req, "file");
-    const cover = await fileInfo(req, "cover");
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
 
     const nextFileName = main.path ? main.name : existing.file_name;
     const nextFilePath = main.path ? main.path : existing.file_path;
@@ -779,8 +714,8 @@ app.post("/api/admin/students/:id/certificates", requireAdmin, multiUpload, asyn
   try {
     const { title = "" } = req.body;
     const isLocked = req.body.is_locked === "0" ? 0 : 1;
-    const main = await fileInfo(req, "file");
-    const cover = await fileInfo(req, "cover");
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
 
     if (!title && !main.path && !cover.path) {
       return res.status(400).json({ error: "Nama sertifikat, file, atau gambar wajib diisi" });
@@ -819,7 +754,20 @@ app.delete("/api/admin/certificates/:id", requireAdmin, async (req, res) => {
   }
 });
 
+
+app.get("/api/parent/student/:code", async (req, res) => {
+  try {
+    res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  const student = await get("SELECT * FROM students WHERE parent_code = ?", [String(req.params.code || "").toUpperCase()]);
+    if (!student) return res.status(404).json({ error: "Kode orang tua tidak ditemukan" });
+    res.json(await getFullStudent(student.id));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get("/api/parent/:code", async (req, res) => {
+  res.set("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   try {
     const student = await get("SELECT * FROM students WHERE parent_code = ?", [String(req.params.code || "").toUpperCase()]);
     if (!student) return res.status(404).json({ error: "Kode orang tua tidak ditemukan" });
@@ -933,8 +881,8 @@ async function updateLibraryMaterialById(req, res) {
       req.body.material_type === "ppt" ? "ppt" :
       (existing.material_type || "ppt");
 
-    const main = await fileInfo(req, "file");
-    const cover = await fileInfo(req, "cover");
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
 
     // File baru OPSIONAL. Kalau kosong, file lama tetap dipakai.
     const nextFileName = main.path ? main.name : existing.file_name;
@@ -1011,8 +959,8 @@ async function updateLibraryMaterialById(req, res) {
       req.body.material_type === "ppt" ? "ppt" :
       (existing.material_type || "ppt");
 
-    const main = await fileInfo(req, "file");
-    const cover = await fileInfo(req, "cover");
+    const main = fileInfo(req, "file");
+    const cover = fileInfo(req, "cover");
 
     // Kalau admin tidak upload file baru, file lama tetap dipakai.
     const nextFileName = main.path ? main.name : existing.file_name;
@@ -1078,5 +1026,4 @@ app.put("/api/admin/library/:id", requireAdmin, multiUpload, updateLibraryMateri
 // Start server
 app.listen(PORT, () => {
   console.log("Server running on http://localhost:" + PORT);
-  compressExistingUploadImagesOnStartup();
 });

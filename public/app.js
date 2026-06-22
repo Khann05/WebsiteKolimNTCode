@@ -1,4 +1,3 @@
-console.log("KOLIMNT_APP_VERSION_UNLOCK_DEBUG: unlock-debug-no-uploads-20260610");
 const API = "";
 const START_YEAR = 2026;
 const START_MONTH = 3; // April, karena index JS mulai dari 0
@@ -391,84 +390,74 @@ function isPaymentPaid(s){
 }
 
 function adminLessonCycleNumber(s){
-  const total = (s && s.attendances ? s.attendances.length : 0);
+  if(s && s.lesson_cycle_number !== undefined && s.lesson_cycle_number !== null){
+    return Number(s.lesson_cycle_number || 0);
+  }
+  const total = (s && s.attendances ? s.attendances.length : Number((s && s.attendance_count) || 0));
   if(total <= 0) return 0;
   const mod = total % 4;
   return mod === 0 ? 4 : mod;
 }
 
+function adminPaymentWarningOn(s){
+  return Number((s && s.payment_warning_on) || 0) === 1 || String((s && s.payment_status) || "") === "on";
+}
+
+function adminPaymentWarningOff(s){
+  return String((s && s.payment_status) || "") === "off";
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function paymentStatusHTML(s){
   const cycleNo = adminLessonCycleNumber(s);
+  const warningOn = adminPaymentWarningOn(s);
 
-  if(cycleNo !== 1){
+  if(cycleNo !== 4){
     return `
       <div class="payment-admin-card neutral">
+        <div class="payment-status-pill neutral">BELUM AKTIF</div>
         <div>
-          <strong>Status pembayaran tidak perlu dicek saat ini</strong>
-          <small>Checklist pembayaran hanya muncul saat progress paket berada di 1/4.</small>
+          <strong>Status pembayaran belum aktif</strong>
+          <small>Kalau paket sudah 4/4, sistem otomatis menyalakan peringatan merah.</small>
         </div>
       </div>
     `;
   }
 
-  const paid = isPaymentPaid(s);
-  const unpaidChecked = !paid;
-
   return `
-    <div class="payment-admin-card ${paid ? "paid" : "unpaid"}">
+    <div class="payment-admin-card ${warningOn ? "unpaid" : "paid"}">
+      <div class="payment-status-pill ${warningOn ? "unpaid" : "paid"}">${warningOn ? "NYALA" : "MATI"}</div>
       <div>
-        <strong>${paid ? "Pembayaran sudah dikonfirmasi" : "Menunggu konfirmasi pembayaran"}</strong>
-        <small>${paid ? "Parent sudah melihat status normal hijau muda." : "Parent akan melihat peringatan merah muda karena progress berada di 1/4."}</small>
+        <strong>${warningOn ? "Pembayaran belum bayar" : "Pembayaran sudah aman"}</strong>
+        <small>${warningOn ? "Parent merah. Klik Matikan kalau sudah bayar." : "Parent tidak merah. Klik Nyalakan kalau mau aktifkan lagi."}</small>
       </div>
-      <label class="payment-toggle ${paid ? "paid" : "unpaid"}">
-        <input type="checkbox" ${unpaidChecked ? "checked" : ""} onchange="togglePaymentUnpaid(this.checked)">
-        <span>${paid ? "Sudah bayar" : "Belum bayar"}</span>
-      </label>
+      <button class="btn ${warningOn ? "btn-pink" : "btn-orange"}" onclick="togglePaymentWarningSimple(${warningOn ? 0 : 1})">
+        ${warningOn ? "Matikan" : "Nyalakan"}
+      </button>
     </div>
   `;
 }
-
-async function togglePaymentUnpaid(isUnpaid){
-  if(!selectedStudent) return;
-
-  try{
-    const cycleNo = adminLessonCycleNumber(selectedStudent);
-    if(cycleNo !== 1){
-      toast("Checklist pembayaran hanya aktif saat progress 1/4", "error");
-      renderDetail();
-      return;
-    }
-
-    const paymentPaid = !isUnpaid;
-
-    // Update UI lokal dulu supaya centang langsung mati/nyala.
-    selectedStudent.payment_paid = paymentPaid ? 1 : 0;
-    renderDetail();
-
-    // Route ini sudah ada di server dan khusus untuk status pembayaran.
-    selectedStudent = await api("/api/admin/students/" + selectedStudent.id + "/payment", {
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({ payment_paid: paymentPaid })
-    });
-
-    // Sinkronkan juga data list di memory.
-    students = students.map(function(s){
-      return Number(s.id) === Number(selectedStudent.id) ? selectedStudent : s;
-    });
-
-    renderDetail();
-    toast(paymentPaid ? "Pembayaran sudah dikonfirmasi" : "Status dikembalikan ke belum bayar", paymentPaid ? "success" : "error");
-  }catch(e){
-    // Kalau gagal, reload detail supaya state tidak salah.
-    await loadStudents();
-    const fresh = (students || []).find(function(s){ return Number(s.id) === Number(selectedStudent && selectedStudent.id); });
-    if(fresh) selectedStudent = fresh;
-    renderDetail();
-    toast(e.message || "Request gagal", "error");
-  }
-}
-
 async function togglePaymentPaid(checked){
   return togglePaymentUnpaid(!checked);
 }
@@ -587,6 +576,7 @@ function openAttendanceModal(date){
 
 function buildAttendanceWAMessage(student, attendance){
   const totalPertemuan = student && student.attendances ? student.attendances.length : 0;
+  const cycleText = lessonCycleNumber(totalPertemuan) + " / 4 sesi";
 
   return (
     "Halo\n\n" +
@@ -595,7 +585,7 @@ function buildAttendanceWAMessage(student, attendance){
     "Tanggal: " + formatDate(attendance.date) + "\n" +
     "Jam: " + attendance.time + "\n" +
     "Session: " + attendance.session + "\n" +
-    "Total pertemuan: " + totalPertemuan + " / 4 sesi\n\n" +
+    "Total pertemuan: " + cycleText + "\n\n" +
     "Password / Kode Parent: " + (student.parent_code || "-") + "\n\n" +
     "Untuk melihat progress lengkap, materi, quiz, sertifikat, dan informasi lainnya, silakan kunjungi Parent Portal berikut:\n\n" +
     "https://websitekolimntcode-production.up.railway.app/parent.html\n\n" +
@@ -609,6 +599,46 @@ function openAttendanceWA(student, attendance){
   window.open("https://wa.me/" + digits(student.phone) + "?text=" + encodeURIComponent(message), "_blank");
 }
 
+
+async function togglePaymentWarningSimple(enabled){
+  if(!selectedStudent) return;
+
+  const cycleNo = adminLessonCycleNumber(selectedStudent);
+  const beforeId = selectedStudent.id;
+
+  if(cycleNo !== 4){
+    toast("Tombol ON/OFF hanya aktif saat 4/4", "error");
+    return;
+  }
+
+  try{
+    selectedStudent = await api("/api/admin/students/" + beforeId + "/payment", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ warning_enabled: enabled ? 1 : 0 })
+    });
+
+    await loadStudents();
+    await loadSelectedStudent(beforeId, false);
+    renderDetail();
+
+    toast(enabled ? "Peringatan dinyalakan" : "Peringatan dimatikan", enabled ? "error" : "success");
+  }catch(e){
+    toast(e.message || "Gagal update tombol pembayaran", "error");
+  }
+}
+
+async function toggleCurrentPackagePaid(paid){
+  return togglePaymentWarningSimple(paid ? 0 : 1);
+}
+
+async function togglePaymentWarningDisabled(disabled){
+  return togglePaymentWarningSimple(disabled ? 0 : 1);
+}
+
+async function togglePaymentUnpaid(isUnpaid){
+  return togglePaymentWarningSimple(isUnpaid ? 1 : 0);
+}
 
 async function saveAttendance(){
   try{
@@ -1563,3 +1593,93 @@ document.addEventListener("click", function(e){
     box.classList.remove("show");
   }
 });
+
+
+// ================= FINAL PAYMENT ON/OFF OVERRIDE =================
+function adminLessonCycleNumber(s){
+  if(s && s.lesson_cycle_number !== undefined && s.lesson_cycle_number !== null){
+    return Number(s.lesson_cycle_number || 0);
+  }
+  const total = (s && s.attendances ? s.attendances.length : Number((s && s.attendance_count) || 0));
+  if(total <= 0) return 0;
+  const mod = total % 4;
+  return mod === 0 ? 4 : mod;
+}
+
+function adminPaymentWarningOn(s){
+  return Number((s && s.payment_warning_on) || 0) === 1 || String((s && s.payment_status) || "") === "on";
+}
+
+function paymentStatusHTML(s){
+  const cycleNo = adminLessonCycleNumber(s);
+  const on = adminPaymentWarningOn(s);
+
+  if(cycleNo !== 4){
+    return `
+      <div class="payment-admin-card neutral">
+        <div class="payment-status-pill neutral">BELUM AKTIF</div>
+        <div>
+          <strong>Status pembayaran belum aktif</strong>
+          <small>Kalau sudah 4/4, peringatan otomatis nyala.</small>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="payment-admin-card ${on ? "unpaid" : "paid"}">
+      <div class="payment-status-pill ${on ? "unpaid" : "paid"}">${on ? "NYALA" : "MATI"}</div>
+      <div>
+        <strong>${on ? "Pembayaran belum bayar" : "Pembayaran aman"}</strong>
+        <small>${on ? "Parent merah. Klik Matikan kalau sudah bayar." : "Parent tidak merah. Klik Nyalakan kalau mau aktifkan lagi."}</small>
+      </div>
+      <button class="btn ${on ? "btn-pink" : "btn-orange"}" onclick="togglePaymentWarningSimple(${on ? 0 : 1})">
+        ${on ? "Matikan" : "Nyalakan"}
+      </button>
+    </div>
+  `;
+}
+
+async function togglePaymentWarningSimple(enabled){
+  if(!selectedStudent) return;
+
+  const beforeId = selectedStudent.id;
+  const cycleNo = adminLessonCycleNumber(selectedStudent);
+
+  if(cycleNo !== 4){
+    toast("Tombol ON/OFF hanya aktif saat 4/4", "error");
+    return;
+  }
+
+  try{
+    const updated = await api("/api/admin/students/" + beforeId + "/payment", {
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({ warning_enabled: enabled ? 1 : 0 })
+    });
+
+    selectedStudent = updated;
+
+    students = (students || []).map(function(s){
+      return Number(s.id) === Number(beforeId) ? updated : s;
+    });
+
+    renderDetail();
+    toast(enabled ? "Peringatan dinyalakan" : "Peringatan dimatikan", enabled ? "error" : "success");
+  }catch(e){
+    toast(e.message || "Gagal update tombol pembayaran", "error");
+  }
+}
+
+async function toggleCurrentPackagePaid(paid){
+  return togglePaymentWarningSimple(paid ? 0 : 1);
+}
+
+async function togglePaymentWarningDisabled(disabled){
+  return togglePaymentWarningSimple(disabled ? 0 : 1);
+}
+
+async function togglePaymentUnpaid(isUnpaid){
+  return togglePaymentWarningSimple(isUnpaid ? 1 : 0);
+}
+// ================= END FINAL PAYMENT ON/OFF OVERRIDE =================

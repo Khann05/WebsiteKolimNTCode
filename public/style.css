@@ -9179,539 +9179,1278 @@ body::before{
 
 
 /* =========================================================
-   KOLIMNT RESPONSIVE CLEANUP SYSTEM
-   Tujuan:
-   - Rapih otomatis di laptop, tablet, dan HP.
-   - Card tidak keluar jalur.
-   - Tombol tidak nabrak.
-   - Gambar stabil pakai aspect-ratio.
-   - Bottom nav tidak nutup konten.
-   - Desain lama tetap dipakai, ini hanya merapihkan sistem responsive.
+   WA + PAYMENT 4/4 + PARENT PPT QUIZ PAGE FIX
    ========================================================= */
+.parent-pptquiz-page-cta{margin:12px 0 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}.parent-pptquiz-page-cta small{color:#64748b;font-weight:800}.payment-admin-card.unpaid strong{color:#991b1b}.payment-admin-card.paid strong{color:#15803d}.parent-materials-page .app{width:min(1180px,calc(100% - 24px));margin:0 auto}.parent-materials-hero{margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.parent-materials-actions{display:flex;gap:10px;flex-wrap:wrap}.parent-materials-tools{margin-top:14px;display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,260px);gap:12px}.parent-materials-list{margin-top:8px}.parent-materials-page-card .row-actions{margin-top:12px}@media(max-width:720px){.parent-materials-tools{grid-template-columns:1fr}.parent-materials-hero{align-items:flex-start}.parent-materials-actions,.parent-materials-actions .btn,.parent-pptquiz-page-cta,.parent-pptquiz-page-cta .btn{width:100%}}
 
-:root{
-  --knt-page-max: 1220px;
-  --knt-gap: clamp(12px, 2vw, 22px);
-  --knt-card-radius: clamp(18px, 2vw, 28px);
-  --knt-card-pad: clamp(14px, 2vw, 24px);
-  --knt-title: clamp(22px, 3vw, 42px);
-  --knt-subtitle: clamp(13px, 1.4vw, 17px);
-  --knt-btn-h: 46px;
+
+/* =========================================================
+   FINAL: PAYMENT 4/4 PAID BUTTON + PPT QUIZ BIG PAGE
+   ========================================================= */
+.payment-admin-card.unpaid{
+  border-color:rgba(239,68,68,.45) !important;
+  background:linear-gradient(135deg, rgba(254,226,226,.96), rgba(255,247,237,.95)) !important;
 }
-
-/* Global safety */
-*,
-*::before,
-*::after{
-  box-sizing:border-box;
+.payment-admin-card.unpaid strong{ color:#991b1b !important; }
+.payment-admin-card.paid{
+  border-color:rgba(34,197,94,.45) !important;
+  background:linear-gradient(135deg, rgba(220,252,231,.96), rgba(240,253,244,.95)) !important;
 }
+.payment-admin-card.paid strong{ color:#15803d !important; }
 
-html,
-body{
-  max-width:100%;
-  overflow-x:hidden;
-}
-
-body{
-  min-height:100dvh;
-}
-
-/* Semua media tidak boleh merusak layout */
-img,
-video,
-canvas,
-svg{
-  max-width:100%;
-}
-
-img{
-  height:auto;
-}
-
-/* Wrapper utama agar tidak terlalu melebar di desktop dan tetap aman di HP */
-.container,
-.page,
-.main,
-.admin-page,
-.parent-page,
-.dashboard,
-.admin-shell,
-.parent-shell,
-.parent-main,
-.admin-main,
-.app-shell{
-  width:min(100%, var(--knt-page-max));
-  margin-inline:auto;
-}
-
-/* Padding aman di layar kecil */
-.parent-page,
-.admin-page,
-.parent-main,
-.admin-main,
-.dashboard,
-.admin-shell,
-.parent-shell{
-  padding-inline:clamp(10px, 2vw, 24px);
-}
-
-/* Panel/card konsisten */
-.panel,
-.card,
-.stat,
-.file-card,
-.student-card,
-.user-question-card,
-.question-card,
-.session-card,
-.parent-card,
-.admin-card,
-.login-card,
-.modal-card,
-.library-card,
-.certificate-card,
-.hero-last-card,
-.hero-last-material,
-.notif-dropdown{
-  border-radius:var(--knt-card-radius);
-  max-width:100%;
-}
-
-/* Grid universal: otomatis turun di layar kecil */
-.grid,
-.stats,
-.file-grid,
-.compact-grid,
-.student-grid,
-.library-grid,
-.question-grid,
-.session-grid,
-.cards-grid,
-.parent-grid,
-.admin-grid{
+.pptquiz-shortcut-card{
   display:grid;
-  gap:var(--knt-gap);
-  max-width:100%;
-}
-
-/* Kalau class-grid lama masih fixed, paksa fleksibel */
-.file-grid,
-.compact-grid,
-.library-grid,
-.question-grid,
-.session-grid,
-.cards-grid{
-  grid-template-columns:repeat(auto-fit, minmax(min(100%, 245px), 1fr)) !important;
-}
-
-/* Stats lebih fleksibel */
-.stats{
-  grid-template-columns:repeat(auto-fit, minmax(min(100%, 160px), 1fr)) !important;
-}
-
-/* Hero parent: desktop dua kolom, HP satu kolom */
-.hero,
-.parent-hero-grid,
-.hero-grid,
-.parent-top-grid,
-.dashboard-hero-grid,
-.parent-hero-row,
-.parent-hero-layout,
-.hero-section-grid{
-  max-width:100%;
-}
-
-.hero{
-  display:grid;
-  grid-template-columns:minmax(0, 1.35fr) minmax(320px, .85fr);
-  gap:var(--knt-gap);
+  grid-template-columns:minmax(0, .95fr) minmax(320px, 1.05fr);
+  gap:clamp(16px, 3vw, 32px);
   align-items:stretch;
-}
-
-/* Hero content tidak boleh keluar */
-.hero-main-copy,
-.hero-blue-bg-mode,
-.hero-last-material,
-.hero-last-card{
-  min-width:0;
-  max-width:100%;
-}
-
-/* Halo dan level rapi */
-.hero-dynamic-badge{
-  font-size:clamp(15px, 1.8vw, 22px) !important;
-  line-height:1.1 !important;
-  max-width:max-content;
-  transform:translateY(-4px);
-}
-
-.hero-level-card{
-  margin-top:-4px !important;
-  transform:translateY(-4px) !important;
-  width:max-content;
-  max-width:100%;
-}
-
-/* Card terakhir dibuka aman */
-.hero-last-card,
-.hero-last-empty{
-  height:100%;
-  min-height:0;
   overflow:hidden;
 }
-
-.hero-last-cover,
-.cover-wrap{
-  max-width:100%;
-  overflow:hidden;
-}
-
-.cover-wrap img,
-.hero-last-cover img,
-.file-card img,
-.library-card img,
-.certificate-card img,
-.card-cover,
-.cover-img{
-  width:100%;
-  aspect-ratio:16 / 9;
-  object-fit:cover;
-  object-position:center;
-  display:block;
-  border-radius:clamp(14px, 1.6vw, 22px);
-}
-
-/* Tombol tidak keluar jalur */
-.btn,
-button,
-a.btn{
-  max-width:100%;
+.pptquiz-shortcut-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
   min-width:0;
 }
-
-.row-actions,
-.detail-actions,
-.hero-last-actions,
-.material-actions,
-.card-actions,
-.actions,
-.modal-actions,
-.form-actions,
-.library-actions{
+.pptquiz-shortcut-copy .title{
+  font-size:clamp(24px, 3vw, 42px);
+  line-height:1.02;
+  margin:8px 0;
+}
+.pptquiz-shortcut-stats{
   display:flex;
   flex-wrap:wrap;
+  gap:8px;
+  margin:16px 0 18px;
+}
+.pptquiz-shortcut-stats span{
+  padding:8px 12px;
+  border-radius:999px;
+  background:rgba(255,255,255,.76);
+  border:1px solid rgba(148,163,184,.26);
+  font-weight:900;
+  color:#334155;
+}
+.pptquiz-shortcut-btn{
+  width:max-content;
+  min-width:230px;
+}
+.pptquiz-cover-carousel,
+.pptquiz-page-carousel{
+  position:relative;
+  overflow:hidden;
+  border-radius:28px;
+  min-height:280px;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed);
+  box-shadow:0 22px 60px rgba(15,23,42,.14);
+}
+.pptquiz-cover-slide,
+.pptquiz-page-slide{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transform:translateX(30px) scale(.98);
+  transition:opacity .55s ease, transform .55s ease;
+}
+.pptquiz-cover-slide.active,
+.pptquiz-page-slide.active{
+  opacity:1;
+  transform:translateX(0) scale(1);
+}
+.pptquiz-cover-slide img,
+.pptquiz-page-slide img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.pptquiz-cover-slide.empty,
+.pptquiz-page-slide.empty{
+  display:grid;
+  place-items:center;
+}
+.pptquiz-cover-caption,
+.pptquiz-page-slide-caption{
+  position:absolute;
+  left:16px;
+  right:16px;
+  bottom:16px;
+  padding:14px 16px;
+  border-radius:20px;
+  color:white;
+  background:linear-gradient(135deg, rgba(15,23,42,.82), rgba(30,41,59,.55));
+  backdrop-filter:blur(10px);
+}
+.pptquiz-cover-caption span,
+.pptquiz-page-slide-caption span{
+  display:block;
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#fde68a;
+}
+.pptquiz-cover-caption strong,
+.pptquiz-page-slide-caption strong{
+  display:block;
+  font-size:clamp(18px,2vw,30px);
+  line-height:1.02;
+  margin-top:4px;
+}
+
+.parent-materials-page{
+  background:linear-gradient(135deg,#f8fafc,#eef2ff 45%,#fff7ed);
+}
+.pptquiz-page-app{
+  width:min(1220px, calc(100% - 24px));
+  margin:0 auto;
+  padding:22px 0 70px;
+}
+.pptquiz-page-hero{
+  display:grid;
+  grid-template-columns:minmax(0,.85fr) minmax(360px,1.15fr);
+  gap:clamp(16px,3vw,34px);
+  align-items:stretch;
+  margin-bottom:18px;
+}
+.pptquiz-page-copy{
+  border-radius:32px;
+  padding:clamp(22px,3vw,40px);
+  background:rgba(255,255,255,.82);
+  border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 24px 70px rgba(15,23,42,.12);
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.pptquiz-page-copy h1{
+  font-size:clamp(44px,7vw,88px);
+  line-height:.88;
+  margin:8px 0 14px;
+}
+.pptquiz-page-copy p{
+  color:#64748b;
+  font-weight:800;
+  font-size:clamp(15px,1.7vw,20px);
+}
+.pptquiz-page-actions,
+.parent-materials-actions,
+.pptquiz-big-actions{
+  display:flex;
   gap:10px;
-  align-items:center;
+  flex-wrap:wrap;
+  margin-top:18px;
 }
-
-.row-actions > *,
-.detail-actions > *,
-.hero-last-actions > *,
-.material-actions > *,
-.card-actions > *,
-.actions > *,
-.modal-actions > *,
-.form-actions > *,
-.library-actions > *{
-  min-width:0;
+.pptquiz-page-carousel{
+  min-height:420px;
 }
-
-/* Input/form rapi */
-input,
-select,
-textarea,
-.field{
-  max-width:100%;
-}
-
-.form-grid,
-.admin-form-grid,
-.modal-grid{
+.parent-materials-tools{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap:14px;
+  grid-template-columns:minmax(0,1fr) minmax(220px,300px);
+  gap:12px;
+  margin-bottom:18px;
 }
-
-/* Table/list lebar tidak bikin horizontal scroll seluruh halaman */
-.table-wrap,
-.data-table-wrap,
-.history-wrap,
-.calendar-wrap{
-  max-width:100%;
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-}
-
-/* Kalender aman */
-.calendar,
-.parent-calendar,
-.calendar-grid{
-  max-width:100%;
-}
-
-.calendar-grid{
-  display:grid;
-  grid-template-columns:repeat(7, minmax(0, 1fr));
-  gap:clamp(4px, 1vw, 8px);
-}
-
-.calendar-grid > *,
-.calendar-day{
-  min-width:0;
+.parent-materials-page-panel{
   overflow:hidden;
 }
-
-/* Bottom nav tidak menutup konten */
-body{
-  padding-bottom:calc(92px + env(safe-area-inset-bottom));
+.pptquiz-big-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 310px), 1fr));
+  gap:clamp(16px,2vw,24px);
+}
+.pptquiz-big-card{
+  overflow:hidden;
+  border-radius:30px;
+  background:rgba(255,255,255,.88);
+  border:1px solid rgba(148,163,184,.18);
+  box-shadow:0 22px 55px rgba(15,23,42,.12);
+}
+.pptquiz-big-cover-wrap,
+.pptquiz-big-cover-placeholder{
+  position:relative;
+  width:100%;
+  aspect-ratio:16/10;
+  overflow:hidden;
+  background:#eef2ff;
+}
+.pptquiz-big-cover{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.pptquiz-big-cover-placeholder{
+  display:grid;
+  place-items:center;
+  color:#475569;
+}
+.pptquiz-big-cover-placeholder svg{
+  width:74px;
+  height:74px;
+}
+.pptquiz-big-body{
+  padding:18px;
+}
+.pptquiz-status{
+  display:inline-flex;
+  padding:7px 11px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:1000;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+.pptquiz-status.open{
+  background:#dcfce7;
+  color:#15803d;
+}
+.pptquiz-status.locked{
+  background:#fee2e2;
+  color:#991b1b;
+}
+.pptquiz-big-body h3{
+  font-size:clamp(20px,2.3vw,32px);
+  line-height:1.05;
+  margin:12px 0 8px;
+}
+.pptquiz-big-body p{
+  color:#64748b;
+  font-weight:800;
+  line-height:1.35;
+}
+.pptquiz-big-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+}
+.pptquiz-big-actions .btn{
+  width:100%;
+}
+.lock-layer{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  background:rgba(15,23,42,.48);
+  color:white;
+  font-weight:1000;
+  letter-spacing:.12em;
 }
 
-.bottom-nav,
-.parent-bottom-nav,
-.mobile-nav,
-.tabbar,
-.parent-tabbar{
-  max-width:min(680px, calc(100vw - 16px)) !important;
-  left:50% !important;
-  right:auto !important;
-  transform:translateX(-50%) !important;
-}
-
-/* Modal overlay aman di HP */
-.overlay,
-.modal-overlay,
-.popup-overlay{
-  padding:clamp(10px, 3vw, 28px);
-}
-
-.modal-card,
-.popup-card{
-  width:min(100%, 720px);
-  max-height:calc(100dvh - 28px);
-  overflow:auto;
-}
-
-/* Typography responsive */
-h1{
-  font-size:clamp(28px, 5vw, 56px);
-  line-height:1.02;
-}
-
-h2{
-  font-size:clamp(22px, 3.4vw, 38px);
-  line-height:1.08;
-}
-
-h3{
-  font-size:clamp(18px, 2.4vw, 28px);
-  line-height:1.12;
-}
-
-p,
-small,
-.stat-label,
-.card small{
-  overflow-wrap:anywhere;
-}
-
-/* Tablet */
-@media(max-width:1024px){
-  :root{
-    --knt-page-max: 940px;
-  }
-
-  .hero{
+@media(max-width:900px){
+  .pptquiz-shortcut-card,
+  .pptquiz-page-hero{
     grid-template-columns:1fr;
   }
-
-  .hero-last-material{
+  .pptquiz-cover-carousel{
+    min-height:240px;
+  }
+  .pptquiz-page-carousel{
+    min-height:300px;
+  }
+  .parent-materials-tools{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:560px){
+  .pptquiz-shortcut-btn,
+  .pptquiz-page-actions .btn{
     width:100%;
   }
-
-  .detail-actions,
-  .row-actions,
-  .hero-last-actions{
-    display:grid !important;
-    grid-template-columns:repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  .pptquiz-big-actions{
+    grid-template-columns:1fr;
+  }
+  .pptquiz-page-copy h1{
+    font-size:44px;
   }
 }
 
-/* HP */
-@media(max-width:760px){
-  :root{
-    --knt-gap: 12px;
-    --knt-card-pad: 14px;
-    --knt-btn-h: 44px;
-  }
 
-  body{
-    padding-bottom:calc(104px + env(safe-area-inset-bottom));
-  }
+/* =========================================================
+   FIX: payment tidak mental balik + layout lebih rapi + cover full tidak kepotong
+   ========================================================= */
 
-  .parent-page,
-  .admin-page,
-  .parent-main,
-  .admin-main,
-  .dashboard,
-  .admin-shell,
-  .parent-shell{
-    padding-inline:10px !important;
-  }
+/* Rapihin jarak section biar tidak berdempetan */
+.panel{
+  margin-bottom:clamp(22px, 3vw, 34px) !important;
+}
 
-  .hero{
+.section-toolbar{
+  margin-bottom:clamp(14px, 2vw, 22px) !important;
+}
+
+.file-grid,
+.compact-grid,
+.pptquiz-big-grid{
+  gap:clamp(18px, 2.4vw, 30px) !important;
+}
+
+/* Parent dashboard PPT & Quiz shortcut lebih lega */
+.pptquiz-shortcut-card{
+  padding:clamp(18px, 2.6vw, 30px) !important;
+  gap:clamp(24px, 4vw, 48px) !important;
+  align-items:center !important;
+}
+
+.pptquiz-shortcut-copy{
+  gap:10px !important;
+}
+
+.pptquiz-shortcut-copy .eyebrow{
+  width:max-content;
+  max-width:100%;
+  padding:10px 18px !important;
+  border-radius:999px !important;
+}
+
+.pptquiz-shortcut-copy .title{
+  max-width:650px;
+  line-height:1.1 !important;
+  margin:10px 0 2px !important;
+}
+
+.pptquiz-shortcut-copy .subtitle{
+  max-width:560px;
+  line-height:1.45 !important;
+}
+
+.pptquiz-shortcut-stats{
+  gap:10px !important;
+  margin:18px 0 20px !important;
+}
+
+.pptquiz-shortcut-stats span{
+  white-space:nowrap;
+}
+
+.pptquiz-shortcut-btn{
+  margin-top:4px !important;
+}
+
+/* Cover carousel dashboard: tampil FULL gambar, tidak dicrop */
+.pptquiz-cover-carousel{
+  min-height:0 !important;
+  height:auto !important;
+  aspect-ratio:16/9 !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+  border:1px solid rgba(148,163,184,.16);
+}
+
+.pptquiz-cover-slide img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+  padding:0 !important;
+}
+
+/* Caption lebih kecil supaya tidak nutup gambar */
+.pptquiz-cover-caption{
+  left:18px !important;
+  right:18px !important;
+  bottom:18px !important;
+  padding:10px 14px !important;
+  border-radius:16px !important;
+  max-width:72% !important;
+}
+
+.pptquiz-cover-caption strong{
+  font-size:clamp(16px, 1.8vw, 26px) !important;
+}
+
+/* Halaman khusus PPT Quiz: lebih lega dan rapi */
+.pptquiz-page-app{
+  padding-top:clamp(18px, 3vw, 34px) !important;
+}
+
+.pptquiz-page-hero{
+  gap:clamp(24px, 4vw, 48px) !important;
+  margin-bottom:clamp(20px, 3vw, 34px) !important;
+}
+
+.pptquiz-page-copy{
+  padding:clamp(26px, 4vw, 46px) !important;
+}
+
+.pptquiz-page-copy h1{
+  margin-bottom:18px !important;
+}
+
+.parent-materials-tools{
+  padding:clamp(16px, 2vw, 22px) !important;
+  gap:14px !important;
+  margin-bottom:clamp(20px, 3vw, 34px) !important;
+}
+
+.parent-materials-page-panel{
+  padding:clamp(18px, 2.5vw, 30px) !important;
+}
+
+/* Hero carousel halaman khusus: FULL gambar */
+.pptquiz-page-carousel{
+  min-height:0 !important;
+  height:auto !important;
+  aspect-ratio:16/9 !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+  border:1px solid rgba(148,163,184,.16);
+}
+
+.pptquiz-page-slide img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+}
+
+/* Card cover besar: full gambar, bukan crop */
+.pptquiz-big-card{
+  display:flex;
+  flex-direction:column;
+}
+
+.pptquiz-big-cover-wrap,
+.pptquiz-big-cover-placeholder{
+  aspect-ratio:16/9 !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+}
+
+.pptquiz-big-cover{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+}
+
+.pptquiz-big-body{
+  padding:clamp(16px, 2vw, 24px) !important;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  flex:1;
+}
+
+.pptquiz-big-body h3{
+  margin:4px 0 0 !important;
+}
+
+.pptquiz-big-body p{
+  margin:0 !important;
+}
+
+.pptquiz-big-actions{
+  margin-top:auto !important;
+  gap:12px !important;
+}
+
+/* Riwayat pertemuan supaya jaraknya lebih enak */
+.attendance-grid,
+#attendanceList .file-grid,
+#attendanceList .compact-grid{
+  gap:clamp(16px, 2vw, 24px) !important;
+}
+
+/* Responsive */
+@media(max-width:900px){
+  .pptquiz-shortcut-card{
     grid-template-columns:1fr !important;
-    gap:12px !important;
+    padding:18px !important;
   }
 
-  .hero-dynamic-badge{
-    font-size:14px !important;
-    padding:7px 12px !important;
-    transform:translateY(-6px) scale(.94);
-    transform-origin:left center;
+  .pptquiz-cover-caption,
+  .pptquiz-page-slide-caption{
+    max-width:calc(100% - 28px) !important;
+    left:14px !important;
+    right:14px !important;
+    bottom:14px !important;
   }
 
-  .hero-level-card{
-    margin-top:-8px !important;
-    transform:translateY(-7px) scale(.94) !important;
-    transform-origin:left center;
-  }
-
-  .stats{
-    grid-template-columns:repeat(2, minmax(0, 1fr)) !important;
-    gap:10px !important;
-  }
-
-  .stat{
-    padding:12px !important;
-    min-width:0 !important;
-  }
-
-  .stat-num{
-    font-size:clamp(18px, 7vw, 28px) !important;
-  }
-
-  .file-grid,
-  .compact-grid,
-  .library-grid,
-  .question-grid,
-  .session-grid,
-  .cards-grid{
+  .pptquiz-page-hero{
     grid-template-columns:1fr !important;
   }
+}
 
-  .row-actions,
-  .detail-actions,
-  .hero-last-actions,
-  .material-actions,
-  .card-actions,
-  .actions,
-  .modal-actions,
-  .form-actions,
-  .library-actions{
+@media(max-width:560px){
+  .pptquiz-shortcut-stats{
     display:grid !important;
     grid-template-columns:1fr !important;
-    width:100%;
   }
 
-  .row-actions .btn,
-  .detail-actions .btn,
-  .hero-last-actions .btn,
-  .material-actions .btn,
-  .card-actions .btn,
-  .actions .btn,
-  .modal-actions .btn,
-  .form-actions .btn,
-  .library-actions .btn{
+  .pptquiz-shortcut-btn,
+  .pptquiz-big-actions .btn,
+  .pptquiz-page-actions .btn{
     width:100% !important;
   }
 
-  .btn,
-  button.btn,
-  a.btn{
-    min-height:var(--knt-btn-h);
-    padding-inline:12px !important;
-    font-size:14px !important;
-    white-space:normal !important;
-  }
-
-  .panel,
-  .card,
-  .file-card,
-  .student-card,
-  .hero-last-card,
-  .hero-last-empty{
-    padding:14px !important;
-  }
-
-  .cover-wrap img,
-  .hero-last-cover img,
-  .file-card img,
-  .library-card img,
-  .certificate-card img,
-  .card-cover,
-  .cover-img{
-    aspect-ratio:16 / 9;
-  }
-
-  .notif-dropdown{
-    width:calc(100vw - 20px) !important;
-    max-width:calc(100vw - 20px) !important;
-    right:10px !important;
-    left:10px !important;
-  }
-
-  /* Kurangi efek berat di HP */
-  .panel,
-  .card,
-  .file-card,
-  .student-card,
-  .hero-last-card,
-  .hero-last-material,
-  .notif-dropdown,
-  .stat{
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-    box-shadow:0 10px 26px rgba(15,23,42,.08) !important;
+  .pptquiz-big-actions{
+    grid-template-columns:1fr !important;
   }
 }
 
-/* HP kecil */
-@media(max-width:430px){
-  .stats{
-    grid-template-columns:1fr 1fr !important;
+
+/* =========================================================
+   FINAL POLISH: parent red sync + cover first + nav mobile safe
+   ========================================================= */
+
+/* Section spacing agar tidak berdempetan */
+#parentAttendanceSection,
+#parentMaterialsSection,
+#parentCertificateSection,
+.panel{
+  margin-bottom:clamp(22px, 3vw, 36px) !important;
+}
+
+#parentMaterialsSection{
+  padding:clamp(18px, 2.5vw, 32px) !important;
+}
+
+/* PPT & Quiz card: urutan cover dulu baru tombol */
+.pptquiz-shortcut-card-polished{
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  gap:clamp(16px, 2.6vw, 26px) !important;
+  padding:clamp(18px, 2.8vw, 34px) !important;
+  overflow:hidden !important;
+  align-items:stretch !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-copy{
+  display:block !important;
+}
+
+.pptquiz-shortcut-card-polished .eyebrow{
+  width:max-content !important;
+  max-width:100% !important;
+  padding:10px 18px !important;
+  border-radius:999px !important;
+  margin-bottom:16px !important;
+}
+
+.pptquiz-shortcut-card-polished .title{
+  max-width:720px !important;
+  font-size:clamp(26px, 3.2vw, 44px) !important;
+  line-height:1.05 !important;
+  margin:0 0 12px !important;
+}
+
+.pptquiz-shortcut-card-polished .subtitle{
+  max-width:680px !important;
+  line-height:1.45 !important;
+  margin-bottom:18px !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-stats{
+  display:flex !important;
+  flex-wrap:wrap !important;
+  gap:10px !important;
+  margin:0 !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-stats span{
+  min-width:0 !important;
+  padding:9px 14px !important;
+}
+
+/* Cover carousel full image, tidak crop */
+.pptquiz-shortcut-card-polished .pptquiz-cover-carousel{
+  width:100% !important;
+  height:auto !important;
+  min-height:0 !important;
+  aspect-ratio:16/9 !important;
+  border-radius:28px !important;
+  overflow:hidden !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+  box-shadow:0 18px 46px rgba(15,23,42,.13) !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-cover-slide img{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-cover-caption{
+  left:14px !important;
+  right:14px !important;
+  bottom:14px !important;
+  max-width:calc(100% - 28px) !important;
+  padding:9px 12px !important;
+  border-radius:16px !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-cover-caption strong{
+  font-size:clamp(15px, 2vw, 24px) !important;
+  line-height:1.05 !important;
+}
+
+/* Tombol harus di bawah cover */
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:100% !important;
+  min-height:54px !important;
+  border-radius:20px !important;
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  margin-top:0 !important;
+}
+
+/* Full cover juga di halaman khusus */
+.pptquiz-page-carousel,
+.pptquiz-big-cover-wrap,
+.pptquiz-big-cover-placeholder{
+  aspect-ratio:16/9 !important;
+  height:auto !important;
+  min-height:0 !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+}
+
+.pptquiz-page-slide img,
+.pptquiz-big-cover{
+  width:100% !important;
+  height:100% !important;
+  object-fit:contain !important;
+  object-position:center !important;
+  background:linear-gradient(135deg,#eef2ff,#fff7ed) !important;
+}
+
+/* Bottom nav HP: tidak kepotong dan tidak terlalu besar */
+html, body{
+  overflow-x:hidden !important;
+}
+
+body{
+  padding-bottom:calc(118px + env(safe-area-inset-bottom)) !important;
+}
+
+#parentApp{
+  padding-bottom:calc(132px + env(safe-area-inset-bottom)) !important;
+}
+
+.parent-bottom-nav{
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:calc(12px + env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(620px, calc(100vw - 24px)) !important;
+  max-width:calc(100vw - 24px) !important;
+  min-height:72px !important;
+  height:auto !important;
+  padding:8px !important;
+  border-radius:26px !important;
+  display:grid !important;
+  grid-template-columns:repeat(4, minmax(0, 1fr)) !important;
+  gap:6px !important;
+  overflow:visible !important;
+  z-index:5000 !important;
+}
+
+.parent-nav-item{
+  min-width:0 !important;
+  height:56px !important;
+  padding:6px 3px !important;
+  border-radius:18px !important;
+  gap:3px !important;
+  font-size:11px !important;
+  line-height:1.05 !important;
+  white-space:normal !important;
+  overflow:hidden !important;
+}
+
+.parent-nav-icon{
+  font-size:20px !important;
+  line-height:1 !important;
+  flex:0 0 auto !important;
+}
+
+.parent-nav-item span,
+.parent-nav-item strong,
+.parent-nav-item .nav-label{
+  max-width:100% !important;
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+}
+
+@media(max-width:520px){
+  .parent-bottom-nav{
+    width:calc(100vw - 16px) !important;
+    max-width:calc(100vw - 16px) !important;
+    bottom:calc(8px + env(safe-area-inset-bottom)) !important;
+    padding:7px !important;
+    border-radius:24px !important;
+    gap:4px !important;
   }
 
-  .stat-label{
-    font-size:12px !important;
+  .parent-nav-item{
+    height:54px !important;
+    font-size:10.5px !important;
+    padding:5px 2px !important;
   }
 
-  .calendar-grid{
-    gap:3px !important;
-  }
-
-  .calendar-day{
-    font-size:11px !important;
-    padding:4px !important;
-  }
-
-  h1{
-    font-size:clamp(26px, 10vw, 38px);
+  .parent-nav-icon{
+    font-size:19px !important;
   }
 }
 
-/* Desktop besar */
-@media(min-width:1280px){
-  .container,
-  .page,
-  .main,
-  .admin-page,
-  .parent-page,
-  .dashboard,
-  .admin-shell,
-  .parent-shell,
-  .parent-main,
-  .admin-main,
-  .app-shell{
-    max-width:var(--knt-page-max);
+@media(max-width:380px){
+  .parent-nav-item{
+    font-size:9.5px !important;
   }
+
+  .parent-nav-icon{
+    font-size:18px !important;
+  }
+}
+
+
+/* =========================================================
+   PROFESSIONAL UI FIX: tombol kecil, desktop rapi, status bayar jelas, auto-scroll focus
+   ========================================================= */
+
+/* Payment card admin: jangan ada status ijo untuk belum bayar / belum aktif */
+.payment-admin-card{
+  display:grid !important;
+  grid-template-columns:auto minmax(0,1fr) auto !important;
+  align-items:center !important;
+  gap:14px !important;
+  padding:16px 18px !important;
+  border-radius:22px !important;
+}
+
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#fff) !important;
+  border:1px solid rgba(148,163,184,.32) !important;
+}
+
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fee2e2,#fff7ed) !important;
+  border:1px solid rgba(239,68,68,.42) !important;
+}
+
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#dcfce7,#f0fdf4) !important;
+  border:1px solid rgba(34,197,94,.42) !important;
+}
+
+.payment-status-pill{
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  min-width:96px !important;
+  padding:8px 12px !important;
+  border-radius:999px !important;
+  font-size:12px !important;
+  font-weight:1000 !important;
+  letter-spacing:.06em !important;
+}
+
+.payment-status-pill.neutral{
+  color:#475569 !important;
+  background:#e2e8f0 !important;
+}
+
+.payment-status-pill.unpaid{
+  color:#991b1b !important;
+  background:#fecaca !important;
+}
+
+.payment-status-pill.paid{
+  color:#166534 !important;
+  background:#bbf7d0 !important;
+}
+
+/* Dashboard PPT & Quiz: lebih profesional, tombol tidak kebesaran */
+.pptquiz-shortcut-card-polished{
+  padding:clamp(18px, 2.2vw, 28px) !important;
+  gap:18px !important;
+}
+
+.pptquiz-shortcut-card-polished .title{
+  font-size:clamp(24px, 2.8vw, 38px) !important;
+  max-width:680px !important;
+}
+
+.pptquiz-shortcut-card-polished .subtitle{
+  font-size:clamp(14px, 1.4vw, 17px) !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-stats{
+  display:flex !important;
+  gap:9px !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-stats span{
+  width:auto !important;
+  min-width:112px !important;
+  padding:8px 13px !important;
+  border-radius:999px !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:max-content !important;
+  min-width:240px !important;
+  max-width:100% !important;
+  min-height:46px !important;
+  padding:0 22px !important;
+  border-radius:18px !important;
+  justify-self:start !important;
+  box-shadow:0 12px 26px rgba(161,121,38,.20) !important;
+}
+
+/* Halaman PPT & Quiz desktop: jangan terlalu jumbo dan lebih modern */
+.parent-materials-page{
+  background:
+    radial-gradient(circle at 8% 20%, rgba(167,139,250,.12), transparent 28%),
+    radial-gradient(circle at 90% 10%, rgba(251,191,36,.12), transparent 28%),
+    linear-gradient(135deg,#fffaf0,#f8fafc 45%,#eef2ff) !important;
+}
+
+.pptquiz-page-app{
+  width:min(1180px, calc(100% - 44px)) !important;
+  padding:clamp(22px, 3vw, 42px) 0 96px !important;
+}
+
+.pptquiz-page-hero{
+  display:grid !important;
+  grid-template-columns:minmax(320px,.78fr) minmax(420px,1.22fr) !important;
+  gap:clamp(20px, 3vw, 34px) !important;
+  align-items:stretch !important;
+  margin-bottom:clamp(18px, 2.5vw, 28px) !important;
+}
+
+.pptquiz-page-copy{
+  min-height:360px !important;
+  padding:clamp(24px, 3vw, 36px) !important;
+  border-radius:32px !important;
+  background:rgba(255,255,255,.86) !important;
+  box-shadow:0 22px 60px rgba(15,23,42,.10) !important;
+}
+
+.pptquiz-page-copy h1{
+  font-size:clamp(54px, 5.2vw, 86px) !important;
+  line-height:.9 !important;
+  letter-spacing:-.05em !important;
+}
+
+.pptquiz-page-copy p{
+  font-size:clamp(15px, 1.2vw, 18px) !important;
+  line-height:1.35 !important;
+}
+
+.pptquiz-page-actions{
+  margin-top:22px !important;
+  display:flex !important;
+  gap:10px !important;
+}
+
+.pptquiz-page-actions .btn{
+  width:auto !important;
+  min-width:150px !important;
+  min-height:44px !important;
+  border-radius:16px !important;
+  padding:0 18px !important;
+}
+
+.pptquiz-page-carousel{
+  min-height:360px !important;
+  max-height:430px !important;
+  aspect-ratio:16/9 !important;
+  border-radius:28px !important;
+}
+
+.parent-materials-tools{
+  width:min(920px, 100%) !important;
+  margin:0 auto clamp(18px, 2.4vw, 30px) !important;
+  padding:14px !important;
+  border-radius:24px !important;
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) 240px !important;
+  gap:10px !important;
+}
+
+.parent-materials-tools .field{
+  min-height:48px !important;
+  border-radius:16px !important;
+}
+
+.parent-materials-page-panel{
+  width:min(1040px,100%) !important;
+  margin:0 auto !important;
+  border-radius:28px !important;
+}
+
+.pptquiz-big-grid{
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 300px), 1fr)) !important;
+  gap:22px !important;
+}
+
+.pptquiz-big-card{
+  border-radius:26px !important;
+  overflow:hidden !important;
+  transition:transform .22s ease, box-shadow .22s ease !important;
+}
+
+.pptquiz-big-card:hover{
+  transform:translateY(-3px) !important;
+  box-shadow:0 28px 65px rgba(15,23,42,.16) !important;
+}
+
+.focus-material-card{
+  outline:4px solid rgba(99,102,241,.35) !important;
+  box-shadow:0 0 0 10px rgba(99,102,241,.12), 0 28px 65px rgba(15,23,42,.18) !important;
+}
+
+/* Cover tetap full gambar */
+.pptquiz-cover-slide img,
+.pptquiz-page-slide img,
+.pptquiz-big-cover{
+  object-fit:contain !important;
+  object-position:center !important;
+}
+
+/* Bottom nav parent: tidak kepotong di HP */
+body{
+  padding-bottom:calc(120px + env(safe-area-inset-bottom)) !important;
+}
+
+#parentApp{
+  padding-bottom:calc(132px + env(safe-area-inset-bottom)) !important;
+}
+
+.parent-bottom-nav{
+  position:fixed !important;
+  left:50% !important;
+  right:auto !important;
+  bottom:calc(10px + env(safe-area-inset-bottom)) !important;
+  transform:translateX(-50%) !important;
+  width:min(620px, calc(100vw - 18px)) !important;
+  max-width:calc(100vw - 18px) !important;
+  min-height:70px !important;
+  padding:7px !important;
+  border-radius:24px !important;
+  display:grid !important;
+  grid-template-columns:repeat(4, minmax(0,1fr)) !important;
+  gap:5px !important;
+  overflow:visible !important;
+}
+
+.parent-nav-item{
+  min-width:0 !important;
+  height:54px !important;
+  padding:5px 2px !important;
+  border-radius:17px !important;
+  font-size:10.5px !important;
+  line-height:1.05 !important;
+}
+
+.parent-nav-icon{
+  font-size:19px !important;
+  line-height:1 !important;
+}
+
+@media(max-width:900px){
+  .pptquiz-page-app{
+    width:min(100% - 24px, 680px) !important;
+    padding-top:18px !important;
+  }
+
+  .pptquiz-page-hero{
+    grid-template-columns:1fr !important;
+    gap:18px !important;
+  }
+
+  .pptquiz-page-copy{
+    min-height:0 !important;
+    padding:24px !important;
+  }
+
+  .pptquiz-page-copy h1{
+    font-size:clamp(48px, 13vw, 70px) !important;
+  }
+
+  .pptquiz-page-carousel{
+    min-height:0 !important;
+    max-height:none !important;
+  }
+
+  .parent-materials-tools{
+    grid-template-columns:1fr !important;
+    width:100% !important;
+  }
+
+  .pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+    width:100% !important;
+    justify-self:stretch !important;
+  }
+
+  .payment-admin-card{
+    grid-template-columns:1fr !important;
+  }
+
+  .payment-admin-card .btn{
+    width:100% !important;
+  }
+}
+
+@media(max-width:520px){
+  .pptquiz-shortcut-card-polished .pptquiz-shortcut-stats{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+  }
+
+  .pptquiz-shortcut-card-polished .pptquiz-shortcut-stats span{
+    width:100% !important;
+  }
+
+  .parent-bottom-nav{
+    width:calc(100vw - 14px) !important;
+    max-width:calc(100vw - 14px) !important;
+  }
+
+  .parent-nav-item{
+    font-size:9.8px !important;
+  }
+}
+
+
+/* AUTHORITATIVE PAYMENT STATE FIX */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff) !important;
+  border:1px solid rgba(148,163,184,.35) !important;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fee2e2,#fff7ed) !important;
+  border:1px solid rgba(239,68,68,.45) !important;
+}
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#dcfce7,#f0fdf4) !important;
+  border:1px solid rgba(34,197,94,.45) !important;
+}
+.payment-status-pill.neutral{
+  color:#475569 !important;
+  background:#e2e8f0 !important;
+}
+.payment-status-pill.unpaid{
+  color:#991b1b !important;
+  background:#fecaca !important;
+}
+.payment-status-pill.paid{
+  color:#166534 !important;
+  background:#bbf7d0 !important;
+}
+
+
+
+/* =========================================================
+   FIX FINAL: tombol PPT tidak kepotong + parent payment live sync visual
+   ========================================================= */
+.pptquiz-shortcut-card-polished{
+  overflow:visible !important;
+  padding-bottom:clamp(22px, 3vw, 34px) !important;
+}
+
+#parentMaterialsSection{
+  overflow:visible !important;
+}
+
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:auto !important;
+  min-width:0 !important;
+  max-width:100% !important;
+  display:inline-flex !important;
+  justify-content:center !important;
+  align-items:center !important;
+  justify-self:start !important;
+  padding:0 26px !important;
+  min-height:48px !important;
+  border-radius:18px !important;
+  box-sizing:border-box !important;
+  margin-top:2px !important;
+  align-self:start !important;
+  white-space:normal !important;
+  line-height:1.15 !important;
+}
+
+@media(max-width:640px){
+  .pptquiz-shortcut-card-polished{
+    padding-left:18px !important;
+    padding-right:18px !important;
+  }
+
+  .pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+    width:100% !important;
+    justify-self:stretch !important;
+    padding:0 14px !important;
+    min-height:50px !important;
+  }
+}
+
+/* Jangan tampilkan paid hijau kalau data belum fresh */
+.package-complete-card.payment-safe .payment-parent-message.safe{
+  border-color:rgba(148,163,184,.28) !important;
+}
+
+
+
+/* SIMPLE PAYMENT ON/OFF FINAL */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff) !important;
+  border:1px solid rgba(148,163,184,.35) !important;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fee2e2,#fff7ed) !important;
+  border:1px solid rgba(239,68,68,.45) !important;
+}
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#dcfce7,#f0fdf4) !important;
+  border:1px solid rgba(34,197,94,.45) !important;
+}
+.payment-status-pill.neutral{ color:#475569 !important; background:#e2e8f0 !important; }
+.payment-status-pill.unpaid{ color:#991b1b !important; background:#fecaca !important; }
+.payment-status-pill.paid{ color:#166534 !important; background:#bbf7d0 !important; }
+
+/* tombol PPT tidak kepotong */
+.pptquiz-shortcut-card-polished{
+  overflow:visible !important;
+  padding-bottom:28px !important;
+}
+#parentMaterialsSection{
+  overflow:visible !important;
+}
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:100% !important;
+  max-width:100% !important;
+  min-height:50px !important;
+  border-radius:18px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  margin-top:4px !important;
+  white-space:normal !important;
+  line-height:1.15 !important;
+  padding:0 14px !important;
+}
+
+
+
+/* PAYMENT ON/OFF CLEAR FINAL */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff) !important;
+  border:1px solid rgba(148,163,184,.35) !important;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fee2e2,#fff7ed) !important;
+  border:1px solid rgba(239,68,68,.45) !important;
+}
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#dcfce7,#f0fdf4) !important;
+  border:1px solid rgba(34,197,94,.45) !important;
+}
+.payment-status-pill.neutral{ color:#475569 !important; background:#e2e8f0 !important; }
+.payment-status-pill.unpaid{ color:#991b1b !important; background:#fecaca !important; }
+.payment-status-pill.paid{ color:#166534 !important; background:#bbf7d0 !important; }
+
+.pptquiz-shortcut-card-polished{
+  overflow:visible !important;
+  padding-bottom:28px !important;
+}
+#parentMaterialsSection{
+  overflow:visible !important;
+}
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:100% !important;
+  max-width:100% !important;
+  min-height:50px !important;
+  border-radius:18px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  margin-top:4px !important;
+  white-space:normal !important;
+  line-height:1.15 !important;
+  padding:0 14px !important;
+}
+
+
+/* PAYMENT ON/OFF REAL FIX */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff) !important;
+  border:1px solid rgba(148,163,184,.35) !important;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fee2e2,#fff7ed) !important;
+  border:1px solid rgba(239,68,68,.45) !important;
+}
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#dcfce7,#f0fdf4) !important;
+  border:1px solid rgba(34,197,94,.45) !important;
+}
+.payment-status-pill.neutral{ color:#475569 !important; background:#e2e8f0 !important; }
+.payment-status-pill.unpaid{ color:#991b1b !important; background:#fecaca !important; }
+.payment-status-pill.paid{ color:#166534 !important; background:#bbf7d0 !important; }
+
+.pptquiz-shortcut-card-polished{
+  overflow:visible !important;
+  padding-bottom:28px !important;
+}
+#parentMaterialsSection{
+  overflow:visible !important;
+}
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:100% !important;
+  max-width:100% !important;
+  min-height:50px !important;
+  border-radius:18px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  margin-top:4px !important;
+  white-space:normal !important;
+  line-height:1.15 !important;
+  padding:0 14px !important;
+}
+
+
+/* ABSOLUTE PAYMENT ON/OFF OVERRIDE */
+.payment-admin-card.neutral{
+  background:linear-gradient(135deg,#f8fafc,#ffffff) !important;
+  border:1px solid rgba(148,163,184,.35) !important;
+}
+.payment-admin-card.unpaid{
+  background:linear-gradient(135deg,#fee2e2,#fff7ed) !important;
+  border:1px solid rgba(239,68,68,.45) !important;
+}
+.payment-admin-card.paid{
+  background:linear-gradient(135deg,#dcfce7,#f0fdf4) !important;
+  border:1px solid rgba(34,197,94,.45) !important;
+}
+.payment-status-pill.neutral{ color:#475569 !important; background:#e2e8f0 !important; }
+.payment-status-pill.unpaid{ color:#991b1b !important; background:#fecaca !important; }
+.payment-status-pill.paid{ color:#166534 !important; background:#bbf7d0 !important; }
+
+.pptquiz-shortcut-card-polished{
+  overflow:visible !important;
+  padding-bottom:28px !important;
+}
+#parentMaterialsSection{
+  overflow:visible !important;
+}
+.pptquiz-shortcut-card-polished .pptquiz-shortcut-btn{
+  width:100% !important;
+  max-width:100% !important;
+  min-height:50px !important;
+  border-radius:18px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  margin-top:4px !important;
+  white-space:normal !important;
+  line-height:1.15 !important;
+  padding:0 14px !important;
 }

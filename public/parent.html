@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=responsive-cleanup-20260610"/>
+  <link rel="stylesheet" href="/style.css?v=payment-onoff-absolute-override-20260621"/>
 </head>
 <body class="parent-logged-out">
 
@@ -64,8 +64,7 @@
       <aside id="parentHeroLastMaterial" class="hero-last-material"></aside>
 </section>
     <div class="ready-text standalone-ready"><span>Progress anak sudah siap.</span></div>
-
-    <section class="stats parent-animate animate-delay-2">
+<section class="stats parent-animate animate-delay-2">
       <button type="button" class="stat stat-click" onclick="parentStatAction('meetings')"><div class="stat-icon" id="pIconMeet"></div><div><div class="stat-label">Pertemuan</div><div class="stat-num" id="pMeetings">0</div></div></button>
       <button type="button" class="stat stat-click" onclick="parentStatAction('pptOpen')"><div class="stat-icon" id="pIconMat"></div><div><div class="stat-label">PPT Terbuka</div><div class="stat-num" id="pMaterials">0</div></div></button>
       <button type="button" class="stat stat-click" onclick="parentStatAction('pptLocked')"><div class="stat-icon" id="pIconLocked"></div><div><div class="stat-label">PPT Locked</div><div class="stat-num" id="pLocked">0</div></div></button>
@@ -312,6 +311,46 @@ async function autoLoginParentFromDevice(){
   }
 }
 
+
+let parentPaymentLiveTimer = null;
+let lastParentPaymentSignature = "";
+
+function parentPaymentSignature(s){
+  if(!s) return "";
+  return [
+    s.id,
+    s.lesson_cycle_number,
+    s.lesson_package_number,
+    s.payment_status,
+    s.payment_should_warn,
+    s.current_package_paid,
+    s.payment_paid_package
+  ].join("|");
+}
+
+async function parentPaymentLiveRefresh(){
+  if(!currentStudent || !currentStudent.parent_code) return;
+
+  const before = parentPaymentSignature(currentStudent);
+  await refreshParentStudentFromServer();
+  const after = parentPaymentSignature(currentStudent);
+
+  // Kalau status pembayaran berubah, render ulang parent dan izinkan popup ikut berubah.
+  if(before && after && before !== after){
+    packagePopupShownThisLoad = false;
+    renderParent();
+  }
+}
+
+function startParentPaymentLiveSync(){
+  if(parentPaymentLiveTimer) clearInterval(parentPaymentLiveTimer);
+  parentPaymentLiveTimer = setInterval(parentPaymentLiveRefresh, 5000);
+  window.addEventListener("focus", parentPaymentLiveRefresh);
+  document.addEventListener("visibilitychange", function(){
+    if(!document.hidden) parentPaymentLiveRefresh();
+  });
+}
+
 document.addEventListener("DOMContentLoaded", function(){
   const input = parentCodeInputEl();
   if(input){
@@ -445,6 +484,13 @@ function lessonCycleNumber(total){
   return mod === 0 ? 4 : mod;
 }
 
+function parentPackageNumber(total){
+  const n = Number(total || 0);
+  if(n <= 0) return 0;
+  return Math.ceil(n / 4);
+}
+
+
 
 function preloadParentImageUrl(url){
   if(!url || typeof url !== "string") return;
@@ -503,12 +549,30 @@ function forceParentScrollTop(){
 async function refreshParentStudentFromServer(){
   try{
     if(!currentStudent || !currentStudent.parent_code) return currentStudent;
-    const res = await fetch("/api/parent/student/" + encodeURIComponent(currentStudent.parent_code), { cache:"no-store" });
-    if(!res.ok) return currentStudent;
-    currentStudent = await res.json();
-    localStorage.setItem(PARENT_KEY, JSON.stringify(currentStudent));
+
+    const code = encodeURIComponent(currentStudent.parent_code);
+    const res = await fetch("/api/parent/" + code + "?t=" + Date.now(), {
+      cache:"no-store",
+      headers:{ "Cache-Control":"no-store" }
+    });
+
+    if(!res.ok){
+      currentStudent.__freshParentData = false;
+      return currentStudent;
+    }
+
+    const fresh = await res.json();
+    if(fresh && fresh.id){
+      fresh.__freshParentData = true;
+      currentStudent = fresh;
+      localStorage.setItem(PARENT_KEY, JSON.stringify(currentStudent));
+      return currentStudent;
+    }
+
+    currentStudent.__freshParentData = false;
     return currentStudent;
   }catch(e){
+    if(currentStudent) currentStudent.__freshParentData = false;
     return currentStudent;
   }
 }
@@ -749,11 +813,10 @@ function showPackageCompletePopupIfNeeded(){
   packagePopupShownThisLoad = true;
 
   const latest = getLatestAttendance(attendances);
-  const cycle = lessonCycleText(total);
-  const cycleNo = lessonCycleNumber(total);
-  const paymentPaid = Number(currentStudent.payment_paid || 0) === 1;
-  const needsPayment = cycleNo === 1 && !paymentPaid;
-  const isPackageDone = total % 4 === 0;
+  const cycle = currentStudent.lesson_cycle_text || lessonCycleText(total);
+  const cycleNo = Number(currentStudent.lesson_cycle_number || lessonCycleNumber(total));
+  const on = cycleNo === 4 && (Number(currentStudent.payment_warning_on || 0) === 1 || String(currentStudent.payment_status || "") === "on");
+  const off = cycleNo === 4 && !on;
 
   const lastText = latest
     ? `${formatIndoDateShort(latest.date)} • ${safe(latest.time || "-")} • ${safe(latest.session || "Pertemuan")}`
@@ -767,17 +830,18 @@ function showPackageCompletePopupIfNeeded(){
   const overlay = document.createElement("div");
   overlay.id = "packageCompleteOverlay";
   overlay.className = "package-complete-overlay";
+
   overlay.innerHTML = `
-    <div class="package-complete-card ${needsPayment ? "payment-warning" : "payment-safe"}">
+    <div class="package-complete-card ${on ? "payment-warning" : "payment-safe"}">
       <div class="package-complete-icon">${safe(cycle)}</div>
-      <h2>${needsPayment ? "Konfirmasi pembayaran diperlukan" : (isPackageDone ? "Paket pertemuan sudah selesai" : "Progress pertemuan terbaru")}</h2>
+      <h2>${on ? "Pembayaran belum bayar" : (off ? "Pembayaran aman" : "Progress pertemuan terbaru")}</h2>
       <p>Progress les saat ini: <b>${safe(cycle)}</b> dari paket 4x.<br>Total riwayat pertemuan tercatat: <b>${total}x</b>.</p>
-      <div class="payment-parent-message ${needsPayment ? "warning" : "safe"}">
-        <strong>${needsPayment ? "Silakan melakukan pembayaran paket les." : "Status pembayaran sudah terkonfirmasi."}</strong>
-        <span>${needsPayment ? "Untuk memastikan kegiatan belajar tetap berjalan lancar, mohon lakukan pembayaran paket pertemuan aktif. Setelah pembayaran dikonfirmasi oleh admin, peringatan ini akan berubah menjadi status normal." : "Terima kasih, pembayaran paket aktif sudah tercatat oleh admin."}</span>
+      <div class="payment-parent-message ${on ? "warning" : "safe"}">
+        <strong>${on ? "Belum bayar" : "Status aman"}</strong>
+        <span>${on ? "Paket sudah 4/4, peringatan otomatis menyala." : (off ? "Admin sudah mematikan peringatan pembayaran." : "Peringatan belum aktif karena belum 4/4.")}</span>
       </div>
       <div class="package-last-session"><span>Pertemuan terakhir</span><b>${lastText}</b><small>${lastNote}</small></div>
-      <button class="btn ${needsPayment ? "btn-pink" : "btn-green"} package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
+      <button class="btn ${on ? "btn-pink" : "btn-green"} package-close-btn" onclick="closePackageCompletePopup()">Tutup</button>
     </div>`;
   document.body.appendChild(overlay);
   document.body.classList.add("package-popup-open");
@@ -1105,7 +1169,7 @@ function parentStatAction(type){
   if(!currentStudent) return;
 
   if(type === "meetings"){
-    goParentSection("parentCalendarSection");
+    goParentSection("parentAttendanceSection");
     return;
   }
 
@@ -1114,18 +1178,18 @@ function parentStatAction(type){
     return;
   }
 
-  const lib = currentStudent.library || [];
-  const ppt = lib.filter(parentIsPPTMaterial);
-  const quiz = ppt.filter(function(x){ return x.quiz_id && Number(x.quiz_question_count || 0) > 0; });
+  if(type === "pptOpen" || type === "pptLocked" || type === "quizOpen" || type === "quizLocked"){
+    const map = {
+      pptOpen:"ppt-open",
+      pptLocked:"ppt-locked",
+      quizOpen:"quiz-open",
+      quizLocked:"quiz-locked"
+    };
+    location.href = "/parent-materials.html?filter=" + encodeURIComponent(map[type] || "all");
+    return;
+  }
 
-  if(type === "pptOpen") parentMaterialFilter = ppt.some(x => x.is_unlocked) ? "ppt-open" : "all";
-  if(type === "pptLocked") parentMaterialFilter = ppt.some(x => !x.is_unlocked) ? "ppt-locked" : "all";
-  if(type === "quizOpen") parentMaterialFilter = quiz.some(x => x.is_unlocked) ? "quiz-open" : "all";
-  if(type === "quizLocked") parentMaterialFilter = quiz.some(x => !x.is_unlocked) ? "quiz-locked" : "all";
-
-  parentSectionExpanded.materials = true;
-  renderMaterials(lib);
-  setTimeout(function(){ goParentSection("parentMaterialsSection"); }, 40);
+  location.href = "/parent-materials.html";
 }
 
 function setParentMaterialSearch(value){
@@ -1277,98 +1341,82 @@ function renderParentHeroLastMaterial(list){
   `;
 }
 
+
+let pptQuizCoverCarouselTimer = null;
+
+function startPPTQuizCoverCarousel(){
+  const wrap = document.getElementById("pptQuizCoverCarousel");
+  if(!wrap) return;
+
+  const slides = Array.from(wrap.querySelectorAll(".pptquiz-cover-slide"));
+  if(slides.length <= 1) return;
+
+  if(pptQuizCoverCarouselTimer) clearInterval(pptQuizCoverCarouselTimer);
+
+  let index = slides.findIndex(function(s){ return s.classList.contains("active"); });
+  if(index < 0) index = 0;
+
+  pptQuizCoverCarouselTimer = setInterval(function(){
+    slides[index].classList.remove("active");
+    index = (index + 1) % slides.length;
+    slides[index].classList.add("active");
+  }, 2000);
+}
+
 function renderMaterials(materials){
-  const smartClass = parentPPTSortMode === "smart" ? "btn-primary" : "btn-light";
-  const allClass = parentPPTSortMode === "all" ? "btn-primary" : "btn-light";
-  const allItems = (materials || []).filter(parentItemMatchesSearch).filter(parentItemMatchesFilter);
-  const pptSorted = sortParentMaterials(allItems.filter(parentIsPPTMaterial));
-  const fileSorted = sortParentMaterials(allItems.filter(parentIsProjectFile));
+  const box = getEl("materialList");
+  if(!box) return;
 
-  function filterBtn(label, value){
-    return '<button class="btn ' + (parentMaterialFilter === value ? 'btn-primary' : 'btn-light') + '" onclick="setParentMaterialFilter(&quot;' + value + '&quot;)">' + label + '</button>';
-  }
+  const list = materials || [];
+  const unlocked = list.filter(function(x){ return x && x.is_unlocked; });
+  const ppt = list.filter(parentIsPPTMaterial);
+  const quizOpen = ppt.filter(function(x){
+    return x.is_unlocked && x.quiz_id && Number(x.quiz_question_count || 0) > 0;
+  });
 
-  const searchBox =
-    '<div class="parent-material-search">' +
-      '<input class="field" id="parentMaterialSearchInput" value="' + safe(parentMaterialSearch) + '" oninput="setParentMaterialSearch(this.value)" placeholder="Cari PPT, quiz, APK, ZIP, project...">' +
-      '<button class="btn btn-light" onclick="setParentMaterialSearch(&quot;&quot;)">Clear</button>' +
-    '</div>' +
-    '<div class="parent-filter-row">' +
-      filterBtn("Semua", "all") +
-      filterBtn("PPT Terbuka", "ppt-open") +
-      filterBtn("PPT Locked", "ppt-locked") +
-      filterBtn("Quiz Terbuka", "quiz-open") +
-      filterBtn("Quiz Locked", "quiz-locked") +
-      filterBtn("File Terbuka", "file-open") +
-      filterBtn("File Locked", "file-locked") +
-    '</div>';
+  const covers = list.filter(function(x){
+    return x && x.cover_path;
+  }).slice(0, 8);
 
-  function renderParentMaterialSection(title, subtitle, list, sectionKey, emptyText){
-    const expanded = !!parentSectionExpanded[sectionKey];
-    const visible = expanded ? list : list.slice(0,4);
-    const hidden = Math.max(0, list.length - visible.length);
-    let html = '<div class="section-toolbar">' +
-      '<div><div class="title">' + title + '</div><div class="subtitle">' + subtitle + '</div></div>' +
-      '<div class="section-actions">' +
-        '<button class="btn ' + smartClass + '" onclick="setParentPPTSortMode(&quot;smart&quot;)">Default</button>' +
-        '<button class="btn ' + allClass + '" onclick="setParentPPTSortMode(&quot;all&quot;)">Sort All</button>' +
-      '</div>' +
-    '</div>';
+  const slideHTML = covers.length ? covers.map(function(item, index){
+    return `
+      <div class="pptquiz-cover-slide ${index === 0 ? "active" : ""}">
+        <img src="${safe(item.cover_path)}" loading="${index === 0 ? "eager" : "lazy"}" decoding="async" alt="${safe(item.title || item.file_name || "PPT")}">
+        <div class="pptquiz-cover-caption">
+          <span>${item.is_unlocked ? "Unlocked" : "Locked"}</span>
+          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
+        </div>
+      </div>
+    `;
+  }).join("") : `
+    <div class="pptquiz-cover-slide active empty">
+      <div class="cover-placeholder">${svg("folder")}</div>
+      <div class="pptquiz-cover-caption"><span>PPT & Quiz</span><strong>Belum ada cover</strong></div>
+    </div>
+  `;
 
-    if(sectionKey === "materials") html += searchBox;
+  box.innerHTML = `
+    <div class="pptquiz-shortcut-card pptquiz-shortcut-card-polished">
+      <div class="pptquiz-shortcut-copy">
+        <div class="eyebrow">PPT & Quiz</div>
+        <div class="title">Materi dan quiz ada di halaman khusus</div>
+        <div class="subtitle">Dashboard parent tetap ringan, sementara PPT dan quiz tampil besar di halaman khusus.</div>
+        <div class="pptquiz-shortcut-stats">
+          <span>${unlocked.length} terbuka</span>
+          <span>${Math.max(0, list.length - unlocked.length)} locked</span>
+          <span>${quizOpen.length} quiz siap</span>
+        </div>
+      </div>
 
-    if(!list.length){
-      return html + '<div class="empty">' + emptyText + '</div>';
-    }
+      <div class="pptquiz-cover-carousel" id="pptQuizCoverCarousel">
+        ${slideHTML}
+      </div>
 
-    const groups = groupByCategory(visible);
-    Object.keys(groups).forEach(function(cat){
-      html += `<div class="title category-title">${safe(cat)}</div><div class="file-grid compact-grid">`;
-      html += groups[cat].map(function(item){
-        const locked = !item.is_unlocked;
-        const isFile = parentIsProjectFile(item);
-        return `
-          <div class="file-card ${isFile ? "project-file-card" : ""}">
-            ${coverHTML(item, locked)}
-            ${parentProjectBadgeHTML(item)}
-            <strong>${safe(item.title || item.file_name || (isFile ? "File Project" : "Materi"))}</strong>
-            <small>Status: ${locked ? "Locked" : "Unlocked"}<br>File: ${safe(item.file_name || "-")}</small>
-            <div class="row-actions">
-              ${!locked && item.file_path ? `<a class="btn btn-blue" href="${safe(item.file_path)}" download onclick="saveParentLastMaterial(${item.id}, \'download\')">Download</a>` : `<button class="btn btn-light" disabled>Locked</button>`}
-            </div>
-            ${!isFile ? parentQuizRowHTML(item, locked) : ""}
-          </div>
-        `;
-      }).join("");
-      html += "</div>";
-    });
+      <a class="btn btn-primary pptquiz-shortcut-btn" href="/parent-materials.html?autoscroll=1">Buka Halaman PPT & Quiz</a>
+    </div>
+  `;
 
-    if(list.length > 4){
-      html += '<div class="see-all-bottom">' +
-        '<button class="btn btn-light" onclick="toggleParentSection(&quot;' + sectionKey + '&quot;)">' +
-        (expanded ? "Show Less" : "See All (" + hidden + ")") +
-        '</button></div>';
-    }
-    return html;
-  }
-
-  let filterNote = parentMaterialFilter !== "all" ? '<div class="filter-active-note">Filter aktif. Klik <b>Semua</b> untuk melihat semua PPT dan file.</div>' : "";
-
-  let html = filterNote +
-    renderParentMaterialSection("Semua PPT/Materi dan Quiz", "Default: terbuka di atas, locked di bawah. Gunakan search untuk cari materi lebih cepat.", pptSorted, "materials", "Tidak ada PPT yang cocok dengan search/filter.") +
-    '<div style="height:22px"></div>' +
-    renderParentMaterialSection("File Project / APK / ZIP", "File tambahan dari admin. Sistem unlock/lock sama seperti PPT dan tampil tepat di bawah PPT.", fileSorted, "projectFiles", "Tidak ada file project yang cocok dengan search/filter.");
-
-  getEl("materialList").innerHTML = html;
-  forceRenderParentVisibleImages();
-  preloadAllParentImages(currentStudent);
-
-  const input = getEl("parentMaterialSearchInput");
-  if(input){
-    const len = input.value.length;
-    input.focus();
-    input.setSelectionRange(len, len);
-  }
+  startPPTQuizCoverCarousel();
 }
 
 function renderCertificates(certificates){
@@ -1932,6 +1980,8 @@ document.addEventListener("DOMContentLoaded", function(){
   }
 });
 
+
+startParentPaymentLiveSync();
 </script>
 
 <div class="overlay" id="parentQuizOverlay">
