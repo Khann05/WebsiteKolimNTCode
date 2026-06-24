@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Parent Portal Les Koding</title>
-  <link rel="stylesheet" href="/style.css?v=payment-onoff-absolute-override-20260621"/>
+  <link rel="stylesheet" href="/style.css?v=quiz-once-scroll-stats-safe-20260624"/>
 </head>
 <body class="parent-logged-out">
 
@@ -1401,7 +1401,7 @@ function renderMaterials(materials){
         <div class="eyebrow">PPT & Quiz</div>
         <div class="title">Materi dan quiz ada di halaman khusus</div>
         <div class="subtitle">Dashboard parent tetap ringan, sementara PPT dan quiz tampil besar di halaman khusus.</div>
-        <div class="pptquiz-shortcut-stats">
+        <div class="pptquiz-shortcut-stats one-row-stats">
           <span>${unlocked.length} terbuka</span>
           <span>${Math.max(0, list.length - unlocked.length)} locked</span>
           <span>${quizOpen.length} quiz siap</span>
@@ -1412,7 +1412,7 @@ function renderMaterials(materials){
         ${slideHTML}
       </div>
 
-      <a class="btn btn-primary pptquiz-shortcut-btn" href="/parent-materials.html?autoscroll=1">Buka Halaman PPT & Quiz</a>
+      <a class="btn btn-primary pptquiz-shortcut-btn" href="/parent-materials.html?autoscroll=1&focus=latest-unlock">Buka Halaman PPT & Quiz</a>
     </div>
   `;
 

@@ -168,15 +168,13 @@ function deleteUploadByPublicPath(publicPath) {
 
 
 
+
+
 function computePaymentState(student, attendances) {
   const total = Array.isArray(attendances) ? attendances.length : Number((student && student.attendance_count) || 0);
   const cycleNo = total <= 0 ? 0 : (total % 4 === 0 ? 4 : total % 4);
   const disabled = Number((student && student.payment_warning_disabled) || 0) === 1;
 
-  // LOGIKA FINAL:
-  // 4/4 + disabled=0 => ON / merah
-  // 4/4 + disabled=1 => OFF / aman
-  // selain 4/4 => belum aktif
   const on = cycleNo === 4 && !disabled;
   const off = cycleNo === 4 && disabled;
 
@@ -340,6 +338,11 @@ res.json(await getFullStudent(req.params.id));
 
 
 
+
+
+
+
+
 app.all("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
   try {
     await ensurePaymentColumnsRuntime();
@@ -356,13 +359,13 @@ app.all("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
     const warningEnabled = body.warning_enabled === true || body.warning_enabled === 1 || body.warning_enabled === "1";
     const disabledValue = warningEnabled ? 0 : 1;
 
-    const result = await run(
+    await run(
       "UPDATE students SET payment_warning_disabled = ? WHERE id = ?",
       [disabledValue, studentId]
     );
 
     const fresh = await getFullStudent(studentId);
-    fresh.__payment_update_changes = result && result.changes ? result.changes : 0;
+    fresh.__payment_warning_saved = true;
     fresh.__requested_warning_enabled = warningEnabled ? 1 : 0;
     fresh.__saved_payment_warning_disabled = disabledValue;
 
@@ -372,7 +375,6 @@ app.all("/api/admin/students/:id/payment", requireAdmin, async (req, res) => {
     res.status(500).json({ error: err.message || "Gagal update tombol pembayaran" });
   }
 });
-
 
 app.delete("/api/admin/students/:id", requireAdmin, async (req, res) => {
   try {
@@ -400,9 +402,8 @@ app.post("/api/admin/students/:id/attendance", requireAdmin, async (req, res) =>
     if (lessonCycleNumberServer(total) === 1) {
       // Pembayaran tidak direset otomatis; status merah 4/4 dikontrol tombol admin.
     }
-
-const paymentAutoStateFinal = await getFullStudent(req.params.id);
-    if (Number(paymentAutoStateFinal.lesson_cycle_number || 0) === 4) {
+const paymentStateAfterAttendance = await getFullStudent(req.params.id);
+    if (Number(paymentStateAfterAttendance.lesson_cycle_number || 0) === 4) {
       await run("UPDATE students SET payment_warning_disabled = 0 WHERE id = ?", [req.params.id]);
     }
 
