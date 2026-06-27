@@ -4,21 +4,20 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>PPT & Quiz Parent - KolimNT Code</title>
-  <link rel="stylesheet" href="/style.css?v=quiz-once-scroll-stats-safe-20260624"/>
+  <link rel="stylesheet" href="/style.css?v=payment-onoff-absolute-override-20260621"/>
 </head>
 <body class="parent-materials-page">
-  <a class="page-back-arrow modern-back-btn" href="/parent.html" aria-label="Kembali ke dashboard">
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 5.5 8 12l6.5 6.5"></path><path d="M9 12h10"></path></svg>
-  </a>
   <div class="app pptquiz-page-app">
     <section class="pptquiz-page-hero">
       <div class="pptquiz-page-copy">
         <div class="eyebrow">Parent Portal</div>
         <h1>PPT & Quiz</h1>
         <p id="pageSub">Halaman khusus untuk melihat PPT, cover materi, dan quiz anak.</p>
-        
+        <div class="pptquiz-page-actions">
+          <a class="btn btn-light" href="/parent.html">Dashboard</a>
+        </div>
       </div>
-      <div class="pptquiz-page-carousel static-preview" id="bigCoverCarousel">
+      <div class="pptquiz-page-carousel" id="bigCoverCarousel">
         <div class="pptquiz-page-slide active empty">
           <div class="cover-placeholder">PPT</div>
           <div class="pptquiz-page-slide-caption">
@@ -29,9 +28,9 @@
       </div>
     </section>
 
-    <section class="panel parent-materials-tools modern-tools">
-      <input id="materialSearch" class="field modern-search" placeholder="Cari PPT, quiz, file..." oninput="renderMaterialsPage()"/>
-      <select id="materialFilter" class="field material-filter-native" onchange="renderMaterialsPage()" aria-label="Filter materi">
+    <section class="panel parent-materials-tools">
+      <input id="materialSearch" class="field" placeholder="Cari PPT, quiz, file..." oninput="renderMaterialsPage()"/>
+      <select id="materialFilter" class="field" onchange="renderMaterialsPage()">
         <option value="all">Semua</option>
         <option value="ppt-open">PPT Terbuka</option>
         <option value="ppt-locked">PPT Locked</option>
@@ -40,15 +39,6 @@
         <option value="file-open">File Terbuka</option>
         <option value="file-locked">File Locked</option>
       </select>
-      <div class="material-filter-chips" id="materialFilterChips">
-        <button type="button" class="filter-chip active" data-filter="all" onclick="setMaterialFilter('all', this)">Semua</button>
-        <button type="button" class="filter-chip" data-filter="ppt-open" onclick="setMaterialFilter('ppt-open', this)">PPT Terbuka</button>
-        <button type="button" class="filter-chip" data-filter="ppt-locked" onclick="setMaterialFilter('ppt-locked', this)">PPT Locked</button>
-        <button type="button" class="filter-chip" data-filter="quiz-open" onclick="setMaterialFilter('quiz-open', this)">Quiz Terbuka</button>
-        <button type="button" class="filter-chip" data-filter="quiz-locked" onclick="setMaterialFilter('quiz-locked', this)">Quiz Locked</button>
-        <button type="button" class="filter-chip" data-filter="file-open" onclick="setMaterialFilter('file-open', this)">File Terbuka</button>
-        <button type="button" class="filter-chip" data-filter="file-locked" onclick="setMaterialFilter('file-locked', this)">File Locked</button>
-      </div>
     </section>
 
     <section class="panel parent-materials-page-panel">
@@ -71,7 +61,7 @@
           <div class="eyebrow">Quiz</div>
           <h2 id="quizTitle">Quiz</h2>
         </div>
-        <button class="quiz-close-btn" onclick="closeQuiz()" aria-label="Tutup quiz">×</button>
+        <button class="btn btn-light" onclick="closeQuiz()">Tutup</button>
       </div>
       <div id="quizBody"></div>
       <div class="modal-actions">
@@ -85,40 +75,10 @@ let currentStudent = null;
 let quizAnswers = {};
 let currentQuizQuestions = [];
 let currentQuizTitle = "";
-let quizResultAlreadyChecked = false;
 let bigCarouselTimer = null;
 
 function getEl(id){ return document.getElementById(id); }
 function safe(v){ return String(v || "").replace(/[&<>"]/g, function(m){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[m]; }); }
-
-function setMaterialFilter(value, btn){
-  const select = getEl("materialFilter");
-  if(select) select.value = value;
-  syncMaterialFilterChips(value);
-  renderMaterialsPage();
-}
-
-function syncMaterialFilterChips(value){
-  document.querySelectorAll("#materialFilterChips .filter-chip").forEach(function(chip){
-    chip.classList.toggle("active", chip.dataset.filter === value);
-  });
-}
-
-function toggleQuizMode(on){
-  document.body.classList.toggle("quiz-open-mode", !!on);
-}
-
-function getLatestUnlockedMaterial(list, pptOnly){
-  let items = (list || []).filter(function(x){ return x && x.is_unlocked; });
-  if(pptOnly) items = items.filter(function(x){ return !parentIsProjectFile(x); });
-  items.sort(function(a,b){
-    const ta = Date.parse(a.unlocked_at || 0) || 0;
-    const tb = Date.parse(b.unlocked_at || 0) || 0;
-    if(tb !== ta) return tb - ta;
-    return Number(b.id || 0) - Number(a.id || 0);
-  });
-  return items[0] || null;
-}
 
 function svg(name){
   return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7h7l2 2h9v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>';
@@ -188,35 +148,48 @@ function renderBigCarousel(){
   const wrap = getEl("bigCoverCarousel");
   if(!wrap || !currentStudent) return;
 
-  const latestUnlocked = getLatestUnlockedMaterial(currentStudent.library || [], true) || getLatestUnlockedMaterial(currentStudent.library || [], false);
-  const fallback = (currentStudent.library || []).filter(function(x){ return x && x.cover_path; }).slice(-1)[0];
-  const item = latestUnlocked && latestUnlocked.cover_path ? latestUnlocked : fallback;
+  const covers = (currentStudent.library || []).filter(function(x){ return x && x.cover_path; }).slice(0, 10);
 
-  if(!item || !item.cover_path){
+  if(!covers.length){
     wrap.innerHTML = '<div class="pptquiz-page-slide active empty"><div class="cover-placeholder">PPT</div><div class="pptquiz-page-slide-caption"><span>Belum ada cover</span><strong>PPT & Quiz</strong></div></div>';
     return;
   }
 
-  wrap.innerHTML = `
-    <div class="pptquiz-page-slide active">
-      <img src="${safe(item.cover_path)}" loading="eager" decoding="async" alt="${safe(item.title || item.file_name || "Materi")}">
-      <div class="pptquiz-page-slide-caption">
-        <span>${item.is_unlocked ? "Terakhir di-unlock" : "Preview"}</span>
-        <strong>${safe(item.title || item.file_name || "Materi")}</strong>
+  wrap.innerHTML = covers.map(function(item, index){
+    return `
+      <div class="pptquiz-page-slide ${index === 0 ? "active" : ""}">
+        <img src="${safe(item.cover_path)}" loading="${index === 0 ? "eager" : "lazy"}" decoding="async">
+        <div class="pptquiz-page-slide-caption">
+          <span>${item.is_unlocked ? "Unlocked" : "Locked"}</span>
+          <strong>${safe(item.title || item.file_name || "Materi")}</strong>
+        </div>
       </div>
-    </div>
-  `;
+    `;
+  }).join("");
 
-  scrollToQuizResultScore();
+  startBigCarousel();
 }
 
-function startBigCarousel(){ return; }
+function startBigCarousel(){
+  const slides = Array.from(document.querySelectorAll("#bigCoverCarousel .pptquiz-page-slide"));
+  if(slides.length <= 1) return;
+
+  if(bigCarouselTimer) clearInterval(bigCarouselTimer);
+
+  let index = slides.findIndex(function(s){ return s.classList.contains("active"); });
+  if(index < 0) index = 0;
+
+  bigCarouselTimer = setInterval(function(){
+    slides[index].classList.remove("active");
+    index = (index + 1) % slides.length;
+    slides[index].classList.add("active");
+  }, 2000);
+}
 
 function initFilterFromQuery(){
   const q = new URLSearchParams(location.search);
   const f = q.get("filter");
   if(f && getEl("materialFilter")) getEl("materialFilter").value = f;
-  syncMaterialFilterChips((f && getEl("materialFilter")) ? f : ((getEl("materialFilter") && getEl("materialFilter").value) || "all"));
 }
 
 function itemMatch(item){
@@ -241,7 +214,6 @@ function itemMatch(item){
 }
 
 function renderMaterialsPage(){
-  syncMaterialFilterChips((getEl("materialFilter") && getEl("materialFilter").value) || "all");
   if(!currentStudent){
     getEl("materialsPageList").innerHTML = '<div class="empty">Memuat data...</div>';
     return;
@@ -283,7 +255,6 @@ function renderMaterialsPage(){
 }
 
 async function openQuiz(materialId){
-  quizResultAlreadyChecked = false;
   saveParentLastMaterial(materialId, "quiz");
   quizAnswers = {};
   const quiz = await fetch("/api/parent/materials/" + materialId + "/quiz", { cache:"no-store" }).then(r => r.json());
@@ -310,42 +281,13 @@ async function openQuiz(materialId){
   }).join("");
 
   getEl("quizOverlay").style.display = "flex";
-  toggleQuizMode(true);
-  window.scrollTo({ top:0, behavior:"smooth" });
 }
 
 function closeQuiz(){
   getEl("quizOverlay").style.display = "none";
-  toggleQuizMode(false);
-}
-
-
-function scrollToQuizResultScore(){
-  setTimeout(function(){
-    const result = document.getElementById("quizResultCard");
-    if(!result) return;
-
-    result.scrollIntoView({
-      behavior:"smooth",
-      block:"start"
-    });
-
-    result.classList.add("quiz-result-highlight");
-    setTimeout(function(){
-      result.classList.remove("quiz-result-highlight");
-    }, 1800);
-  }, 120);
 }
 
 function submitQuiz(){
-  const existingResult = document.getElementById("quizResultCard");
-
-  // Cek jawaban hanya sekali. Klik kedua dan seterusnya hanya scroll ke hasil.
-  if(quizResultAlreadyChecked && existingResult){
-    scrollToQuizResultScore();
-    return;
-  }
-
   const total = currentQuizQuestions.length;
   let score = 0;
   const wrong = [];
@@ -363,7 +305,7 @@ function submitQuiz(){
     : "<li>Semua benar. Keren!</li>";
 
   getEl("quizBody").innerHTML += `
-    <div id="quizResultCard" class="quiz-feedback-card quiz-feedback-${percent >= 70 ? "good" : "warn"}">
+    <div class="quiz-feedback-card quiz-feedback-${percent >= 70 ? "good" : "warn"}">
       <div class="quiz-feedback-top">
         <div><div class="quiz-feedback-kicker">Hasil Quiz</div><h3>Skor ${score}/${total}</h3><p>Nilai: ${percent}%</p></div>
         <div class="quiz-feedback-score">${percent}%</div>
@@ -371,9 +313,6 @@ function submitQuiz(){
       <div class="quiz-feedback-box"><strong>Catatan</strong><ul>${wrongHTML}</ul></div>
     </div>
   `;
-
-  quizResultAlreadyChecked = true;
-  scrollToQuizResultScore();
 }
 
 
@@ -393,11 +332,16 @@ function getAutoScrollTargetMaterialId(){
   if(!currentStudent) return null;
 
   const list = currentStudent.library || [];
-  const latestUnlockedPPT = getLatestUnlockedMaterial(list, true);
-  if(latestUnlockedPPT) return Number(latestUnlockedPPT.id);
+  const savedId = getLastOpenedMaterialIdFromStorage();
 
-  const latestUnlockedAny = getLatestUnlockedMaterial(list, false);
-  if(latestUnlockedAny) return Number(latestUnlockedAny.id);
+  if(savedId && list.some(function(x){ return Number(x.id) === Number(savedId); })){
+    return savedId;
+  }
+
+  const unlocked = list.filter(function(x){ return x && x.is_unlocked; });
+  if(unlocked.length){
+    return Number(unlocked[unlocked.length - 1].id);
+  }
 
   if(list.length){
     return Number(list[list.length - 1].id);
@@ -422,8 +366,6 @@ function scrollToLastOpenedMaterial(){
     }, 2600);
   }, 450);
 }
-
-  scrollToQuizResultScore();
 
 document.addEventListener("DOMContentLoaded", function(){
   initFilterFromQuery();
