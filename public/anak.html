@@ -2,183 +2,182 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>KolimNT Code - RoboLearn Anak</title>
-  <link rel="stylesheet" href="/kid-home.css"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KolimNT Code - Beranda Anak</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/kid-home.css" />
 </head>
 <body>
-  <div class="space-bg" aria-hidden="true"></div>
-  <div class="stars-layer" aria-hidden="true"></div>
-  <div class="floating-code code-a" aria-hidden="true">&lt;/&gt;</div>
-  <div class="floating-code code-b" aria-hidden="true">{ }</div>
-  <div class="floating-code code-c" aria-hidden="true">⚙</div>
+  <main class="stage-shell">
+    <section class="stage" aria-label="KolimNT Code Beranda Anak">
+      <div class="sky-bg"></div>
+      <div class="mist"></div>
+      <div class="stars"></div>
 
-  <main class="app-shell">
-    <header class="topbar">
-      <button class="logo-button" type="button" onclick="showRobo('Halo! Aku Robo, asisten belajarmu di KolimNT Code ✨')">
-        <img src="assets/robohome/logo-kolimnt-code.png" alt="KolimNT Code" class="brand-logo">
-      </button>
+      <header class="topbar">
+        <a class="brand" href="#home" aria-label="KolimNT Code">
+          <span class="brand-bot">🤖</span>
+          <span class="brand-text"><b>KolimNT</b> <i>Code</i></span>
+        </a>
 
-      <section class="top-stats" aria-label="Statistik anak">
-        <button class="stat-pill coin" type="button" onclick="addCoin()">
-          <img src="assets/robohome/coin-star.png" alt="">
-          <strong id="coinValue">1250</strong>
+        <nav class="nav">
+          <a class="active" href="#home">Beranda</a>
+          <a href="#mission">Misi</a>
+          <a href="#learn">Belajar</a>
+          <a href="#quiz">Quiz</a>
+          <a href="#leaderboard">Leaderboard</a>
+          <a href="#harga">Harga</a>
+          <a href="#tentang">Tentang</a>
+        </nav>
+
+        <div class="top-actions">
+          <button class="coin-top" data-toast="Koin kamu: 1.250">
+            <img src="/assets/robohome/coin.png" alt="">
+            <span>1.250</span>
+          </button>
+          <button class="login-btn" data-toast="Login dibuka">Login</button>
+          <button class="signup-btn" data-toast="Daftar akun dibuka">Daftar</button>
+        </div>
+      </header>
+
+      <section class="hero" id="home">
+        <div class="hero-copy">
+          <div class="badge">🚀 Platform Coding untuk Anak</div>
+          <h1>Belajar Coding<br><span>Jadi Seru</span></h1>
+          <p>Misi interaktif, quiz menyenangkan, hadiah keren, dan pantau progres belajarmu setiap hari!</p>
+          <div class="cta-row">
+            <button class="cta primary" data-confetti data-toast="🚀 Belajar dimulai!">Mulai Belajar <span>🚀</span></button>
+            <button class="cta secondary" data-scroll="#mission">Lihat Misi <span>⭐</span></button>
+          </div>
+        </div>
+
+        <div class="hero-art">
+          <img class="robot" src="/assets/robohome/robot.png" alt="Robot KolimNT">
+          <img class="float code-blue" src="/assets/robohome/code-blue.png" alt="">
+          <img class="float code-purple" src="/assets/robohome/code-purple.png" alt="">
+          <img class="float gear" src="/assets/robohome/gear.png" alt="">
+          <img class="float braces" src="/assets/robohome/braces.png" alt="">
+          <img class="float code-pink" src="/assets/robohome/code-pink.png" alt="">
+          <span class="star star-a">★</span>
+          <span class="star star-b">★</span>
+          <div class="bubble">
+            <strong>Halo!</strong>
+            <span>Siap belajar<br>hari ini?</span>
+            <em>💙</em>
+          </div>
+        </div>
+      </section>
+
+      <section class="status-strip">
+        <article class="status profile">
+          <div class="avatar">👦🏻</div>
+          <div>
+            <strong>Hai, Budi! 👋</strong>
+            <span>Terus belajar dan<br>jadi Programmer Hebat!</span>
+          </div>
+        </article>
+
+        <article class="status level">
+          <img src="/assets/robohome/shield.png" alt="">
+          <div><span>Level</span><strong>7</strong></div>
+        </article>
+
+        <article class="status xp">
+          <div class="xp-top">
+            <span>XP Hari Ini</span>
+            <strong>350 / 600 XP</strong>
+          </div>
+          <div class="xp-line"><i></i></div>
+        </article>
+
+        <button class="status small-stat" data-toast="Koin: 1.250">
+          <img src="/assets/robohome/coin.png" alt="">
+          <div><strong>1.250</strong><span>Koin</span></div>
+          <b>›</b>
         </button>
-        <button class="stat-pill fire" type="button" onclick="boostStreak()">
-          <img src="assets/robohome/fire-streak.png" alt="">
-          <strong id="streakValue">7</strong>
+
+        <button class="status small-stat" data-toast="Streak: 15 hari">
+          <img src="/assets/robohome/fire.png" alt="">
+          <div><strong>15</strong><span>Streak Hari</span></div>
+          <b>›</b>
         </button>
-        <button class="stat-pill star" type="button" onclick="collectStar()">
-          <img src="assets/robohome/star-reward.png" alt="">
-          <strong id="starValue">48</strong>
+
+        <button class="status today" data-toast="Belajar hari ini: 20 menit">
+          <div class="calendar">✓</div>
+          <div><span>Belajar Hari Ini</span><strong>20 <small>menit</small></strong></div>
         </button>
       </section>
-    </header>
 
-    <section class="hero-card">
-      <div class="hero-bg-img"></div>
+      <section class="features" id="learn">
+        <article class="feature" data-toast="Quiz Interaktif dibuka">
+          <img src="/assets/robohome/quiz.png" alt="">
+          <div><h3>Quiz Interaktif</h3><p>Belajar sambil bermain dengan quiz seru!</p><a>Main Quiz →</a></div>
+        </article>
+        <article class="feature" data-toast="Misi Harian dibuka">
+          <img src="/assets/robohome/flag.png" alt="">
+          <div><h3>Misi Harian</h3><p>Selesaikan misi harian dan dapatkan XP!</p><a class="orange">Lihat Misi →</a></div>
+        </article>
+        <article class="feature" data-toast="Reward Koin dibuka">
+          <img src="/assets/robohome/coin-green.png" alt="">
+          <div><h3>Reward Koin</h3><p>Kumpulkan koin dan tukar dengan hadiah!</p><a class="green">Kumpulkan →</a></div>
+        </article>
+        <article class="feature" data-toast="Progress Belajar dibuka">
+          <img src="/assets/robohome/chart.png" alt="">
+          <div><h3>Progress Belajar</h3><p>Pantau perkembanganmu setiap saat!</p><a class="blue">Lihat Progress →</a></div>
+        </article>
+        <article class="feature" data-toast="Toko Hadiah dibuka">
+          <img src="/assets/robohome/trophy.png" alt="">
+          <div><h3>Toko Hadiah</h3><p>Gunakan koin untuk dapatkan hadiah keren!</p><a>Buka Toko →</a></div>
+        </article>
+      </section>
 
-      <div class="hero-copy">
-        <div class="hello-pill">Halo, <span id="studentName">Raka</span>! 👋</div>
-        <h1>Siap belajar <span>coding</span> hari ini?</h1>
-        <p>Belajar jadi seru dengan misi, tantangan, level, reward, dan asisten Robo yang selalu bantu kamu.</p>
-        <div class="hero-actions">
-          <button class="primary-btn" type="button" onclick="startLearning()">
-            <span>🚀</span> Mulai Belajar
-          </button>
-          <button class="ghost-btn" type="button" onclick="showRobo('Pilih menu Quiz, Misi, atau Petualangan Belajar. Aku siap bantu kamu!')">
-            Tanya Robo
-          </button>
-        </div>
-      </div>
-
-      <aside class="robo-card" id="roboCard">
-        <div class="robo-head">🤖 Robo Assistant</div>
-        <p id="roboText">Yuk lanjutkan petualangan codingmu hari ini!</p>
-      </aside>
-    </section>
-
-    <section class="shortcut-grid" aria-label="Menu cepat">
-      <button class="shortcut-card purple" type="button" onclick="openFeature('Quiz')">
-        <img src="assets/robohome/icon-quiz.png" alt="">
-        <strong>Quiz</strong>
-        <span>Uji Pemahaman</span>
-      </button>
-
-      <button class="shortcut-card blue" type="button" onclick="openFeature('Progress')">
-        <img src="assets/robohome/icon-progress.png" alt="">
-        <strong>Progress</strong>
-        <span>Lihat Perkembangan</span>
-      </button>
-
-      <button class="shortcut-card violet" type="button" onclick="openFeature('Reward')">
-        <img src="assets/robohome/icon-trophy.png" alt="">
-        <strong>Reward</strong>
-        <span>Ambil Hadiah</span>
-      </button>
-
-      <button class="shortcut-card cyan" type="button" onclick="openFeature('Misi')">
-        <img src="assets/robohome/icon-mission.png" alt="">
-        <strong>Misi</strong>
-        <span>Selesaikan Misi</span>
-      </button>
-    </section>
-
-    <section class="adventure-panel">
-      <div class="section-head">
-        <h2>🗺️ Petualangan Belajar</h2>
-        <button type="button" onclick="showAllLevels()">Lihat Semua ›</button>
-      </div>
-
-      <div class="path-area">
-        <svg class="path-line" viewBox="0 0 900 220" preserveAspectRatio="none" aria-hidden="true">
-          <path d="M90 128 C230 68 330 178 454 120 C585 58 655 126 806 92" />
-        </svg>
-
-        <article class="level-card level-one active-level" onclick="selectLevel(1)">
-          <div class="island-wrap">
-            <img src="assets/robohome/island-check.png" alt="Level 1" class="island-img">
-            <span class="check-badge">✓</span>
+      <section class="bottom">
+        <article class="mission panel" id="mission">
+          <div class="panel-title">
+            <div><h2>Dunia Misi yang Menantimu 🎮</h2><p>Selesaikan misi, kumpulkan XP, dan buka dunia baru!</p></div>
+            <button data-toast="Panel misi aktif">×</button>
           </div>
-          <div class="level-label">
-            <strong>Level 1</strong>
-            <span>Dasar Coding</span>
-            <div class="mini-stars">⭐ ⭐ ☆</div>
+
+          <svg class="path" viewBox="0 0 900 110" preserveAspectRatio="none">
+            <path d="M40 80 C150 40 220 95 330 60 C455 20 545 96 650 58 C750 25 810 58 860 52" />
+          </svg>
+
+          <button class="island i1" data-toast="Misi: Mulai"><img src="/assets/robohome/island-start.png" alt=""><span>Mulai</span></button>
+          <button class="island i2" data-toast="Misi: Dasar Coding"><img src="/assets/robohome/island-done.png" alt=""><span>Dasar Coding</span></button>
+          <button class="island i3" data-toast="Misi: Logika & Percabangan"><img src="/assets/robohome/island-blue.png" alt=""><span>Logika & Percabangan</span></button>
+          <button class="island i4" data-toast="Misi: Perulangan"><img src="/assets/robohome/island-gray.png" alt=""><span>Perulangan</span></button>
+          <button class="island i5" data-toast="Misi: Array & Fungsi"><img src="/assets/robohome/island-blue.png" alt=""><span>Array & Fungsi</span></button>
+          <button class="island i6" data-toast="Misi: Tantangan Master"><img src="/assets/robohome/chest-island.png" alt=""><span>Tantangan Master</span></button>
+        </article>
+
+        <article class="quiz-panel panel" id="quiz">
+          <button class="close" data-toast="Arena quiz aktif">×</button>
+          <h2>🏆 Arena Quiz</h2>
+          <p>Uji kemampuan codingmu dan raih peringkat tertinggi!</p>
+          <button class="quiz-btn" data-confetti data-toast="🏆 Quiz dimulai!">Main Quiz Sekarang</button>
+          <div class="quiz-footer">
+            <div class="faces"><span>👦</span><span>👧</span><span>🧒</span></div>
+            <div><strong>2.450+</strong><span>anak bermain hari ini</span></div>
           </div>
         </article>
 
-        <article class="level-card level-two current-level" onclick="selectLevel(2)">
-          <div class="island-wrap">
-            <img src="assets/robohome/island-start.png" alt="Level 2" class="island-img">
+        <article class="rank-panel panel" id="leaderboard">
+          <h2>Peringkat Teratas 🏆</h2>
+          <div class="rank-list">
+            <div class="rank"><b>1</b><span>👦🏻</span><div><strong>Budi Hebat</strong><small>Level 12</small></div><em>🪙 2.850</em></div>
+            <div class="rank"><b>2</b><span>👧🏻</span><div><strong>Nia Code</strong><small>Level 11</small></div><em>🪙 2.150</em></div>
+            <div class="rank"><b>3</b><span>🧒🏻</span><div><strong>Raka Pro</strong><small>Level 10</small></div><em>🪙 1.950</em></div>
           </div>
-          <div class="level-label">
-            <strong>Level 2</strong>
-            <span>Logika Program</span>
-            <div class="mini-stars">⭐ ☆ ☆</div>
-          </div>
+          <button class="leader-btn" data-toast="Leaderboard dibuka">Lihat Leaderboard →</button>
         </article>
-
-        <article class="level-card level-three locked-level" onclick="lockedLevel()">
-          <div class="island-wrap">
-            <img src="assets/robohome/island-blue-locked.png" alt="Level 3 terkunci" class="island-img">
-            <span class="lock-badge">🔒</span>
-          </div>
-          <div class="level-label">
-            <strong>Level 3</strong>
-            <span>Coming Soon</span>
-            <div class="mini-stars dim">☆ ☆ ☆</div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="bottom-grid">
-      <article class="reward-card">
-        <div>
-          <h2>Hadiah Hari Ini</h2>
-          <p>Buka peti dan dapatkan hadiah spesial untuk meningkatkan semangat belajar!</p>
-          <button class="primary-btn small" type="button" onclick="openChest()">Buka Peti</button>
-        </div>
-        <img src="assets/robohome/chest-reward.png" alt="Peti hadiah">
-      </article>
-
-      <article class="progress-card">
-        <h2>⭐ Progress Kamu</h2>
-        <div class="level-row">
-          <span>Level 1</span>
-          <span>Level 2</span>
-        </div>
-        <div class="xp-track"><i id="xpTrack" style="width:53%"></i><b id="xpText">320 / 600 XP</b></div>
-        <div class="progress-stats">
-          <button type="button" onclick="collectStar()"><img src="assets/robohome/star-reward.png" alt=""><b id="miniStar">48</b><span>Bintang</span></button>
-          <button type="button" onclick="openFeature('Misi')"><span class="code-icon">&lt;/&gt;</span><b>12</b><span>Misi Selesai</span></button>
-          <button type="button" onclick="boostStreak()"><img src="assets/robohome/fire-streak.png" alt=""><b id="miniStreak">7</b><span>Streak Hari</span></button>
-        </div>
-      </article>
+      </section>
     </section>
   </main>
 
-  <nav class="bottom-nav" aria-label="Navigasi anak">
-    <a class="active" href="#" onclick="navClick(event, 'Beranda')">
-      <span>🏠</span><b>Beranda</b>
-    </a>
-    <a href="#" onclick="navClick(event, 'Quiz')">
-      <img src="assets/robohome/icon-quiz.png" alt=""><b>Quiz</b>
-    </a>
-    <a href="#" onclick="navClick(event, 'Misi')">
-      <img src="assets/robohome/icon-mission.png" alt=""><b>Misi</b>
-    </a>
-    <a href="#" onclick="navClick(event, 'Reward')">
-      <img src="assets/robohome/icon-trophy.png" alt=""><b>Reward</b>
-    </a>
-    <a href="#" onclick="navClick(event, 'Profil')">
-      <span>🤖</span><b>Profil</b>
-    </a>
-  </nav>
-
   <div class="toast" id="toast"></div>
-  <div class="confetti-layer" id="confettiLayer"></div>
-
+  <div class="confetti" id="confetti"></div>
   <script src="/kid-home.js"></script>
 </body>
 </html>
